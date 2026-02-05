@@ -1,4 +1,5 @@
 import os
+import asyncio
 import logging
 from collections import defaultdict
 from telegram import Update
@@ -151,8 +152,11 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
     The TEMPLATE FORMAT is final and frozen.
     """
 
-    # Send "analyzing" message
-    analyzing_msg = await update.message.reply_text("🧙‍♂️ Analyzing chart structure...")
+    # Send "thinking" message
+    thinking_msg = await update.message.reply_text("🔮 Reading chart…")
+
+    # UX delay — full analysis gets 4-5 seconds
+    await asyncio.sleep(4.5)
 
     # TODO: In production, vision API will:
     # 1. Download image: file = await context.bot.get_file(image_file_id)
@@ -191,7 +195,7 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
 
     if not user_plan.strip():
         # STATE 2: Plan is unclear or missing — pause, do not proceed
-        await analyzing_msg.delete()
+        await thinking_msg.delete()
         await update.message.reply_text(
             "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
             "📋 **Plan Reflection**\n"
@@ -205,7 +209,7 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
 
     if plan_conflicts:
         # STATE 3: Plan conflicts with chart — pause, ask for confirmation
-        await analyzing_msg.delete()
+        await thinking_msg.delete()
         await update.message.reply_text(
             "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
             f"📋 **Plan Reflection**\n"
@@ -304,25 +308,83 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
     )
 
     # Delete "analyzing" message and send analysis
-    await analyzing_msg.delete()
+    await thinking_msg.delete()
     await update.message.reply_text(analysis, parse_mode='Markdown')
 
 
 async def valid_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /valid command - quick validity check"""
+    # Check if there's an image to validate
+    chat_id = update.effective_chat.id
+    image_file_id = None
+
+    if update.message.photo:
+        image_file_id = update.message.photo[-1].file_id
+        user_images[chat_id] = image_file_id
+    elif update.message.reply_to_message and update.message.reply_to_message.photo:
+        image_file_id = update.message.reply_to_message.photo[-1].file_id
+    elif chat_id in user_images and user_images[chat_id]:
+        image_file_id = user_images[chat_id]
+
+    if not image_file_id:
+        await update.message.reply_text(
+            "⚡ **QUICK VALIDITY CHECK**\n\n"
+            "Upload a chart or reply to one with `/valid` for a fast YES/NO assessment.",
+            parse_mode='Markdown'
+        )
+        return
+
+    # Thinking line + 2 second delay
+    thinking_msg = await update.message.reply_text("🔮 Reading chart…")
+    await asyncio.sleep(2)
+    await thinking_msg.delete()
+
+    # TODO: Vision API will populate this dynamically
     await update.message.reply_text(
         "⚡ **QUICK VALIDITY CHECK**\n\n"
-        "Upload a chart or reply to one with `/valid` for a fast YES/NO assessment.",
+        "**Setup:** .786 + Flip Zone\n"
+        "**Structure:** Clean\n"
+        "**Verdict:** ✅ VALID\n\n"
+        "Use `/jayce` for full analysis with plan reflection.",
         parse_mode='Markdown'
     )
 
 
 async def violent_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /violent command - Violent Mode assessment"""
+    # Check if there's an image to check
+    chat_id = update.effective_chat.id
+    image_file_id = None
+
+    if update.message.photo:
+        image_file_id = update.message.photo[-1].file_id
+        user_images[chat_id] = image_file_id
+    elif update.message.reply_to_message and update.message.reply_to_message.photo:
+        image_file_id = update.message.reply_to_message.photo[-1].file_id
+    elif chat_id in user_images and user_images[chat_id]:
+        image_file_id = user_images[chat_id]
+
+    if not image_file_id:
+        await update.message.reply_text(
+            "🔥 **VIOLENT MODE CHECK**\n\n"
+            "Upload a .786 or Under-Fib chart with `/violent` to check if Violent Mode applies.\n\n"
+            "⚠️ Violent Mode only applies to .786 + Flip Zone and Under-Fib setups.",
+            parse_mode='Markdown'
+        )
+        return
+
+    # Thinking line + 3 second delay
+    thinking_msg = await update.message.reply_text("🔮 Reading chart…")
+    await asyncio.sleep(3)
+    await thinking_msg.delete()
+
+    # TODO: Vision API will populate this dynamically
     await update.message.reply_text(
         "🔥 **VIOLENT MODE CHECK**\n\n"
-        "Upload a .786 or Under-Fib chart with `/violent` to check if Violent Mode applies.\n\n"
-        "⚠️ Violent Mode only applies to .786 + Flip Zone and Under-Fib setups.",
+        "**Setup:** .786 + Flip Zone\n"
+        "**Structure Grade:** B\n"
+        "**Violent Mode:** Eligible but structure grade is B — standard execution recommended over Violent Mode.\n\n"
+        "Use `/jayce` for full analysis with if-then scenarios.",
         parse_mode='Markdown'
     )
 
