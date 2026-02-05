@@ -1,4 +1,5 @@
 import os
+import re
 import asyncio
 import logging
 from collections import defaultdict
@@ -158,71 +159,134 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
     # UX delay — full analysis gets 4-5 seconds
     await asyncio.sleep(4.5)
 
-    # TODO: In production, vision API will:
-    # 1. Download image: file = await context.bot.get_file(image_file_id)
-    # 2. Send to Claude Vision API for structure analysis
-    # 3. Parse response to populate these variables dynamically
-    #
-    # For now, these are placeholder values showing the final format.
+    # ══════════════════════════════════════════════
+    # INPUT LOCK LAYER — Correctness + Discipline
+    # ══════════════════════════════════════════════
+    # Rule 1: If user states a value, LOCK it. Never override.
+    # Rule 2: If a value is missing, mark "Unconfirmed" or ask.
+    # Rule 3: No vision yet — all values come from user text only.
+    # Rule 4: No guessing. Ever.
 
-    # ── Placeholder values (will be replaced by vision API) ──
-    pair = "SOL/USDT"
-    timeframe = "4H"
-    market_state = "Pullback into key level"
-    setup_name = ".786 + Flip Zone"
-    setup_key = ".786"
-    structure_grade = "B"
-    structure_notes = (
-        "Higher lows intact from base. Impulse was strong but volume "
-        "tapered slightly on the reclaim. Structure supports a reaction "
-        "but not full conviction for a runner."
-    )
-    momentum_readable = True
-    momentum_text = (
-        "RSI is approaching oversold on this timeframe, which increases "
-        "the probability of a reaction at this level. This is not a "
-        "guarantee — it's a statistical lean."
-    )
-    violent_mode = VIOLENT_ELIGIBLE.get(setup_key, False)
-    pattern_memory = (
-        "Similar .786 flip zone reclaims on this pair have historically "
-        "shown a tendency toward fast initial reactions followed by consolidation."
-    )
+    user_text = user_plan.strip()
 
-    # ── Plan Reflection logic (3-state) ──
-    plan_conflicts = False  # Will be set by vision API comparison
-    plan_conflict_detail = ""  # e.g. "chart appears closer to .618"
+    # ── Parse setup level from user input ──
+    SETUP_PATTERNS = {
+        '.382': [r'\.?382', r'38\.2'],
+        '.50': [r'\.?50\b', r'\.500'],
+        '.618': [r'\.?618', r'61\.8'],
+        '.786': [r'\.?786', r'78\.6'],
+        'under-fib': [r'under[\s\-]?fib', r'underfib'],
+    }
 
-    if not user_plan.strip():
-        # STATE 2: Plan is unclear or missing — pause, do not proceed
+    setup_key = None
+    for key, patterns in SETUP_PATTERNS.items():
+        for pattern in patterns:
+            if re.search(pattern, user_text, re.IGNORECASE):
+                setup_key = key
+                break
+        if setup_key:
+            break
+
+    # ── Parse timeframe from user input ──
+    TIMEFRAME_PATTERNS = [
+        (r'\b1\s*m\b', '1m'), (r'\b3\s*m\b', '3m'), (r'\b5\s*m\b', '5m'),
+        (r'\b15\s*m\b', '15m'), (r'\b30\s*m\b', '30m'),
+        (r'\b1\s*h\b', '1H'), (r'\b2\s*h\b', '2H'), (r'\b4\s*h\b', '4H'),
+        (r'\b1\s*d\b', '1D'), (r'\bdaily\b', '1D'),
+        (r'\b1\s*w\b', '1W'), (r'\bweekly\b', '1W'),
+    ]
+
+    timeframe = None
+    for pattern, tf_value in TIMEFRAME_PATTERNS:
+        if re.search(pattern, user_text, re.IGNORECASE):
+            timeframe = tf_value
+            break
+
+    # ── Parse pair from user input ──
+    pair_match = re.search(
+        r'\b([A-Z]{2,10})\s*/\s*([A-Z]{2,10})\b',
+        user_plan,  # use original case
+        re.IGNORECASE
+    )
+    pair = pair_match.group(0).upper() if pair_match else None
+
+    # ── Parse target from user input ──
+    target_match = re.search(
+        r'(?:target|tp|take[\s\-]?profit)[\s:→\-]*([\w\s%.]+)',
+        user_text, re.IGNORECASE
+    )
+    target = target_match.group(1).strip() if target_match else None
+
+    # ── Parse invalidation from user input ──
+    invalidation_match = re.search(
+        r'(?:invalidat|invalid|stop[\s\-]?loss|sl)[\s:→\-]*([\w\s%.]+)',
+        user_text, re.IGNORECASE
+    )
+    invalidation = invalidation_match.group(1).strip() if invalidation_match else None
+
+    # ── GATE CHECK: Do we have enough to proceed? ──
+    # Setup level is REQUIRED — no analysis without it
+    if not user_text:
+        # STATE 2: No plan at all
         await thinking_msg.delete()
         await update.message.reply_text(
             "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
             "📋 **Plan Reflection**\n"
-            "I need your intended entry level and target before I evaluate.\n\n"
+            "I need your intended setup level and plan before I evaluate.\n\n"
             "What's your plan? Example:\n"
-            "`/jayce .786 flip zone → target previous high`\n\n"
+            "`/jayce .618 flip zone 1m → target previous high`\n\n"
             "I don't guess levels. Clarity before conviction.",
             parse_mode='Markdown'
         )
         return
 
-    if plan_conflicts:
-        # STATE 3: Plan conflicts with chart — pause, ask for confirmation
+    if not setup_key:
+        # Setup level could not be extracted — ask, don't guess
         await thinking_msg.delete()
         await update.message.reply_text(
             "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
-            f"📋 **Plan Reflection**\n"
-            f"You said: _{user_plan}_\n\n"
-            f"However, {plan_conflict_detail}.\n\n"
-            "Before I proceed:\n"
-            "→ Confirm your intended fib level\n"
-            "→ Confirm your entry zone\n"
-            "→ Confirm your invalidation level\n\n"
+            "📋 **Plan Reflection**\n"
+            f"You said: _{user_text}_\n\n"
+            "I couldn't identify a setup level from your message.\n\n"
+            "Please confirm which setup you're playing:\n"
+            "`.382` · `.50` · `.618` · `.786` · `under-fib`\n\n"
+            "Example: `/jayce .618 flip zone 1m → target previous high`\n\n"
             "I don't guess levels. Clarity before conviction.",
             parse_mode='Markdown'
         )
         return
+
+    # ── Build setup display name from locked input ──
+    setup_name = f"{setup_key} + Flip Zone"
+
+    # ── Build Plan Reflection summary (clean extraction, not full echo) ──
+    plan_summary_parts = [f"**Setup:** {setup_name}"]
+    if timeframe:
+        plan_summary_parts.append(f"**Timeframe:** {timeframe}")
+    if target:
+        plan_summary_parts.append(f"**Target:** {target}")
+    if invalidation:
+        plan_summary_parts.append(f"**Invalidation:** {invalidation}")
+    plan_summary = "\n".join(plan_summary_parts)
+
+    # ── Values that require vision (locked as Unconfirmed until vision is added) ──
+    display_pair = pair if pair else "Unconfirmed"
+    display_timeframe = timeframe if timeframe else "Unconfirmed"
+    market_state = "Unconfirmed (vision not enabled)"
+    structure_grade = "Unconfirmed"
+    structure_notes = (
+        "Structure grade requires visual confirmation. "
+        "Vision is not yet enabled — grade will be assessed once chart reading is live."
+    )
+    momentum_readable = False
+    momentum_text = ""
+    pattern_memory = (
+        f"Pattern memory for {setup_key} setups will be available once vision is enabled. "
+        f"For now, refer to `/explain {setup_key}` for historical context."
+    )
+
+    # ── Values derived from LOCKED user input (safe to use) ──
+    violent_mode = VIOLENT_ELIGIBLE.get(setup_key, False)
 
     # STATE 1: Plan is clear — proceed with full analysis
 
@@ -266,20 +330,20 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
     # ── Build full analysis ──
     analysis = (
         f"🧙‍♂️ **JAYCE ANALYSIS**\n\n"
-        # ── Section 1: Chart Context Header ──
-        f"**Pair:** {pair}\n"
-        f"**Timeframe:** {timeframe}\n"
+        # ── Section 1: Chart Context Header (locked from user input) ──
+        f"**Pair:** {display_pair}\n"
+        f"**Timeframe:** {display_timeframe}\n"
         f"**Market State:** {market_state}\n\n"
-        # ── Section 2: Plan Reflection (State 1 — clear, matches) ──
+        # ── Section 2: Plan Reflection (clean extraction) ──
         f"📋 **Plan Reflection**\n"
-        f"Your stated plan: _{user_plan}_\n"
-        f"Chart structure aligns with your stated level. Reviewing below.\n\n"
-        # ── Section 3: Setup Identification ──
+        f"{plan_summary}\n"
+        f"{'_Locked from your input. Reviewing below._' if setup_key else ''}\n\n"
+        # ── Section 3: Setup Identification (locked from user input) ──
         f"🔍 **Setup Identified:** {setup_name}\n\n"
         # ── Section 4: Structure Quality Grade ──
         f"🧱 **Structure Grade: {structure_grade}**\n"
         f"{structure_notes}\n"
-        f"_{grade_context.get(structure_grade, '')}_\n\n"
+        f"{'_' + grade_context.get(structure_grade, '') + '_' if structure_grade in grade_context else ''}\n\n"
         # ── Section 5: Momentum Health ──
         f"{momentum_section}\n\n"
         # ── Section 6: If-Then Scenario Matrix ──
