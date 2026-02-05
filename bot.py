@@ -288,6 +288,26 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
     # ── Values derived from LOCKED user input (safe to use) ──
     violent_mode = VIOLENT_ELIGIBLE.get(setup_key, False)
 
+    # ══════════════════════════════════════════════
+    # CONFIDENCE GATE — Downgrade certainty when values are unconfirmed
+    # ══════════════════════════════════════════════
+    unconfirmed_fields = []
+    if not timeframe:
+        unconfirmed_fields.append("Timeframe")
+    if not pair:
+        unconfirmed_fields.append("Pair")
+    # Market state and structure grade are always unconfirmed without vision
+    unconfirmed_fields.append("Market State")
+    unconfirmed_fields.append("Structure Grade")
+    unconfirmed_fields.append("Momentum")
+
+    confidence_note = (
+        f"⚠️ **Confidence Note:** {', '.join(unconfirmed_fields)} "
+        f"{'are' if len(unconfirmed_fields) > 1 else 'is'} unconfirmed. "
+        f"Vision is not yet enabled — analysis is based on your stated plan "
+        f"and Wiz Theory rules only. Treat as framework guidance, not visual confirmation."
+    )
+
     # STATE 1: Plan is clear — proceed with full analysis
 
     # ── Get setup-specific data ──
@@ -301,20 +321,26 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
         'C': 'C = defensive only, secure early and fast',
     }
 
-    # ── Violent Mode line ──
-    if violent_mode and structure_grade == 'A':
+    # ── Violent Mode line (vision-safe) ──
+    if not violent_mode:
+        violent_line = (
+            f"🔥 **Violent Mode:** Not applicable ({setup_key} excluded from Violent Mode)."
+        )
+    elif structure_grade == "Unconfirmed":
+        violent_line = (
+            f"🔥 **Violent Mode:** Eligible ({setup_key} setup). "
+            "Cannot confirm activation without structure grade. "
+            "Vision required to assess — default to standard execution."
+        )
+    elif violent_mode and structure_grade == 'A':
         violent_line = (
             f"🔥 **Violent Mode:** Eligible ({setup_key} setup). "
             "If immediate expansion with volume — Violent Mode applies."
         )
-    elif violent_mode:
+    else:
         violent_line = (
             f"🔥 **Violent Mode:** Eligible ({setup_key} setup) but structure grade "
             f"is {structure_grade} — standard execution recommended over Violent Mode."
-        )
-    else:
-        violent_line = (
-            f"🔥 **Violent Mode:** Not applicable ({setup_key} excluded from Violent Mode)."
         )
 
     # ── Momentum section ──
@@ -337,13 +363,15 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
         # ── Section 2: Plan Reflection (clean extraction) ──
         f"📋 **Plan Reflection**\n"
         f"{plan_summary}\n"
-        f"{'_Locked from your input. Reviewing below._' if setup_key else ''}\n\n"
-        # ── Section 3: Setup Identification (locked from user input) ──
-        f"🔍 **Setup Identified:** {setup_name}\n\n"
+        f"_Locked from your input. Reviewing below._\n\n"
+        # ── Section 3: Setup Identification (locked from user input, vision-safe) ──
+        f"🔍 **Setup Identified:** {setup_name}\n"
+        f"_I can't visually confirm fib depth yet. Using your stated setup for analysis._\n\n"
+        # ── Confidence Gate ──
+        f"{confidence_note}\n\n"
         # ── Section 4: Structure Quality Grade ──
         f"🧱 **Structure Grade: {structure_grade}**\n"
-        f"{structure_notes}\n"
-        f"{'_' + grade_context.get(structure_grade, '') + '_' if structure_grade in grade_context else ''}\n\n"
+        f"{structure_notes}\n\n"
         # ── Section 5: Momentum Health ──
         f"{momentum_section}\n\n"
         # ── Section 6: If-Then Scenario Matrix ──
