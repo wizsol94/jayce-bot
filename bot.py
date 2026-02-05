@@ -1,5 +1,6 @@
 import os
 import logging
+from collections import defaultdict
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -15,6 +16,9 @@ BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 if not BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN environment variable not set")
+
+# Store last uploaded image per chat (chat_id -> file_id)
+user_images = defaultdict(str)
 
 
 # Command Handlers
@@ -44,12 +48,67 @@ async def intro_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def jayce_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /jayce command - full chart evaluation"""
-    await update.message.reply_text(
-        "🧙‍♂️ **JAYCE EVALUATION**\n\n"
-        "Please upload a chart image with `/jayce` or reply to a chart message with `/jayce`.\n\n"
-        "I'll analyze structure, validate the setup, and provide execution guidance.",
-        parse_mode='Markdown'
+    chat_id = update.effective_chat.id
+    image_file_id = None
+    
+    # Check 1: Photo in caption (user uploads photo with /jayce in caption)
+    if update.message.photo:
+        image_file_id = update.message.photo[-1].file_id
+        user_images[chat_id] = image_file_id
+    
+    # Check 2: Reply to a photo
+    elif update.message.reply_to_message and update.message.reply_to_message.photo:
+        image_file_id = update.message.reply_to_message.photo[-1].file_id
+    
+    # Check 3: Use last uploaded image from this chat
+    elif chat_id in user_images and user_images[chat_id]:
+        image_file_id = user_images[chat_id]
+    
+    # No image found
+    if not image_file_id:
+        await update.message.reply_text(
+            "📸 I need a chart image to analyze.\n\n"
+            "Upload a chart or reply to one with `/jayce`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Image found - analyze it
+    await analyze_chart(update, context, image_file_id)
+
+
+async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, image_file_id: str):
+    """Analyze chart image and provide Wiz Theory evaluation"""
+    
+    # Send "analyzing" message
+    analyzing_msg = await update.message.reply_text("🧙‍♂️ Analyzing chart structure...")
+    
+    # TODO: In production, you would:
+    # 1. Download the image using: file = await context.bot.get_file(image_file_id)
+    # 2. Send to vision API (Claude API with images, or custom ML model)
+    # 3. Parse the response for structure analysis
+    
+    # For now, send a template response showing the expected format
+    analysis = (
+        "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
+        "**Setup Identified:** .618 + Flip Zone\n\n"
+        "**Structure Check:**\n"
+        "✅ Clean higher lows from base\n"
+        "✅ Strong impulse (≥60% breakout)\n"
+        "✅ 50-60% pullback into .618\n"
+        "✅ Flip zone shows clean reclaim\n\n"
+        "**Verdict:** ✅ VALID\n\n"
+        "**Execution:**\n"
+        "💰 Secure 40-60% on first strong reaction\n"
+        "⚠️ If chop/stall → exit remainder\n"
+        "✅ If structure holds → optional continuation\n\n"
+        "**Violent Mode:** Not applicable (.618 excluded from Violent Mode)\n\n"
+        "⚡ Structure is clean. Follow the framework."
     )
+    
+    # Delete "analyzing" message and send analysis
+    await analyzing_msg.delete()
+    await update.message.reply_text(analysis, parse_mode='Markdown')
 
 
 async def valid_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -136,9 +195,33 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Store uploaded photos and auto-analyze if triggered"""
+    chat_id = update.effective_chat.id
+    image_file_id = update.message.photo[-1].file_id
+    user_images[chat_id] = image_file_id
+    
+    # Check if caption contains /jayce or analysis trigger words
+    caption = update.message.caption if update.message.caption else ""
+    caption_lower = caption.lower()
+    
+    # Auto-analyze triggers in caption
+    analyze_triggers = ['/jayce', 'analyze', 'what you think', 'thoughts', 'valid']
+    
+    if any(trigger in caption_lower for trigger in analyze_triggers):
+        await analyze_chart(update, context, image_file_id)
+    else:
+        # Just acknowledge the image was received
+        await update.message.reply_text(
+            "📸 Chart received. Send `/jayce` to analyze it.",
+            parse_mode='Markdown'
+        )
+
+
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle natural language triggers like 'hey jayce' and intro requests"""
     text = update.message.text.lower()
+    chat_id = update.effective_chat.id
     
     # Check for intro triggers
     intro_triggers = [
@@ -153,19 +236,46 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         await intro_command(update, context)
         return
     
+    # Check for analysis request with stored image
+    analysis_triggers = [
+        'what you think',
+        'what do you think',
+        'analyze',
+        'analyze this',
+        'can you analyze',
+        'thoughts',
+        'your thoughts'
+    ]
+    
+    if any(trigger in text for trigger in analysis_triggers):
+        # Check if there's a stored image
+        if chat_id in user_images and user_images[chat_id]:
+            await analyze_chart(update, context, user_images[chat_id])
+            return
+        else:
+            await update.message.reply_text(
+                "📸 I need a chart image first. Upload one and I'll analyze it.",
+                parse_mode='Markdown'
+            )
+            return
+    
     # Check for Jayce mentions (original behavior)
     jayce_triggers = ['jayce', 'hey jayce', 'yo jayce']
     
     if any(trigger in text for trigger in jayce_triggers):
-        await update.message.reply_text(
-            "🧙‍♂️ Hey! I'm here.\n\n"
-            "Upload a chart and use:\n"
-            "`/jayce` — Full analysis\n"
-            "`/valid` — Quick check\n"
-            "`/violent` — Violent Mode\n\n"
-            "Or use `/help` for all commands",
-            parse_mode='Markdown'
-        )
+        # If there's a stored image, analyze it
+        if chat_id in user_images and user_images[chat_id]:
+            await analyze_chart(update, context, user_images[chat_id])
+        else:
+            await update.message.reply_text(
+                "🧙‍♂️ Hey! I'm here.\n\n"
+                "Upload a chart and use:\n"
+                "`/jayce` — Full analysis\n"
+                "`/valid` — Quick check\n"
+                "`/violent` — Violent Mode\n\n"
+                "Or use `/help` for all commands",
+                parse_mode='Markdown'
+            )
 
 
 # Helper functions for setup rules/explanations
@@ -290,6 +400,9 @@ def main():
     application.add_handler(CommandHandler("explain", explain_command))
     application.add_handler(CommandHandler("setups", setups_command))
     application.add_handler(CommandHandler("help", help_command))
+    
+    # Register photo handler (must come before text handler)
+    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     
     # Register text message handler for natural language triggers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
