@@ -357,14 +357,25 @@ async def download_telegram_image(context: ContextTypes.DEFAULT_TYPE, file_id: s
 async def call_lite_vision(image_bytes: bytes, user_plan: str) -> dict:
     """
     Call Claude API with Lite Vision prompt.
-    Returns parsed chart analysis.
     
-    Lite Vision scope:
-    - Timeframe detection
-    - Fib retracement depth (.382 / .50 / .618 / .786)
-    - Structure assessment (holds vs breaks)
-    - Validate user-stated setup
-    - Flag conflicts (never override silently)
+    LITE VISION = BOUNCER / SETUP RADAR
+    
+    Lite Vision's role is NOT to analyze deeply, grade setups, or give probabilities.
+    Its ONLY purpose is to scan, flag, and route to Deep Vision.
+    
+    Allowed:
+    - Detect basic structure context (impulse vs chop)
+    - Estimate fib depth region (above / below / under-fib)
+    - Notice untouched zones or structure memory
+    - TENTATIVELY identify WizTheory setup types
+    - Recommend Deep Vision when conditions look relevant
+    
+    NOT Allowed:
+    - Assign probability %
+    - Confirm validity of a setup
+    - Give entries, exits, or execution advice
+    - Analyze RSI divergence deeply
+    - Use confidence ratings
     """
     if not ANTHROPIC_API_KEY:
         return {'error': 'API key not configured'}
@@ -378,45 +389,53 @@ async def call_lite_vision(image_bytes: bytes, user_plan: str) -> dict:
     # Log image size for debugging
     logger.info(f"Lite Vision: Image size {len(image_bytes)} bytes, type {media_type}")
     
-    # Lite Vision system prompt — disciplined, no hype, no predictions
-    system_prompt = """You are Jayce's Lite Vision module — a disciplined chart reader for Wiz Theory analysis.
+    # Lite Vision system prompt — BOUNCER role, not analyst
+    system_prompt = """You are Jayce's Lite Vision — a SETUP RADAR and BOUNCER for Deep Vision.
 
-YOUR SCOPE (Lite Vision only):
-1. Detect timeframe from chart (1m, 5m, 15m, 1H, 4H, 1D, etc.)
-2. Identify fib retracement depth (.382, .50, .618, .786, or under-fib)
-3. Assess if structure holds or breaks at the level
-4. Validate the user's stated setup (if provided)
-5. Flag any conflicts between what user said and what chart shows
+YOUR ROLE:
+You are a FILTER, not a signal. You scan charts to detect if a WizTheory setup MAY be forming, then recommend Deep Vision for confirmation. You do NOT confirm setups yourself.
 
-RULES (non-negotiable):
-- NO hype language
-- NO price predictions
-- NO percentage predictions
-- If you detect a conflict with user's stated plan, FLAG IT and ask for confirmation
-- NEVER silently override what the user stated
-- If you cannot confidently determine something, say "Unable to confirm"
-- Be humble, precise, disciplined
+WHAT YOU DO:
+• Detect basic structure context (impulse vs chop)
+• Estimate fib depth region (above fib / at fib / under-fib)
+• Notice untouched flip zones or structure memory
+• TENTATIVELY identify WizTheory setup types
+• Recommend Deep Vision when conditions look relevant
 
-OUTPUT FORMAT (JSON only, no markdown):
+WHAT YOU DO NOT DO (critical):
+• NO probability percentages
+• NO confidence ratings
+• NO setup confirmation ("this is valid")
+• NO entry/exit/execution advice
+• NO deep RSI or divergence analysis
+• NO trader-style reasoning
+
+WIZTHEORY SETUP TYPES (tentative identification only):
+• .382 Flip Zone — shallow pullback
+• .50 Flip Zone — mid-range pullback
+• .618 Flip Zone — golden pocket
+• .786 Flip Zone — deep pullback
+• Under-Fib Flip Zone — below all fib levels, structure memory zone
+
+OUTPUT FORMAT (JSON only):
 {
-    "timeframe": "detected timeframe or 'Unable to confirm'",
-    "fib_level": ".382 or .50 or .618 or .786 or under-fib or 'Unable to confirm'",
-    "structure_status": "Holds / Breaks / Unclear",
-    "structure_grade": "A / B / C / Unconfirmed",
-    "structure_notes": "brief observation about structure",
-    "market_state": "Pullback / Breakout / Range / Unclear",
-    "conflict_detected": true/false,
-    "conflict_detail": "description of conflict if any, or null",
-    "confidence": "High / Medium / Low"
+    "timeframe": "detected or 'unclear'",
+    "structure_context": "Strong impulse / Weak impulse / Choppy / Unclear",
+    "fib_region": "Above fib / At .382 / At .50 / At .618 / At .786 / Under-fib / Unclear",
+    "untouched_zone_detected": true or false,
+    "structure_memory_present": true or false,
+    "tentative_setup_type": "Under-Fib Flip Zone / .786 Flip Zone / .618 Flip Zone / .50 Flip Zone / .382 Flip Zone / None detected / Unclear",
+    "deep_vision_recommended": true or false,
+    "scan_notes": "1-2 brief observations (no analysis)"
 }
 
-Respond with ONLY the JSON object, no other text."""
+Respond with ONLY the JSON object."""
 
-    user_message = f"""Analyze this chart image.
+    user_message = f"""Quick scan this chart.
 
-User's stated plan: {user_plan if user_plan else 'No plan provided'}
+User context: {user_plan if user_plan else 'General scan'}
 
-Provide your Lite Vision analysis as JSON."""
+Return radar-level observations only. Do NOT analyze deeply or confirm anything."""
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -1331,22 +1350,22 @@ async def jayce_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, image_file_id: str, user_plan: str = ""):
     """
-    Analyze chart image with Lite Vision and provide Wiz Theory evaluation.
+    Analyze chart image with Lite Vision (BOUNCER MODE).
     
-    Vision behavior:
-    - If Lite Vision enabled + API key present → read chart
-    - If Vision disabled or no API key → use user-stated values only
-    - If conflict detected → flag and ask, never override
+    Lite Vision = Setup Radar + Signpost
+    - Scans for potential WizTheory setups
+    - Routes to Deep Vision for confirmation
+    - Does NOT confirm, grade, or give probabilities
     """
     
     # Send thinking message
-    thinking_msg = await update.message.reply_text("🔮 Reading chart…")
+    thinking_msg = await update.message.reply_text("⚡ Scanning…")
     
-    # UX delay
-    await asyncio.sleep(2)
+    # Brief delay for UX
+    await asyncio.sleep(1)
     
     # ══════════════════════════════════════════════
-    # LITE VISION INTEGRATION
+    # LITE VISION SCAN
     # ══════════════════════════════════════════════
     vision_result = None
     vision_available = (
@@ -1367,264 +1386,91 @@ async def analyze_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, imag
             logger.error(f"Lite Vision failed: {e}")
             vision_result = None
     
-    # ══════════════════════════════════════════════
-    # INPUT LOCK LAYER — Parse user-stated values
-    # ══════════════════════════════════════════════
-    user_text = user_plan.strip()
-
-    # Parse setup level from user input
-    SETUP_PATTERNS = {
-        '.382': [r'\.?382', r'38\.2'],
-        '.50': [r'\.?50\b', r'\.500'],
-        '.618': [r'\.?618', r'61\.8'],
-        '.786': [r'\.?786', r'78\.6'],
-        'under-fib': [r'under[\s\-]?fib', r'underfib'],
-    }
-
-    user_setup_key = None
-    for key, patterns in SETUP_PATTERNS.items():
-        for pattern in patterns:
-            if re.search(pattern, user_text, re.IGNORECASE):
-                user_setup_key = key
-                break
-        if user_setup_key:
-            break
-
-    # Parse timeframe from user input
-    TIMEFRAME_PATTERNS = [
-        (r'\b1\s*m\b', '1m'), (r'\b3\s*m\b', '3m'), (r'\b5\s*m\b', '5m'),
-        (r'\b15\s*m\b', '15m'), (r'\b30\s*m\b', '30m'),
-        (r'\b1\s*h\b', '1H'), (r'\b2\s*h\b', '2H'), (r'\b4\s*h\b', '4H'),
-        (r'\b1\s*d\b', '1D'), (r'\bdaily\b', '1D'),
-        (r'\b1\s*w\b', '1W'), (r'\bweekly\b', '1W'),
-    ]
-
-    user_timeframe = None
-    for pattern, tf_value in TIMEFRAME_PATTERNS:
-        if re.search(pattern, user_text, re.IGNORECASE):
-            user_timeframe = tf_value
-            break
-
-    # Parse pair from user input
-    pair_match = re.search(
-        r'\b([A-Z]{2,10})\s*/\s*([A-Z]{2,10})\b',
-        user_plan, re.IGNORECASE
-    )
-    user_pair = pair_match.group(0).upper() if pair_match else None
-
-    # Parse target
-    target_match = re.search(
-        r'(?:target|tp|take[\s\-]?profit)[\s:→\-]*([\w\s%.]+)',
-        user_text, re.IGNORECASE
-    )
-    target = target_match.group(1).strip() if target_match else None
-
-    # ══════════════════════════════════════════════
-    # MERGE VISION + USER INPUT (User input takes priority)
-    # ══════════════════════════════════════════════
-    
-    # Determine final values — USER INPUT > VISION > Unconfirmed
-    if vision_result and 'error' not in vision_result:
-        # Vision available
-        vision_timeframe = vision_result.get('timeframe')
-        vision_fib = vision_result.get('fib_level')
-        vision_structure_grade = vision_result.get('structure_grade', 'Unconfirmed')
-        vision_structure_notes = vision_result.get('structure_notes', '')
-        vision_market_state = vision_result.get('market_state', 'Unclear')
-        vision_conflict = vision_result.get('conflict_detected', False)
-        vision_conflict_detail = vision_result.get('conflict_detail', '')
-        vision_confidence = vision_result.get('confidence', 'N/A')
-        
-        # Use user values if stated, otherwise use vision
-        final_timeframe = user_timeframe if user_timeframe else vision_timeframe
-        final_setup_key = user_setup_key if user_setup_key else vision_fib
-        final_structure_grade = vision_structure_grade
-        final_structure_notes = vision_structure_notes
-        final_market_state = vision_market_state
-        
-        # Normalize fib level format
-        if final_setup_key and not final_setup_key.startswith('.') and final_setup_key not in ['under-fib', 'Unable to confirm']:
-            if final_setup_key in ['382', '50', '618', '786']:
-                final_setup_key = f'.{final_setup_key}'
-        
-        vision_status = f"Lite Vision active (Confidence: {vision_confidence})"
-        
-    elif not vision_state['lite_enabled']:
-        # Vision disabled by owner
-        vision_conflict = False
-        vision_conflict_detail = ""
-        final_timeframe = user_timeframe
-        final_setup_key = user_setup_key
-        final_structure_grade = "Unconfirmed"
-        final_structure_notes = "Visual confirmation unavailable — Lite Vision is disabled."
-        final_market_state = "Unconfirmed"
-        vision_status = "⚠️ Visual confirmation unavailable — Lite Vision is disabled."
-        
-    else:
-        # Vision failed or no API key
-        vision_conflict = False
-        vision_conflict_detail = ""
-        final_timeframe = user_timeframe
-        final_setup_key = user_setup_key
-        final_structure_grade = "Unconfirmed"
-        final_structure_notes = "Vision unavailable — using your stated plan only."
-        final_market_state = "Unconfirmed"
-        vision_status = "⚠️ Visual confirmation unavailable."
-
-    # ══════════════════════════════════════════════
-    # GATE CHECK — Do we have enough to proceed?
-    # ══════════════════════════════════════════════
-    
-    if not user_text:
-        await thinking_msg.delete()
-        await update.message.reply_text(
-            "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
-            "📋 **Plan Reflection**\n"
-            "I need your intended setup level and plan before I evaluate.\n\n"
-            "What's your plan? Example:\n"
-            "`/jayce .618 flip zone 1m → target previous high`\n\n"
-            "I don't guess levels. Clarity before conviction.",
-            parse_mode='Markdown'
-        )
-        return
-
-    if not final_setup_key or final_setup_key == 'Unable to confirm':
-        await thinking_msg.delete()
-        await update.message.reply_text(
-            "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
-            "📋 **Plan Reflection**\n"
-            f"You said: _{user_text}_\n\n"
-            "I couldn't confidently identify a setup level.\n\n"
-            "Please confirm which setup you're playing:\n"
-            "`.382` · `.50` · `.618` · `.786` · `under-fib`\n\n"
-            "Example: `/jayce .618 flip zone 1m → target previous high`\n\n"
-            "I don't guess levels. Clarity before conviction.",
-            parse_mode='Markdown'
-        )
-        return
-
-    # ══════════════════════════════════════════════
-    # CONFLICT HANDLING — Flag and ask, never override
-    # ══════════════════════════════════════════════
-    
-    if vision_conflict and vision_conflict_detail:
-        await thinking_msg.delete()
-        await update.message.reply_text(
-            "🧙‍♂️ **JAYCE ANALYSIS**\n\n"
-            "⚠️ **CONFLICT DETECTED**\n\n"
-            f"You stated: _{user_text}_\n\n"
-            f"But vision sees: _{vision_conflict_detail}_\n\n"
-            "Before I proceed, please confirm:\n"
-            "→ Your intended fib level\n"
-            "→ Your entry zone\n"
-            "→ Your invalidation\n\n"
-            "I don't override your plan — I flag conflicts and ask.\n"
-            "Clarity before conviction.",
-            parse_mode='Markdown'
-        )
-        return
-
-    # ══════════════════════════════════════════════
-    # BUILD ANALYSIS OUTPUT
-    # ══════════════════════════════════════════════
-    
-    setup_name = f"{final_setup_key} + Flip Zone"
-    
-    # Plan summary
-    plan_summary_parts = [f"**Setup:** {setup_name}"]
-    if final_timeframe:
-        plan_summary_parts.append(f"**Timeframe:** {final_timeframe}")
-    if target:
-        plan_summary_parts.append(f"**Target:** {target}")
-    plan_summary = "\n".join(plan_summary_parts)
-
-    # Display values
-    display_pair = user_pair if user_pair else "Unconfirmed"
-    display_timeframe = final_timeframe if final_timeframe else "Unconfirmed"
-    
-    # Get setup-specific data
-    exec_default = EXECUTION_DEFAULTS.get(final_setup_key, 'Secure on first reaction')
-    resolution = RESOLUTION_TIMES.get(final_setup_key, {'median': 'N/A', 'range': 'N/A'})
-    violent_mode = VIOLENT_ELIGIBLE.get(final_setup_key, False)
-
-    # Grade context
-    grade_context = {
-        'A': 'A = structure supports runner with conviction',
-        'B': 'B = standard execution, structure supports reaction',
-        'C': 'C = defensive only, secure early and fast',
-    }
-
-    # Violent Mode line
-    if not violent_mode:
-        violent_line = f"🔥 **Violent Mode:** Not applicable ({final_setup_key} excluded from Violent Mode)."
-    elif final_structure_grade == "Unconfirmed":
-        violent_line = (
-            f"🔥 **Violent Mode:** Eligible ({final_setup_key} setup). "
-            "Cannot confirm activation without structure grade — default to standard execution."
-        )
-    elif final_structure_grade == 'A':
-        violent_line = (
-            f"🔥 **Violent Mode:** Eligible ({final_setup_key} setup). "
-            "If immediate expansion with volume — Violent Mode applies."
-        )
-    else:
-        violent_line = (
-            f"🔥 **Violent Mode:** Eligible ({final_setup_key} setup) but structure grade "
-            f"is {final_structure_grade} — standard execution recommended."
-        )
-
-    # Momentum section (Lite Vision doesn't do deep momentum)
-    momentum_section = (
-        "📊 **Momentum Health**\n"
-        "Use `/deep` for RSI and momentum analysis, or confirm visually."
-    )
-
-    # Pattern memory
-    pattern_memory = (
-        f"Pattern memory for {final_setup_key} setups available via `/explain {final_setup_key}`."
-    )
-
-    # Build full analysis
-    analysis = (
-        f"🧙‍♂️ **JAYCE ANALYSIS**\n\n"
-        f"**Pair:** {display_pair}\n"
-        f"**Timeframe:** {display_timeframe}\n"
-        f"**Market State:** {final_market_state}\n\n"
-        f"📋 **Plan Reflection**\n"
-        f"{plan_summary}\n"
-        f"_Locked from your input + vision confirmation._\n\n"
-        f"🔍 **Setup Identified:** {setup_name}\n"
-        f"_{vision_status}_\n\n"
-        f"🧱 **Structure Grade: {final_structure_grade}**\n"
-        f"{final_structure_notes}\n"
-        f"{'_' + grade_context.get(final_structure_grade, '') + '_' if final_structure_grade in grade_context else ''}\n\n"
-        f"{momentum_section}\n\n"
-        f"⚡ **If–Then Scenarios**\n"
-        f"**IF** price accepts and holds above the flip zone → "
-        f"structure supports continuation. {exec_default} on first reaction.\n"
-        f"**IF** price stalls, wicks, or chops at the level → "
-        f"secure faster than default. Do not wait for confirmation that isn't coming.\n"
-        f"**IF** structure breaks below the flip zone → "
-        f"setup is invalidated. Exit without emotion. No second-guessing.\n\n"
-        f"{violent_line}\n\n"
-        f"⏱ **Expected Resolution**\n"
-        f"{final_setup_key} setups historically resolve within a median of "
-        f"{resolution['median']}, with a normal range of {resolution['range']}. "
-        f"This is informational context, not a timer on your trade.\n\n"
-        f"🧠 **Pattern Memory**\n"
-        f"{pattern_memory}\n\n"
-        f"🪄 **Final Word**\n"
-        f"You are not trading the outcome. You are executing a process. "
-        f"If the setup is valid, trust the structure. If it isn't, walk away clean. "
-        f"— Wiz Theory discipline, Mark Douglas mindset."
-    )
-
     await thinking_msg.delete()
-    await update.message.reply_text(analysis, parse_mode='Markdown')
+    
+    # ══════════════════════════════════════════════
+    # BUILD LITE SCAN OUTPUT (Bouncer format)
+    # ══════════════════════════════════════════════
+    
+    if not vision_available or not vision_result:
+        # Vision not available
+        if not vision_state['lite_enabled']:
+            await update.message.reply_text(
+                "⚡ **Lite Scan**\n\n"
+                "Lite Vision is currently disabled.\n\n"
+                "🔮 Use `/deep` for full analysis.",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(
+                "⚡ **Lite Scan**\n\n"
+                "Vision unavailable — check API key.\n\n"
+                "🔮 Use `/deep` for full analysis.",
+                parse_mode='Markdown'
+            )
+        return
+    
+    # Extract scan results
+    timeframe = vision_result.get('timeframe', 'unclear')
+    structure_context = vision_result.get('structure_context', 'Unclear')
+    fib_region = vision_result.get('fib_region', 'Unclear')
+    untouched_zone = vision_result.get('untouched_zone_detected', False)
+    structure_memory = vision_result.get('structure_memory_present', False)
+    tentative_setup = vision_result.get('tentative_setup_type', 'None detected')
+    deep_recommended = vision_result.get('deep_vision_recommended', False)
+    scan_notes = vision_result.get('scan_notes', '')
+    
+    # Build clean, short response (5-7 lines max)
+    response_lines = ["⚡ **Lite Scan**"]
+    
+    # Setup detection line
+    if tentative_setup and tentative_setup not in ['None detected', 'Unclear']:
+        response_lines.append(f"Possible WizTheory setup forming 🧙‍♂️")
+        response_lines.append(f"")
+        response_lines.append(f"• **Setup Type:** {tentative_setup} _(tentative)_")
+    else:
+        response_lines.append(f"Scanning for WizTheory setups…")
+        response_lines.append(f"")
+    
+    # Structure context
+    if structure_context and structure_context != 'Unclear':
+        response_lines.append(f"• {structure_context} detected")
+    
+    # Fib region
+    if fib_region and fib_region != 'Unclear':
+        response_lines.append(f"• Pullback depth: {fib_region}")
+    
+    # Structure memory / untouched zone
+    if structure_memory:
+        response_lines.append(f"• Structure memory present")
+    if untouched_zone:
+        response_lines.append(f"• Untouched zone detected")
+    
+    # Timeframe if clear
+    if timeframe and timeframe != 'unclear':
+        response_lines.append(f"• Timeframe: {timeframe}")
+    
+    # Scan notes (brief)
+    if scan_notes and len(scan_notes) < 60:
+        response_lines.append(f"• {scan_notes}")
+    
+    # Deep Vision recommendation
+    response_lines.append(f"")
+    if deep_recommended:
+        response_lines.append(f"🔮 **Deep Vision recommended** for confirmation & execution logic.")
+    else:
+        response_lines.append(f"🔮 Use `/deep` for full analysis if needed.")
+    
+    # Join and send
+    response = "\n".join(response_lines)
+    await update.message.reply_text(response, parse_mode='Markdown')
 
 
 async def valid_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /valid command - quick validity check"""
+    """Handle /valid command - quick scan (bouncer mode)
+    
+    Lite Vision is a BOUNCER — it scans and routes, does NOT confirm validity.
+    """
     chat_id = update.effective_chat.id
     image_file_id = None
 
@@ -1638,16 +1484,16 @@ async def valid_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not image_file_id:
         await update.message.reply_text(
-            "⚡ **QUICK VALIDITY CHECK**\n\n"
-            "Upload a chart or reply to one with `/valid` for a fast YES/NO assessment.",
+            "⚡ **Quick Scan**\n\n"
+            "Upload a chart or reply to one with `/valid`",
             parse_mode='Markdown'
         )
         return
 
-    thinking_msg = await update.message.reply_text("🔮 Reading chart…")
-    await asyncio.sleep(2)
+    thinking_msg = await update.message.reply_text("⚡ Scanning…")
+    await asyncio.sleep(1)
     
-    # Quick vision check if available
+    # Quick scan if available
     if vision_state['lite_enabled'] and ANTHROPIC_API_KEY:
         try:
             image_bytes = await download_telegram_image(context, image_file_id)
@@ -1656,21 +1502,33 @@ async def valid_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await thinking_msg.delete()
             
             if 'error' not in vision_result:
-                structure = vision_result.get('structure_status', 'Unclear')
-                fib = vision_result.get('fib_level', 'Unable to confirm')
-                grade = vision_result.get('structure_grade', 'Unconfirmed')
-                confidence = vision_result.get('confidence', 'N/A')
+                # Extract scan results
+                tentative_setup = vision_result.get('tentative_setup_type', 'None detected')
+                structure_context = vision_result.get('structure_context', 'Unclear')
+                fib_region = vision_result.get('fib_region', 'Unclear')
+                deep_recommended = vision_result.get('deep_vision_recommended', False)
                 
-                verdict = "✅ VALID" if structure == "Holds" else "⚠️ CAUTION" if structure == "Unclear" else "❌ INVALID"
+                # Build bouncer-style response
+                response_lines = ["⚡ **Quick Scan**", ""]
+                
+                if tentative_setup and tentative_setup not in ['None detected', 'Unclear']:
+                    response_lines.append(f"• Possible: **{tentative_setup}** _(tentative)_")
+                
+                if structure_context and structure_context != 'Unclear':
+                    response_lines.append(f"• {structure_context}")
+                
+                if fib_region and fib_region != 'Unclear':
+                    response_lines.append(f"• Depth: {fib_region}")
+                
+                response_lines.append("")
+                
+                if deep_recommended:
+                    response_lines.append("🔮 **Deep Vision recommended** for confirmation.")
+                else:
+                    response_lines.append("🔮 Use `/deep` for full analysis.")
                 
                 await update.message.reply_text(
-                    f"⚡ **QUICK VALIDITY CHECK**\n\n"
-                    f"**Setup:** {fib} + Flip Zone\n"
-                    f"**Structure:** {structure}\n"
-                    f"**Grade:** {grade}\n"
-                    f"**Confidence:** {confidence}\n\n"
-                    f"**Verdict:** {verdict}\n\n"
-                    f"Use `/jayce` for full analysis with plan reflection.",
+                    "\n".join(response_lines),
                     parse_mode='Markdown'
                 )
                 return
@@ -1679,15 +1537,19 @@ async def valid_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await thinking_msg.delete()
     await update.message.reply_text(
-        "⚡ **QUICK VALIDITY CHECK**\n\n"
-        "⚠️ Visual confirmation unavailable.\n\n"
-        "Use `/jayce [your plan]` for analysis with your stated setup.",
+        "⚡ **Quick Scan**\n\n"
+        "⚠️ Vision unavailable.\n\n"
+        "🔮 Use `/deep` for full analysis.",
         parse_mode='Markdown'
     )
 
 
 async def violent_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /violent command - Violent Mode assessment"""
+    """Handle /violent command - Violent Mode scan (bouncer mode)
+    
+    Lite Vision scans for potential Violent Mode eligibility,
+    but does NOT confirm — routes to Deep Vision for that.
+    """
     chat_id = update.effective_chat.id
     image_file_id = None
 
@@ -1701,15 +1563,15 @@ async def violent_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not image_file_id:
         await update.message.reply_text(
-            "🔥 **VIOLENT MODE CHECK**\n\n"
-            "Upload a .786 or Under-Fib chart with `/violent` to check if Violent Mode applies.\n\n"
-            "⚠️ Violent Mode only applies to .786 + Flip Zone and Under-Fib setups.",
+            "🔥 **Violent Mode Scan**\n\n"
+            "Upload a chart with `/violent` to scan.\n\n"
+            "⚠️ Violent Mode only applies to .786 + Under-Fib setups.",
             parse_mode='Markdown'
         )
         return
 
-    thinking_msg = await update.message.reply_text("🔮 Reading chart…")
-    await asyncio.sleep(3)
+    thinking_msg = await update.message.reply_text("🔥 Scanning…")
+    await asyncio.sleep(1)
     
     if vision_state['lite_enabled'] and ANTHROPIC_API_KEY:
         try:
@@ -1719,29 +1581,37 @@ async def violent_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await thinking_msg.delete()
             
             if 'error' not in vision_result:
-                fib = vision_result.get('fib_level', 'Unable to confirm')
-                grade = vision_result.get('structure_grade', 'Unconfirmed')
-                structure = vision_result.get('structure_status', 'Unclear')
+                tentative_setup = vision_result.get('tentative_setup_type', 'None detected')
+                fib_region = vision_result.get('fib_region', 'Unclear')
+                structure_context = vision_result.get('structure_context', 'Unclear')
+                deep_recommended = vision_result.get('deep_vision_recommended', False)
                 
-                # Check violent eligibility
-                is_eligible = fib in ['.786', 'under-fib']
+                # Check if potentially violent-eligible
+                is_potentially_eligible = (
+                    tentative_setup in ['.786 Flip Zone', 'Under-Fib Flip Zone'] or
+                    fib_region in ['At .786', 'Under-fib']
+                )
                 
-                if not is_eligible:
-                    violent_verdict = f"❌ Not eligible — {fib} excluded from Violent Mode."
-                elif grade == 'A' and structure == 'Holds':
-                    violent_verdict = "✅ VIOLENT MODE ACTIVE — Grade A structure with clean hold. Execute with conviction."
-                elif grade in ['A', 'B']:
-                    violent_verdict = f"⚠️ Eligible but Grade {grade} — standard execution recommended over Violent Mode."
+                # Build bouncer-style response
+                response_lines = ["🔥 **Violent Mode Scan**", ""]
+                
+                if is_potentially_eligible:
+                    response_lines.append(f"• Potential: **{tentative_setup}** _(tentative)_")
+                    response_lines.append(f"• Depth: {fib_region}")
+                    if structure_context and structure_context != 'Unclear':
+                        response_lines.append(f"• {structure_context}")
+                    response_lines.append("")
+                    response_lines.append("⚡ **Possibly eligible** for Violent Mode")
+                    response_lines.append("")
+                    response_lines.append("🔮 **Deep Vision required** to confirm eligibility.")
                 else:
-                    violent_verdict = "⚠️ Eligible but structure unconfirmed — wait for clarity."
+                    response_lines.append(f"• Setup: {tentative_setup}")
+                    response_lines.append(f"• Depth: {fib_region}")
+                    response_lines.append("")
+                    response_lines.append("❌ **Not eligible** — Violent Mode requires .786 or Under-Fib")
                 
                 await update.message.reply_text(
-                    f"🔥 **VIOLENT MODE CHECK**\n\n"
-                    f"**Setup:** {fib} + Flip Zone\n"
-                    f"**Structure Grade:** {grade}\n"
-                    f"**Structure Status:** {structure}\n\n"
-                    f"**Verdict:** {violent_verdict}\n\n"
-                    f"Use `/jayce` for full analysis with if-then scenarios.",
+                    "\n".join(response_lines),
                     parse_mode='Markdown'
                 )
                 return
@@ -1750,10 +1620,9 @@ async def violent_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await thinking_msg.delete()
     await update.message.reply_text(
-        "🔥 **VIOLENT MODE CHECK**\n\n"
-        "⚠️ Visual confirmation unavailable.\n\n"
-        "Violent Mode only applies to .786 and Under-Fib setups.\n"
-        "Use `/jayce [.786 or under-fib]` for analysis.",
+        "🔥 **Violent Mode Scan**\n\n"
+        "⚠️ Vision unavailable.\n\n"
+        "🔮 Use `/deep` for full analysis.",
         parse_mode='Markdown'
     )
 
