@@ -262,6 +262,7 @@ YOUR SCOPE (Deep Vision - full analysis):
 5. Momentum health assessment
 6. Deeper structure quality assessment
 7. Pattern recognition relevant to the setup
+8. TP probability estimation based on all visible factors
 
 DIVERGENCE RULES (critical):
 - Divergence is PROBABILITY CONTEXT, never prediction
@@ -271,9 +272,18 @@ DIVERGENCE RULES (critical):
 - Divergence NEVER overrides setup validity — it's supplemental information only
 - Frame divergence as "increases probability of reaction" NOT "price will reverse"
 
+TP PROBABILITY ESTIMATION RULES (critical):
+- Provide an estimated probability RANGE (e.g., "55-65%") not an exact number
+- Base the estimate on: structure grade, RSI zone, divergence, momentum health, fib level quality
+- Higher probability factors: Grade A structure, oversold RSI, bullish divergence, strong momentum
+- Lower probability factors: Grade C structure, overbought RSI, bearish divergence, weak momentum
+- ALWAYS include a brief explanation of what factors influenced the estimate
+- Frame as "visual estimate based on current chart conditions" — NOT historical data
+- Be realistic — most setups fall in the 40-70% range, rarely above 80%
+
 RULES (non-negotiable):
 - NO hype language
-- NO price predictions ("it will go to X")
+- NO exact price predictions ("it will go to X")
 - Frame everything as probability, not certainty
 - If you detect a conflict with user's stated plan, FLAG IT
 - NEVER silently override what the user stated
@@ -296,6 +306,9 @@ OUTPUT FORMAT (JSON only):
     "divergence_detected": true or false,
     "divergence_type": "Bullish / Bearish / None / Unable to assess",
     "divergence_note": "probability context statement explaining the divergence significance, or null if none",
+    "tp_probability_low": number between 0-100 (low end of range),
+    "tp_probability_high": number between 0-100 (high end of range),
+    "tp_probability_factors": "brief explanation of factors that influenced the probability estimate",
     "pattern_notes": "any relevant pattern observations",
     "conflict_detected": true or false,
     "conflict_detail": "description or null",
@@ -577,6 +590,20 @@ def build_deep_analysis_response(vision: dict, user_plan: str) -> str:
     else:
         divergence_section = "\n📐 **Divergence:** None detected\n"
     
+    # Build TP probability section
+    tp_low = vision.get('tp_probability_low', 0)
+    tp_high = vision.get('tp_probability_high', 0)
+    tp_factors = vision.get('tp_probability_factors', 'Unable to assess')
+    
+    if tp_low and tp_high:
+        tp_section = (
+            f"\n🎯 **TP Probability Estimate:** ~{tp_low}-{tp_high}%\n"
+            f"_{tp_factors}_\n"
+            f"_Visual estimate based on current chart conditions._\n"
+        )
+    else:
+        tp_section = "\n🎯 **TP Probability:** Unable to estimate\n"
+    
     return (
         f"🔮 **JAYCE DEEP VISION**\n\n"
         f"**Timeframe:** {vision.get('timeframe', 'Unable to confirm')}\n"
@@ -588,7 +615,8 @@ def build_deep_analysis_response(vision: dict, user_plan: str) -> str:
         f"📊 **Momentum Health:** {vision.get('momentum_health', 'Unable to assess')}\n"
         f"{vision.get('momentum_notes', '')}\n\n"
         f"{rsi_section}\n"
-        f"{divergence_section}\n"
+        f"{divergence_section}"
+        f"{tp_section}\n"
         f"🧠 **Pattern Notes:**\n{vision.get('pattern_notes', 'None observed.')}\n\n"
         f"**Confidence:** {vision.get('confidence', 'N/A')}\n\n"
         f"💡 **Summary:** {vision.get('deep_summary', 'No summary available.')}\n\n"
