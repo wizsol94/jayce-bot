@@ -326,6 +326,154 @@ def safe_update_state(updates: dict) -> tuple[bool, str]:
 
 
 # ══════════════════════════════════════════════
+# MEMORY SYSTEM — Setup Outcome Storage
+# ══════════════════════════════════════════════
+# Lightweight text-based memory for historical setups
+# No images yet — metadata only
+
+MEMORY_FILE = Path("/tmp/jayce_memory.json")
+MAX_MEMORIES = 50  # Rolling limit
+
+def load_memories() -> list:
+    """Load stored setup memories."""
+    try:
+        if MEMORY_FILE.exists():
+            with open(MEMORY_FILE, 'r') as f:
+                return json.load(f)
+        return []
+    except Exception as e:
+        logger.error(f"Failed to load memories: {e}")
+        return []
+
+
+def save_memories(memories: list) -> bool:
+    """Save memories to file."""
+    try:
+        # Keep only last MAX_MEMORIES
+        if len(memories) > MAX_MEMORIES:
+            memories = memories[-MAX_MEMORIES:]
+        
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memories, f, indent=2)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save memories: {e}")
+        return False
+
+
+def store_memory(memory_data: dict) -> tuple[bool, str]:
+    """
+    Store a setup outcome in memory.
+    
+    memory_data should contain:
+    - setup_type: WizTheory setup type (e.g., "Under-Fib Flip Zone")
+    - outcome: What happened (e.g., "hit 0.50 magnet, +60%")
+    - conditions: Key conditions (e.g., "strong impulse, oversold RSI, bullish divergence")
+    - resolution: Resolution type (normal / fast / violent)
+    - user_text: Original user message
+    - timestamp: When stored
+    """
+    try:
+        memories = load_memories()
+        
+        # Add timestamp if not present
+        if 'timestamp' not in memory_data:
+            memory_data['timestamp'] = datetime.now().isoformat()
+        
+        # Add memory
+        memories.append(memory_data)
+        
+        # Save
+        if save_memories(memories):
+            return True, f"Memory #{len(memories)} stored"
+        else:
+            return False, "Failed to save memory"
+            
+    except Exception as e:
+        logger.error(f"Failed to store memory: {e}")
+        return False, str(e)
+
+
+def parse_memory_from_text(user_text: str) -> dict:
+    """
+    Parse memory data from user's description of a past outcome.
+    Extracts setup type, outcome, conditions, etc.
+    """
+    text_lower = user_text.lower()
+    
+    # Detect setup type
+    setup_type = "Unknown"
+    if "under-fib" in text_lower or "underfib" in text_lower:
+        setup_type = "Under-Fib Flip Zone"
+    elif ".786" in text_lower or "786" in text_lower:
+        setup_type = ".786 Flip Zone"
+    elif ".618" in text_lower or "618" in text_lower:
+        setup_type = ".618 Flip Zone"
+    elif ".50" in text_lower or "50 fib" in text_lower:
+        setup_type = ".50 Flip Zone"
+    elif ".382" in text_lower or "382" in text_lower:
+        setup_type = ".382 Flip Zone"
+    
+    # Detect outcome
+    outcome = "Completed successfully"
+    if "hit tp" in text_lower or "hit target" in text_lower or "hit the magnet" in text_lower:
+        outcome = "Hit TP"
+    if "magnet" in text_lower:
+        # Try to extract magnet level
+        if "0.50" in text_lower or ".50" in text_lower or "50" in text_lower:
+            outcome = "Hit 0.50 magnet"
+        elif "0.382" in text_lower or ".382" in text_lower:
+            outcome = "Hit 0.382 magnet"
+    
+    # Try to extract percentage
+    import re
+    pct_match = re.search(r'[+]?\s*(\d+)\s*%', user_text)
+    if pct_match:
+        outcome += f", +{pct_match.group(1)}%"
+    
+    # Detect conditions mentioned
+    conditions = []
+    if "impulse" in text_lower or "strong" in text_lower:
+        conditions.append("strong impulse")
+    if "reclaim" in text_lower:
+        conditions.append("clean reclaim")
+    if "divergence" in text_lower:
+        conditions.append("divergence present")
+    if "oversold" in text_lower:
+        conditions.append("oversold RSI")
+    if "volume" in text_lower:
+        conditions.append("volume confirmation")
+    
+    conditions_str = ", ".join(conditions) if conditions else "standard conditions"
+    
+    # Detect resolution type
+    resolution = "normal"
+    if "fast" in text_lower or "quick" in text_lower or "rapid" in text_lower:
+        resolution = "fast"
+    elif "violent" in text_lower:
+        resolution = "violent"
+    
+    return {
+        'setup_type': setup_type,
+        'outcome': outcome,
+        'conditions': conditions_str,
+        'resolution': resolution,
+        'user_text': user_text,
+        'timestamp': datetime.now().isoformat()
+    }
+
+
+def get_similar_memories(setup_type: str, limit: int = 3) -> list:
+    """Get similar past setups from memory."""
+    memories = load_memories()
+    
+    similar = [m for m in memories if m.get('setup_type') == setup_type]
+    
+    # Return most recent ones
+    return similar[-limit:] if similar else []
+
+
+# ══════════════════════════════════════════════
 # VISION API FUNCTIONS
 # ══════════════════════════════════════════════
 
@@ -703,16 +851,52 @@ def detect_intent(user_text: str) -> str:
     Detect user's intent mode before analysis.
     
     Returns one of:
+    - MEMORY_MODE: User is describing a past outcome to be remembered
     - PLANNED_SETUP: User is planning a limit entry at a flip zone (not in yet)
     - LIVE_TRADE: User is already in the trade
     - UNKNOWN: Can't determine — need to ask
     
-    This is critical for Under-Fib Flip Zone setups where the edge
-    is at the zone, not at current price.
+    MEMORY_MODE is checked FIRST to prevent Jayce from asking
+    clarification questions during post-outcome learning moments.
     """
     text_lower = user_text.lower()
     
-    # LIVE_TRADE indicators — user is already in the position
+    # ══════════════════════════════════════════════
+    # MEMORY_MODE — Check FIRST (highest priority)
+    # User is describing a past outcome to be remembered
+    # ══════════════════════════════════════════════
+    memory_mode_phrases = [
+        "remember this", "remember that", "remember this setup",
+        "this hit tp", "this hit my tp", "hit tp", "hit target",
+        "this played out", "played out", "it played out",
+        "save this", "save this setup", "lock this in",
+        "use this for", "use this as", "reference this",
+        "add this to memory", "store this", "log this",
+        "this worked", "this one worked", "worked perfectly",
+        "this printed", "it printed", "printed perfectly",
+        "hit the magnet", "reached the magnet", "got to magnet",
+        "closed in profit", "closed for profit", "took profit",
+        "secured", "secured profit", "banked",
+        "learn from this", "similar setups", "for future reference"
+    ]
+    
+    for phrase in memory_mode_phrases:
+        if phrase in text_lower:
+            return "MEMORY_MODE"
+    
+    # Also check for outcome indicators combined with setup mentions
+    outcome_indicators = ["hit", "worked", "printed", "played", "secured", "banked", "closed"]
+    setup_indicators = ["setup", "trade", "flip zone", "under-fib", ".786", ".618", ".50", ".382"]
+    
+    has_outcome = any(ind in text_lower for ind in outcome_indicators)
+    has_setup = any(ind in text_lower for ind in setup_indicators)
+    
+    if has_outcome and has_setup:
+        return "MEMORY_MODE"
+    
+    # ══════════════════════════════════════════════
+    # LIVE_TRADE — User is already in the position
+    # ══════════════════════════════════════════════
     live_trade_phrases = [
         "i entered", "i'm in", "im in", "i am in",
         "in the trade", "in this trade", "in a trade",
@@ -727,7 +911,9 @@ def detect_intent(user_text: str) -> str:
         if phrase in text_lower:
             return "LIVE_TRADE"
     
-    # PLANNED_SETUP indicators — user is planning to enter
+    # ══════════════════════════════════════════════
+    # PLANNED_SETUP — User is planning to enter
+    # ══════════════════════════════════════════════
     planned_setup_phrases = [
         "looking to enter", "looking to buy", "looking to get in",
         "plan to enter", "planning to enter", "planning to buy",
@@ -747,7 +933,6 @@ def detect_intent(user_text: str) -> str:
             return "PLANNED_SETUP"
     
     # Check for price mentions that suggest planning
-    # If they mention a specific entry price, likely planning
     import re
     price_pattern = r'entry\s*(?:at|@|:)?\s*[\d.,]+'
     if re.search(price_pattern, text_lower):
@@ -959,6 +1144,97 @@ async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+async def memory_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /memory command — view stored setup memories
+    
+    Usage:
+        /memory — Show recent memories
+        /memory clear — Clear all memories (owner only)
+        /memory [setup] — Show memories for specific setup type
+    """
+    user_id = update.effective_user.id
+    
+    if context.args and context.args[0].lower() == 'clear':
+        # Clear memories — owner only
+        if not is_owner(user_id):
+            await update.message.reply_text(
+                "⛔ Only the owner can clear memories.",
+                parse_mode='Markdown'
+            )
+            return
+        
+        # Clear by saving empty list
+        if save_memories([]):
+            await update.message.reply_text(
+                "🧠 **Memory cleared.**\n\n"
+                "All stored setups have been removed.",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(
+                "❌ Failed to clear memories.",
+                parse_mode='Markdown'
+            )
+        return
+    
+    # Load memories
+    memories = load_memories()
+    
+    if not memories:
+        await update.message.reply_text(
+            "🧠 **Memory**\n\n"
+            "No setups stored yet.\n\n"
+            "When a trade hits TP, tell me:\n"
+            "`this under-fib setup hit the 0.50 magnet, remember this`\n\n"
+            "I'll learn from your wins. 🔮",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Filter by setup type if specified
+    filter_type = None
+    if context.args:
+        arg = " ".join(context.args).lower()
+        if "under" in arg:
+            filter_type = "Under-Fib Flip Zone"
+        elif "786" in arg:
+            filter_type = ".786 Flip Zone"
+        elif "618" in arg:
+            filter_type = ".618 Flip Zone"
+        elif "50" in arg:
+            filter_type = ".50 Flip Zone"
+        elif "382" in arg:
+            filter_type = ".382 Flip Zone"
+    
+    if filter_type:
+        memories = [m for m in memories if m.get('setup_type') == filter_type]
+        if not memories:
+            await update.message.reply_text(
+                f"🧠 **Memory**\n\n"
+                f"No {filter_type} setups stored yet.",
+                parse_mode='Markdown'
+            )
+            return
+    
+    # Build response — show last 5
+    response_lines = ["🧠 **Setup Memory**", ""]
+    
+    recent = memories[-5:]
+    for i, m in enumerate(reversed(recent), 1):
+        response_lines.append(f"**{i}.** {m.get('setup_type', 'Unknown')}")
+        response_lines.append(f"   • Outcome: {m.get('outcome', 'N/A')}")
+        response_lines.append(f"   • Conditions: {m.get('conditions', 'N/A')}")
+        response_lines.append(f"   • Resolution: {m.get('resolution', 'N/A')}")
+        response_lines.append("")
+    
+    response_lines.append(f"_Total stored: {len(load_memories())}_")
+    
+    await update.message.reply_text(
+        "\n".join(response_lines),
+        parse_mode='Markdown'
+    )
+
+
 async def vision_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /vision on|off command — OWNER ONLY"""
     user_id = update.effective_user.id
@@ -1110,15 +1386,64 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     # ══════════════════════════════════════════════
     intent = detect_intent(user_plan)
     
-    # Handle UNKNOWN intent — ask one clarifying question and stop
+    # ══════════════════════════════════════════════
+    # MEMORY MODE — Handle FIRST (no analysis, no questions)
+    # User is describing a past outcome to be remembered
+    # ══════════════════════════════════════════════
+    if intent == "MEMORY_MODE":
+        # Get username
+        username = None
+        if update.effective_user:
+            username = update.effective_user.first_name or update.effective_user.username
+        
+        # Parse memory from user text
+        memory_data = parse_memory_from_text(user_plan)
+        
+        # Store the memory
+        success, msg = store_memory(memory_data)
+        
+        if success:
+            # Build short, confirmatory, motivating response
+            response_lines = [
+                "🧠 **Locked in.**",
+                "",
+                f"• **Setup:** {memory_data['setup_type']}",
+                f"• **Outcome:** {memory_data['outcome']}",
+                f"• **Conditions:** {memory_data['conditions']}",
+                f"• **Resolution:** {memory_data['resolution']}",
+                "",
+                "_I'll reference this when I see similar structure + behavior._ 🔮"
+            ]
+            
+            if username:
+                response_lines.append(f"\n_Stored for: {username}_")
+            
+            await update.message.reply_text(
+                "\n".join(response_lines),
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(
+                "🧠 **Memory**\n\n"
+                f"⚠️ Failed to store: {msg}\n\n"
+                "Try again or simplify the description.",
+                parse_mode='Markdown'
+            )
+        return
+    
+    # ══════════════════════════════════════════════
+    # UNKNOWN INTENT — Ask clarifying question
+    # (But NOT for memory mode — that's already handled above)
+    # ══════════════════════════════════════════════
     if intent == "UNKNOWN" and user_plan.strip():
         await update.message.reply_text(
             "🔮 **JAYCE**\n\n"
             "Before I analyze, quick question:\n\n"
             "**Are you planning to enter at the flip zone, or are you already in?**\n\n"
             "→ `planning to enter at [price]` — setup analysis\n"
-            "→ `already in at [price]` — live trade analysis\n\n"
-            "_Helps me give you the right read. Edge is at the zone, not current price._",
+            "→ `already in at [price]` — live trade analysis\n"
+            "→ `this hit TP, remember this` — save to memory\n\n"
+            "_Helps me give you the right read._",
             parse_mode='Markdown'
         )
         return
@@ -1912,6 +2237,7 @@ def main():
     application.add_handler(CommandHandler("vision", vision_command))
     application.add_handler(CommandHandler("deep", deep_command))
     application.add_handler(CommandHandler("backup", backup_command))
+    application.add_handler(CommandHandler("memory", memory_command))
 
     # Intro commands
     application.add_handler(CommandHandler("intro", intro_command))
@@ -1942,7 +2268,7 @@ def main():
     else:
         logger.warning(f"Startup backup failed: {result}")
 
-    logger.info("Starting Jayce Bot with Vision...")
+    logger.info("Starting Jayce Bot with Vision + Memory...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
