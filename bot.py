@@ -416,6 +416,7 @@ def parse_memory_from_text(user_text: str) -> dict:
     
     # Detect outcome
     outcome = "Completed successfully"
+    outcome_pct = 0
     if "hit tp" in text_lower or "hit target" in text_lower or "hit the magnet" in text_lower:
         outcome = "Hit TP"
     if "magnet" in text_lower:
@@ -429,7 +430,8 @@ def parse_memory_from_text(user_text: str) -> dict:
     import re
     pct_match = re.search(r'[+]?\s*(\d+)\s*%', user_text)
     if pct_match:
-        outcome += f", +{pct_match.group(1)}%"
+        outcome_pct = int(pct_match.group(1))
+        outcome += f", +{outcome_pct}%"
     
     # Detect conditions mentioned
     conditions = []
@@ -443,6 +445,10 @@ def parse_memory_from_text(user_text: str) -> dict:
         conditions.append("oversold RSI")
     if "volume" in text_lower:
         conditions.append("volume confirmation")
+    if "clean" in text_lower:
+        conditions.append("clean execution")
+    if "patience" in text_lower or "patient" in text_lower:
+        conditions.append("patience paid")
     
     conditions_str = ", ".join(conditions) if conditions else "standard conditions"
     
@@ -456,11 +462,100 @@ def parse_memory_from_text(user_text: str) -> dict:
     return {
         'setup_type': setup_type,
         'outcome': outcome,
+        'outcome_pct': outcome_pct,
         'conditions': conditions_str,
         'resolution': resolution,
         'user_text': user_text,
         'timestamp': datetime.now().isoformat()
     }
+
+
+def build_memory_response(memory_data: dict, username: str = None) -> str:
+    """
+    Build human, collaborative, Wiz-native response for Memory Mode.
+    
+    Rules:
+    - Short, human, collaborative, confident
+    - Wiz.sol style with emojis (🔥 🧙‍♂️ 💎 📈)
+    - Acknowledge the update
+    - Confirm what was stored
+    - Reinforce future usage
+    - For strong outcomes: celebrate the PROCESS, not luck
+    """
+    
+    setup_type = memory_data.get('setup_type', 'Unknown')
+    outcome = memory_data.get('outcome', 'Completed')
+    outcome_pct = memory_data.get('outcome_pct', 0)
+    conditions = memory_data.get('conditions', 'standard conditions')
+    resolution = memory_data.get('resolution', 'normal')
+    
+    # Determine if this was a strong outcome (worth celebrating)
+    is_banger = outcome_pct >= 40 or "magnet" in outcome.lower()
+    is_clean = "clean" in conditions.lower() or "divergence" in conditions.lower()
+    is_violent = resolution == "violent"
+    
+    # Build response lines
+    lines = []
+    
+    # Header — varies based on outcome quality
+    if is_banger:
+        lines.append("🔥 **Locked and loaded.**")
+    elif is_violent:
+        lines.append("😈 **Violent execution. Locked.**")
+    else:
+        lines.append("🧠 **Locked in.**")
+    
+    lines.append("")
+    
+    # Setup details
+    lines.append(f"• **Setup:** {setup_type}")
+    lines.append(f"• **Outcome:** {outcome} 📈")
+    if conditions != "standard conditions":
+        lines.append(f"• **Conditions:** {conditions}")
+    if resolution != "normal":
+        lines.append(f"• **Resolution:** {resolution}")
+    
+    lines.append("")
+    
+    # Positive outcome reinforcement — celebrate the PROCESS
+    if is_banger and is_clean:
+        # Big win with clean conditions
+        celebration_lines = [
+            "That was a BANGER — patience at the zone, let the magnet do the work. 💎",
+            "Clean execution. WizTheory exactly how it's supposed to play. 🧙‍♂️💎",
+            "This is what happens when you trust structure over emotions. 🔥",
+            "Textbook. Patience + discipline = magnet secured. 💎📈",
+        ]
+        import random
+        lines.append(random.choice(celebration_lines))
+        lines.append("")
+    elif is_banger:
+        # Big win
+        celebration_lines = [
+            "Big move. That's WizTheory working as designed. 🔥",
+            "The magnet pulled. Structure held. Win secured. 💎",
+            "This is why we wait for the zone. 📈🔥",
+        ]
+        import random
+        lines.append(random.choice(celebration_lines))
+        lines.append("")
+    elif is_violent:
+        # Violent execution
+        lines.append("Violent Mode delivered. Structure was Grade A. 😈🔥")
+        lines.append("")
+    elif is_clean:
+        # Clean but not huge
+        lines.append("Clean execution. Process over outcome. 🧙‍♂️")
+        lines.append("")
+    
+    # Future reference line
+    lines.append("_I'll reference this when I see similar structure + behavior._ 🔮")
+    
+    # Username footer
+    if username:
+        lines.append(f"\n_Stored for: {username}_")
+    
+    return "\n".join(lines)
 
 
 def get_similar_memories(setup_type: str, limit: int = 3) -> list:
@@ -1403,30 +1498,15 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         success, msg = store_memory(memory_data)
         
         if success:
-            # Build short, confirmatory, motivating response
-            response_lines = [
-                "🧠 **Locked in.**",
-                "",
-                f"• **Setup:** {memory_data['setup_type']}",
-                f"• **Outcome:** {memory_data['outcome']}",
-                f"• **Conditions:** {memory_data['conditions']}",
-                f"• **Resolution:** {memory_data['resolution']}",
-                "",
-                "_I'll reference this when I see similar structure + behavior._ 🔮"
-            ]
+            # Build human, collaborative, Wiz-native response
+            response = build_memory_response(memory_data, username)
             
-            if username:
-                response_lines.append(f"\n_Stored for: {username}_")
-            
-            await update.message.reply_text(
-                "\n".join(response_lines),
-                parse_mode='Markdown'
-            )
+            await update.message.reply_text(response, parse_mode='Markdown')
         else:
             await update.message.reply_text(
                 "🧠 **Memory**\n\n"
-                f"⚠️ Failed to store: {msg}\n\n"
-                "Try again or simplify the description.",
+                f"⚠️ Couldn't lock that in: {msg}\n\n"
+                "Try again — keep it simple. 🔮",
                 parse_mode='Markdown'
             )
         return
