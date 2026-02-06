@@ -400,6 +400,130 @@ def is_owner(user_id: int) -> bool:
 
 
 # ══════════════════════════════════════════════
+# INTENT MODE DETECTION
+# ══════════════════════════════════════════════
+
+def detect_intent(user_text: str) -> str:
+    """
+    Detect user's intent mode before analysis.
+    
+    Returns one of:
+    - PLANNED_SETUP: User is planning a limit entry at a flip zone (not in yet)
+    - LIVE_TRADE: User is already in the trade
+    - UNKNOWN: Can't determine — need to ask
+    
+    This is critical for Under-Fib Flip Zone setups where the edge
+    is at the zone, not at current price.
+    """
+    text_lower = user_text.lower()
+    
+    # LIVE_TRADE indicators — user is already in the position
+    live_trade_phrases = [
+        "i entered", "i'm in", "im in", "i am in",
+        "in the trade", "in this trade", "in a trade",
+        "my entry was", "my entry is", "entered at",
+        "i bought", "i bought at", "bought in at",
+        "i'm holding", "im holding", "i am holding",
+        "holding from", "been in since", "got in at",
+        "already in", "currently in", "position at"
+    ]
+    
+    for phrase in live_trade_phrases:
+        if phrase in text_lower:
+            return "LIVE_TRADE"
+    
+    # PLANNED_SETUP indicators — user is planning to enter
+    planned_setup_phrases = [
+        "looking to enter", "looking to buy", "looking to get in",
+        "plan to enter", "planning to enter", "planning to buy",
+        "want to enter", "want to buy", "want to get in",
+        "entry at", "limit at", "limit order at", "limit entry",
+        "flip zone", "flipzone", "purple box",
+        "waiting for", "wait for", "watching for",
+        "if it hits", "if price reaches", "when it hits",
+        "set a limit", "setting limit", "placing limit",
+        "targeting entry", "entry target", "planned entry",
+        "under-fib", "underfib", "under fib",
+        ".786", ".618", ".50", ".382"  # Fib levels suggest planned setup
+    ]
+    
+    for phrase in planned_setup_phrases:
+        if phrase in text_lower:
+            return "PLANNED_SETUP"
+    
+    # Check for price mentions that suggest planning
+    # If they mention a specific entry price, likely planning
+    import re
+    price_pattern = r'entry\s*(?:at|@|:)?\s*[\d.,]+'
+    if re.search(price_pattern, text_lower):
+        return "PLANNED_SETUP"
+    
+    # Can't determine
+    return "UNKNOWN"
+
+
+def build_planned_setup_response(vision: dict, user_plan: str) -> str:
+    """Build response for PLANNED_SETUP mode — focus on zone quality, not current price."""
+    
+    # Get key values
+    fib_level = vision.get('fib_level', 'Unable to confirm')
+    structure_grade = vision.get('structure_grade', 'Unconfirmed')
+    structure_notes = vision.get('structure_notes', '')
+    market_state = vision.get('market_state', 'Unclear')
+    timeframe = vision.get('timeframe', 'Unable to confirm')
+    rsi_reading = vision.get('rsi_reading', 'Not visible')
+    rsi_interp = vision.get('rsi_interpretation', 'N/A')
+    momentum = vision.get('momentum_health', 'Unable to assess')
+    confidence = vision.get('confidence', 'N/A')
+    
+    # Build conditions required for valid entry
+    conditions = []
+    
+    if fib_level in ['.786', 'under-fib']:
+        conditions.append("Price must wick into flip zone and reclaim with momentum")
+        conditions.append("Watch for volume expansion on reclaim")
+        conditions.append("RSI should be oversold or approaching oversold at entry level")
+    elif fib_level in ['.618', '.50']:
+        conditions.append("Price must reach and hold the flip zone level")
+        conditions.append("Structure must remain intact before entry triggers")
+        conditions.append("Momentum should support reaction at the level")
+    else:
+        conditions.append("Wait for price to reach your planned entry zone")
+        conditions.append("Confirm structure holds before entry")
+    
+    conditions_text = "\n".join([f"→ {c}" for c in conditions])
+    
+    # Zone quality assessment
+    if structure_grade == 'A':
+        zone_quality = "High quality zone — structure supports conviction entry"
+    elif structure_grade == 'B':
+        zone_quality = "Moderate quality zone — standard execution recommended"
+    elif structure_grade == 'C':
+        zone_quality = "Lower quality zone — defensive entry, secure early"
+    else:
+        zone_quality = "Zone quality unconfirmed — wait for structure clarity"
+    
+    return (
+        f"🔮 **JAYCE DEEP VISION — SETUP MODE**\n\n"
+        f"📍 _Planned Entry Analysis (not yet in trade)_\n\n"
+        f"**Timeframe:** {timeframe}\n"
+        f"**Target Zone:** {fib_level} + Flip Zone\n"
+        f"**Market State:** {market_state}\n\n"
+        f"🧱 **Zone Quality: {structure_grade}**\n"
+        f"{zone_quality}\n"
+        f"_{structure_notes}_\n\n"
+        f"📊 **Current Momentum:** {momentum}\n"
+        f"📈 **Current RSI:** {rsi_reading} ({rsi_interp})\n"
+        f"_Note: RSI/momentum will change by the time price reaches your entry zone._\n\n"
+        f"✅ **Conditions Required for Valid Entry:**\n"
+        f"{conditions_text}\n\n"
+        f"**Confidence in Zone:** {confidence}\n\n"
+        f"🪄 _Setup mode — edge is at the zone, not current price. "
+        f"Wait for your level, confirm structure, then execute with discipline._"
+    )
+
+
+# ══════════════════════════════════════════════
 # OWNER CONTROL COMMANDS
 # ══════════════════════════════════════════════
 
@@ -526,8 +650,31 @@ async def deep_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, image_file_id: str, user_plan: str):
-    """Execute Deep Vision analysis."""
-    # Thinking message
+    """Execute Deep Vision analysis with Intent Mode Detection."""
+    
+    # ══════════════════════════════════════════════
+    # STEP 1: DETECT INTENT MODE
+    # ══════════════════════════════════════════════
+    intent = detect_intent(user_plan)
+    
+    # Handle UNKNOWN intent — ask one clarifying question and stop
+    if intent == "UNKNOWN" and user_plan.strip():
+        await update.message.reply_text(
+            "🔮 **JAYCE DEEP VISION**\n\n"
+            "Before I analyze, I need to understand your situation:\n\n"
+            "**Is this a planned limit entry at the flip zone, or are you already in the trade?**\n\n"
+            "Reply with one of:\n"
+            "→ `planning to enter at [price]` — for setup analysis\n"
+            "→ `already in at [price]` — for live trade analysis\n\n"
+            "_This helps me give you the right analysis. "
+            "Edge is at the zone, not at current price._",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # ══════════════════════════════════════════════
+    # STEP 2: RUN VISION ANALYSIS
+    # ══════════════════════════════════════════════
     thinking_msg = await update.message.reply_text("🔮 Deep reading chart…")
     
     try:
@@ -547,8 +694,18 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
             )
             return
         
-        # Build deep analysis response
-        response = build_deep_analysis_response(vision_result, user_plan)
+        # ══════════════════════════════════════════════
+        # STEP 3: BUILD RESPONSE BASED ON INTENT MODE
+        # ══════════════════════════════════════════════
+        
+        if intent == "PLANNED_SETUP":
+            # Setup Mode — focus on zone quality, not current price
+            # Do NOT show conflict detected, do NOT compute TP probability
+            response = build_planned_setup_response(vision_result, user_plan)
+        else:
+            # LIVE_TRADE or UNKNOWN with no plan text — full analysis
+            response = build_deep_analysis_response(vision_result, user_plan)
+        
         await update.message.reply_text(response, parse_mode='Markdown')
         
     except Exception as e:
