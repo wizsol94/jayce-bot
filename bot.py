@@ -547,37 +547,59 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Store uploaded photos and auto-analyze if triggered"""
+    """
+    Store uploaded photos for later analysis.
+    
+    TRIGGER RULES (locked):
+    - Jayce only analyzes when EXPLICITLY invoked
+    - Explicit invocation = /jayce command, or natural language trigger in caption
+    - If chart posted without invocation → Jayce remains SILENT (no acknowledgment)
+    - This prevents unsolicited analysis spam
+    """
     chat_id = update.effective_chat.id
     image_file_id = update.message.photo[-1].file_id
+    
+    # Always store the image for later use
     user_images[chat_id] = image_file_id
 
-    # Check if caption contains /jayce or analysis trigger words
+    # Check if caption explicitly invokes Jayce
     caption = update.message.caption if update.message.caption else ""
     caption_lower = caption.lower()
 
-    # Auto-analyze triggers in caption
-    analyze_triggers = ['/jayce', 'analyze', 'what you think', 'thoughts', 'valid']
+    # EXPLICIT invocation triggers only — must clearly call Jayce
+    explicit_triggers = [
+        '/jayce', '/analyze', '/valid', '/violent', '/deep',
+        'jayce', 'yo jayce', 'hey jayce', '@jayce',
+        'jayce analyze', 'jayce check', 'jayce look'
+    ]
 
-    if any(trigger in caption_lower for trigger in analyze_triggers):
+    # Check if any explicit trigger is present
+    is_invoked = any(trigger in caption_lower for trigger in explicit_triggers)
+
+    if is_invoked:
+        # Jayce was explicitly invoked — run analysis
         await analyze_chart(update, context, image_file_id, caption)
     else:
-        # Just acknowledge the image was received
-        await update.message.reply_text(
-            "📸 Chart received. Send `/jayce` to analyze it.\n\n"
-            "Tip: Include your plan for a better analysis.\n"
-            "Example: `/jayce .786 flip zone → target previous high`",
-            parse_mode='Markdown'
-        )
+        # Chart posted without invoking Jayce — remain SILENT
+        # Do not send any message, do not acknowledge
+        # User can invoke Jayce later with /jayce command
+        pass
 
 
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle natural language triggers like 'hey jayce' and intro requests"""
+    """
+    Handle natural language triggers.
+    
+    TRIGGER RULES (locked):
+    - Jayce only responds when EXPLICITLY invoked by name
+    - Generic phrases like "analyze" or "thoughts" alone do NOT trigger
+    - Must contain "jayce" or similar to invoke
+    """
     text = update.message.text.lower()
     full_text = update.message.text  # preserve original case for plan extraction
     chat_id = update.effective_chat.id
 
-    # Check for intro triggers
+    # Check for intro triggers (these are explicit enough)
     intro_triggers = [
         'introduce yourself',
         'introduce urself',
@@ -590,46 +612,36 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         await intro_command(update, context)
         return
 
-    # Check for analysis request with stored image
-    analysis_triggers = [
-        'what you think',
-        'what do you think',
-        'analyze',
-        'analyze this',
-        'can you analyze',
-        'thoughts',
-        'your thoughts'
+    # EXPLICIT Jayce invocation required — must name Jayce
+    jayce_explicit_triggers = [
+        'jayce', 'hey jayce', 'yo jayce', '@jayce',
+        'jayce analyze', 'jayce check', 'jayce look',
+        'jayce what you think', 'jayce thoughts'
     ]
 
-    if any(trigger in text for trigger in analysis_triggers):
-        # Check if there's a stored image
-        if chat_id in user_images and user_images[chat_id]:
-            await analyze_chart(update, context, user_images[chat_id], full_text)
-            return
-        else:
-            await update.message.reply_text(
-                "📸 I need a chart image first. Upload one and I'll analyze it.",
-                parse_mode='Markdown'
-            )
-            return
+    # Check if Jayce is explicitly named
+    jayce_invoked = any(trigger in text for trigger in jayce_explicit_triggers)
 
-    # Check for Jayce mentions (original behavior)
-    jayce_triggers = ['jayce', 'hey jayce', 'yo jayce']
+    if not jayce_invoked:
+        # Jayce was NOT explicitly invoked — remain SILENT
+        # Do not respond to generic "analyze" or "thoughts" without Jayce's name
+        return
 
-    if any(trigger in text for trigger in jayce_triggers):
-        # If there's a stored image, analyze it
-        if chat_id in user_images and user_images[chat_id]:
-            await analyze_chart(update, context, user_images[chat_id], full_text)
-        else:
-            await update.message.reply_text(
-                "🧙‍♂️ Hey! I'm here.\n\n"
-                "Upload a chart and use:\n"
-                "`/jayce` — Full analysis\n"
-                "`/valid` — Quick check\n"
-                "`/violent` — Violent Mode\n\n"
-                "Or use `/help` for all commands",
-                parse_mode='Markdown'
-            )
+    # Jayce was explicitly invoked
+    if chat_id in user_images and user_images[chat_id]:
+        # There's a stored image — analyze it
+        await analyze_chart(update, context, user_images[chat_id], full_text)
+    else:
+        # No image stored — prompt for one
+        await update.message.reply_text(
+            "🧙‍♂️ Hey! I'm here.\n\n"
+            "Upload a chart and use:\n"
+            "`/jayce` — Full analysis\n"
+            "`/valid` — Quick check\n"
+            "`/violent` — Violent Mode\n\n"
+            "Or use `/help` for all commands",
+            parse_mode='Markdown'
+        )
 
 
 # Helper functions for setup rules/explanations
