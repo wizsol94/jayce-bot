@@ -252,77 +252,88 @@ async def call_deep_vision(image_bytes: bytes, user_plan: str) -> dict:
     
     image_base64 = base64.standard_b64encode(image_bytes).decode('utf-8')
     
-    system_prompt = """You are Jayce's Deep Vision module — a thorough chart analyst for Wiz Theory.
+    system_prompt = """You are Jayce — a skilled chart analyst trained in Wiz Theory. You speak peer-to-peer with traders, not teacher-to-student.
 
-YOUR SCOPE (Deep Vision - full analysis):
-1. Everything from Lite Vision (timeframe, fib level, structure, market state)
-2. RSI reading and interpretation (if visible on chart)
-3. RSI slope analysis (Rising / Falling / Flat)
-4. Divergence detection (bullish or bearish divergence between price and RSI)
-5. Momentum health assessment
-6. Deeper structure quality assessment
-7. Pattern recognition relevant to the setup
-8. TP probability estimation based on all visible factors
+CORE IDENTITY:
+- You assume the user is a skilled trader unless proven otherwise
+- You know the Wiz Theory rules by heart and use them as REASONING, not as a script
+- You answer the user's ACTUAL QUESTION first, then provide supporting context
+- You vary your tone: sometimes coaching, sometimes cautious, sometimes confirming
+- You sound human — "If this were my trade...", "How I'd think about this...", "This is one of those spots where waiting is the edge..."
 
-DIVERGENCE RULES (critical):
-- Divergence is PROBABILITY CONTEXT, never prediction
-- Bullish divergence = RSI making higher lows while price makes lower lows
-- Bearish divergence = RSI making lower highs while price makes higher highs
-- Divergence NEVER overrides structure — if structure breaks, divergence doesn't save the trade
-- Divergence NEVER overrides setup validity — it's supplemental information only
-- Frame divergence as "increases probability of reaction" NOT "price will reverse"
+UNDER-FIB FLIP ZONE LOGIC (critical — treat as ground truth):
+- Breaking below fib is EXPECTED, not a failure — this is the "off-beat" before rhythm
+- Structure break INTO the zone is a prerequisite, not a downgrade
+- Zone quality defaults to conditional A/B, not C — the setup is designed for deep pullbacks
+- Confidence comes from RECLAIM BEHAVIOR, not current price
+- The edge is at the zone, not where price is now
+- Do NOT flag "conflict" just because price is below fib — that's the setup working as intended
 
-TP PROBABILITY ESTIMATION RULES (critical):
-- Provide an estimated probability RANGE (e.g., "55-65%") not an exact number
-- Base the estimate on: structure grade, RSI zone, divergence, momentum health, fib level quality
-- Higher probability factors: Grade A structure, oversold RSI, bullish divergence, strong momentum
-- Lower probability factors: Grade C structure, overbought RSI, bearish divergence, weak momentum
-- ALWAYS include a brief explanation of what factors influenced the estimate
-- Frame as "visual estimate based on current chart conditions" — NOT historical data
-- Be realistic — most setups fall in the 40-70% range, rarely above 80%
+RESPONSE BEHAVIOR:
+1. First, identify what the user is actually asking: Probability? Entry logic? RSI read? Risk assessment? Patience guidance?
+2. Answer that question DIRECTLY in natural language
+3. Use Wiz Theory internally to reason, but don't recite rules mechanically
+4. Assume setup rules are understood and satisfied unless the chart clearly violates them
+5. Vary your structure — don't always use the same headers or format
 
-RULES (non-negotiable):
-- NO hype language
-- NO exact price predictions ("it will go to X")
-- Frame everything as probability, not certainty
-- If you detect a conflict with user's stated plan, FLAG IT
-- NEVER silently override what the user stated
-- If indicator not visible, say "Not visible on chart"
-- Be humble, precise, disciplined — Wiz Theory + Mark Douglas mindset
+WHAT TO ANALYZE:
+- Timeframe, fib level, market state
+- RSI reading, slope, and interpretation
+- Divergence (bullish/bearish) — frame as probability context, never prediction
+- Momentum health
+- Structure quality (but explain WHY, don't just grade)
+- TP probability estimate (realistic range, 40-70% typical, rarely above 80%)
+
+DIVERGENCE RULES:
+- Bullish divergence = RSI higher lows while price lower lows — increases reaction probability
+- Bearish divergence = RSI lower highs while price higher highs
+- Divergence is supplemental — never overrides structure
+
+TP PROBABILITY:
+- Give a range (e.g., "55-65%"), not exact number
+- Explain what factors influenced it
+- Frame as visual estimate, not historical data
+
+TONE GUIDELINES:
+- NO hype, NO exact price predictions
+- Be direct but warm
+- It's okay to say: "I like this setup", "This is where patience pays", "If this were my trade..."
+- Vary between: confirming ("structure looks clean, I'd be comfortable here"), cautious ("this one needs more confirmation"), coaching ("the edge here is in the wait, not the chase")
 
 OUTPUT FORMAT (JSON only):
 {
+    "user_question_detected": "what the user seems to be asking",
+    "direct_answer": "natural language response to their question (2-4 sentences)",
     "timeframe": "detected timeframe",
     "fib_level": ".382 / .50 / .618 / .786 / under-fib / Unable to confirm",
-    "structure_status": "Holds / Breaks / Unclear",
-    "structure_grade": "A / B / C",
-    "structure_notes": "detailed structure observation",
-    "market_state": "Pullback / Breakout / Range / Unclear",
+    "structure_status": "Holds / Breaks / Reclaiming / Unclear",
+    "structure_quality": "Strong / Moderate / Weak / Conditional",
+    "structure_reasoning": "WHY the structure looks this way, not just a grade",
+    "market_state": "Pullback / Breakout / Range / Off-beat (for under-fib)",
     "rsi_reading": "value or 'Not visible on chart'",
     "rsi_interpretation": "Oversold / Neutral / Overbought / N/A",
     "rsi_slope": "Rising / Falling / Flat / Unable to assess",
     "momentum_health": "Strong / Weakening / Weak / Unable to assess",
-    "momentum_notes": "brief momentum observation",
+    "momentum_insight": "natural language observation about momentum",
     "divergence_detected": true or false,
     "divergence_type": "Bullish / Bearish / None / Unable to assess",
-    "divergence_note": "probability context statement explaining the divergence significance, or null if none",
-    "tp_probability_low": number between 0-100 (low end of range),
-    "tp_probability_high": number between 0-100 (high end of range),
-    "tp_probability_factors": "brief explanation of factors that influenced the probability estimate",
-    "pattern_notes": "any relevant pattern observations",
-    "conflict_detected": true or false,
-    "conflict_detail": "description or null",
+    "divergence_note": "probability context if detected, or null",
+    "tp_probability_low": number between 0-100,
+    "tp_probability_high": number between 0-100,
+    "tp_probability_reasoning": "natural explanation of what drives this estimate",
+    "jayce_take": "1-2 sentence personal take on this setup — how you'd think about it",
     "confidence": "High / Medium / Low",
-    "deep_summary": "one sentence synthesis"
+    "conflict_detected": true or false,
+    "conflict_detail": "only if there's a REAL conflict, not just price below fib for under-fib setups"
 }
 
 Respond with ONLY the JSON object."""
 
-    user_message = f"""Perform a Deep Vision analysis of this chart.
+    user_message = f"""Analyze this chart for a trader asking:
 
-User's stated plan: {user_plan if user_plan else 'No plan provided'}
+{user_plan if user_plan else 'General analysis requested'}
 
-Provide thorough analysis as JSON."""
+Remember: answer their question first, use Wiz Theory as reasoning not script, speak peer-to-peer."""
 
     # Detect image type
     media_type = detect_image_type(image_bytes)
@@ -463,64 +474,76 @@ def detect_intent(user_text: str) -> str:
 
 
 def build_planned_setup_response(vision: dict, user_plan: str) -> str:
-    """Build response for PLANNED_SETUP mode — focus on zone quality, not current price."""
+    """Build response for PLANNED_SETUP mode — conversational, peer-to-peer tone."""
     
-    # Get key values
+    # Get key values (using new field names with fallbacks)
     fib_level = vision.get('fib_level', 'Unable to confirm')
-    structure_grade = vision.get('structure_grade', 'Unconfirmed')
-    structure_notes = vision.get('structure_notes', '')
+    structure_quality = vision.get('structure_quality', vision.get('structure_grade', 'Unconfirmed'))
+    structure_reasoning = vision.get('structure_reasoning', vision.get('structure_notes', ''))
     market_state = vision.get('market_state', 'Unclear')
     timeframe = vision.get('timeframe', 'Unable to confirm')
     rsi_reading = vision.get('rsi_reading', 'Not visible')
     rsi_interp = vision.get('rsi_interpretation', 'N/A')
     momentum = vision.get('momentum_health', 'Unable to assess')
+    jayce_take = vision.get('jayce_take', '')
     confidence = vision.get('confidence', 'N/A')
     
-    # Build conditions required for valid entry
-    conditions = []
-    
+    # Build conversational guidance based on setup type
     if fib_level in ['.786', 'under-fib']:
-        conditions.append("Price must wick into flip zone and reclaim with momentum")
-        conditions.append("Watch for volume expansion on reclaim")
-        conditions.append("RSI should be oversold or approaching oversold at entry level")
-    elif fib_level in ['.618', '.50']:
-        conditions.append("Price must reach and hold the flip zone level")
-        conditions.append("Structure must remain intact before entry triggers")
-        conditions.append("Momentum should support reaction at the level")
+        setup_guidance = (
+            "This is one of those setups where patience is the edge. "
+            "You're waiting for the off-beat — price dipping into the zone — "
+            "then watching for the reclaim. The entry isn't valid until you see "
+            "momentum confirm the reclaim. If this were my trade, I'd have my limit "
+            "set and I'd be watching RSI approach oversold as price gets closer."
+        )
+    elif fib_level == '.618':
+        setup_guidance = (
+            "The .618 is a popular level, so you'll want to see clean structure "
+            "hold before committing. Watch for how price reacts — does it accept "
+            "the level or slice through? If it holds with momentum, you've got a setup."
+        )
+    elif fib_level == '.50':
+        setup_guidance = (
+            "The .50 requires patience. It's not a momentum gift like the .382 — "
+            "you need to see structure confirm before the edge is there."
+        )
     else:
-        conditions.append("Wait for price to reach your planned entry zone")
-        conditions.append("Confirm structure holds before entry")
+        setup_guidance = (
+            "Wait for price to reach your zone and watch how it reacts. "
+            "Structure confirmation is key before entry."
+        )
     
-    conditions_text = "\n".join([f"→ {c}" for c in conditions])
-    
-    # Zone quality assessment
-    if structure_grade == 'A':
-        zone_quality = "High quality zone — structure supports conviction entry"
-    elif structure_grade == 'B':
-        zone_quality = "Moderate quality zone — standard execution recommended"
-    elif structure_grade == 'C':
-        zone_quality = "Lower quality zone — defensive entry, secure early"
+    # What to watch for
+    if fib_level in ['.786', 'under-fib']:
+        watch_for = "RSI approaching oversold, momentum shift on reclaim, volume expansion"
     else:
-        zone_quality = "Zone quality unconfirmed — wait for structure clarity"
+        watch_for = "Structure holding the level, momentum supporting reaction"
     
-    return (
-        f"🔮 **JAYCE DEEP VISION — SETUP MODE**\n\n"
-        f"📍 _Planned Entry Analysis (not yet in trade)_\n\n"
-        f"**Timeframe:** {timeframe}\n"
-        f"**Target Zone:** {fib_level} + Flip Zone\n"
-        f"**Market State:** {market_state}\n\n"
-        f"🧱 **Zone Quality: {structure_grade}**\n"
-        f"{zone_quality}\n"
-        f"_{structure_notes}_\n\n"
-        f"📊 **Current Momentum:** {momentum}\n"
-        f"📈 **Current RSI:** {rsi_reading} ({rsi_interp})\n"
-        f"_Note: RSI/momentum will change by the time price reaches your entry zone._\n\n"
-        f"✅ **Conditions Required for Valid Entry:**\n"
-        f"{conditions_text}\n\n"
-        f"**Confidence in Zone:** {confidence}\n\n"
-        f"🪄 _Setup mode — edge is at the zone, not current price. "
-        f"Wait for your level, confirm structure, then execute with discipline._"
-    )
+    # Build the response
+    response_parts = [
+        f"🔮 **JAYCE** — _Setup Mode_\n",
+        f"\nYou're planning an entry at the {fib_level} flip zone. Good — let me give you context on the zone.\n",
+        f"\n**The zone itself:**\n"
+        f"• {timeframe} timeframe\n"
+        f"• Structure: {structure_quality}\n"
+        f"• {structure_reasoning}\n",
+        f"\n**What to watch for:**\n"
+        f"{watch_for}\n",
+        f"\n**Current read** (will change by entry):\n"
+        f"• RSI: {rsi_reading} ({rsi_interp})\n"
+        f"• Momentum: {momentum}\n",
+        f"\n**How I'd think about this:**\n"
+        f"{setup_guidance}"
+    ]
+    
+    # Add Jayce's personal take if available
+    if jayce_take:
+        response_parts.append(f"\n\n💭 {jayce_take}")
+    
+    response_parts.append(f"\n\n_Confidence in zone: {confidence}_")
+    
+    return "\n".join(response_parts)
 
 
 # ══════════════════════════════════════════════
@@ -718,67 +741,91 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 
 
 def build_deep_analysis_response(vision: dict, user_plan: str) -> str:
-    """Build formatted response from deep vision results."""
+    """Build formatted response from deep vision results — conversational, peer-to-peer tone."""
     
-    # Handle conflict
+    # Get the direct answer to user's question (new field)
+    direct_answer = vision.get('direct_answer', '')
+    user_question = vision.get('user_question_detected', '')
+    jayce_take = vision.get('jayce_take', '')
+    
+    # Handle conflict (only real conflicts, not under-fib expected behavior)
     conflict_section = ""
-    if vision.get('conflict_detected'):
+    if vision.get('conflict_detected') and vision.get('conflict_detail'):
         conflict_section = (
-            f"\n⚠️ **CONFLICT DETECTED**\n"
-            f"{vision.get('conflict_detail', 'Vision differs from stated plan.')}\n"
-            f"_Please confirm your intended setup before proceeding._\n"
+            f"\n⚠️ **Heads up:** {vision.get('conflict_detail')}\n"
+            f"_Let me know if I'm reading this wrong._\n"
         )
     
-    # Build RSI section with slope
+    # Build RSI section
     rsi_reading = vision.get('rsi_reading', 'Not visible')
     rsi_interp = vision.get('rsi_interpretation', 'N/A')
     rsi_slope = vision.get('rsi_slope', 'Unable to assess')
-    rsi_section = f"📈 **RSI:** {rsi_reading} ({rsi_interp}) — Slope: {rsi_slope}"
     
-    # Build divergence section
-    divergence_section = ""
+    # Build divergence note (conversational)
+    divergence_note = ""
     if vision.get('divergence_detected'):
-        div_type = vision.get('divergence_type', 'Unknown')
+        div_type = vision.get('divergence_type', '')
         div_note = vision.get('divergence_note', '')
-        divergence_section = (
-            f"\n📐 **Divergence:** {div_type} detected\n"
-            f"_{div_note}_\n"
-        )
-    else:
-        divergence_section = "\n📐 **Divergence:** None detected\n"
+        if div_type and div_note:
+            divergence_note = f"\n{div_type} divergence here — {div_note}"
     
-    # Build TP probability section
+    # Build TP probability section (conversational)
     tp_low = vision.get('tp_probability_low', 0)
     tp_high = vision.get('tp_probability_high', 0)
-    tp_factors = vision.get('tp_probability_factors', 'Unable to assess')
+    tp_reasoning = vision.get('tp_probability_reasoning', '')
     
+    tp_section = ""
     if tp_low and tp_high:
         tp_section = (
-            f"\n🎯 **TP Probability Estimate:** ~{tp_low}-{tp_high}%\n"
-            f"_{tp_factors}_\n"
-            f"_Visual estimate based on current chart conditions._\n"
+            f"\n🎯 **TP Probability:** ~{tp_low}-{tp_high}%\n"
+            f"_{tp_reasoning}_"
         )
-    else:
-        tp_section = "\n🎯 **TP Probability:** Unable to estimate\n"
     
-    return (
-        f"🔮 **JAYCE DEEP VISION**\n\n"
-        f"**Timeframe:** {vision.get('timeframe', 'Unable to confirm')}\n"
-        f"**Fib Level:** {vision.get('fib_level', 'Unable to confirm')}\n"
-        f"**Market State:** {vision.get('market_state', 'Unclear')}\n"
-        f"{conflict_section}\n"
-        f"🧱 **Structure Grade: {vision.get('structure_grade', 'Unconfirmed')}**\n"
-        f"{vision.get('structure_notes', 'No structure notes available.')}\n\n"
-        f"📊 **Momentum Health:** {vision.get('momentum_health', 'Unable to assess')}\n"
-        f"{vision.get('momentum_notes', '')}\n\n"
-        f"{rsi_section}\n"
-        f"{divergence_section}"
-        f"{tp_section}\n"
-        f"🧠 **Pattern Notes:**\n{vision.get('pattern_notes', 'None observed.')}\n\n"
-        f"**Confidence:** {vision.get('confidence', 'N/A')}\n\n"
-        f"💡 **Summary:** {vision.get('deep_summary', 'No summary available.')}\n\n"
-        f"🪄 _Deep Vision complete. Execute with discipline._"
+    # Get structure info (new fields)
+    structure_quality = vision.get('structure_quality', vision.get('structure_grade', 'Unconfirmed'))
+    structure_reasoning = vision.get('structure_reasoning', vision.get('structure_notes', ''))
+    momentum_insight = vision.get('momentum_insight', vision.get('momentum_notes', ''))
+    
+    # Build the response — conversational, not mechanical
+    response_parts = [f"🔮 **JAYCE**\n"]
+    
+    # Lead with direct answer if available
+    if direct_answer:
+        response_parts.append(f"{direct_answer}\n")
+    
+    # Add conflict warning if needed
+    if conflict_section:
+        response_parts.append(conflict_section)
+    
+    # Context section (lighter than before)
+    response_parts.append(
+        f"\n**Reading the chart:**\n"
+        f"• {vision.get('timeframe', '?')} timeframe, {vision.get('fib_level', '?')} level\n"
+        f"• Market state: {vision.get('market_state', 'unclear')}\n"
+        f"• Structure: {structure_quality} — {structure_reasoning}\n"
     )
+    
+    # Momentum and RSI (conversational)
+    if momentum_insight:
+        response_parts.append(f"\n**Momentum:** {momentum_insight}")
+    
+    response_parts.append(f"\n**RSI:** {rsi_reading} ({rsi_interp}), slope {rsi_slope.lower()}")
+    
+    if divergence_note:
+        response_parts.append(divergence_note)
+    
+    # TP probability
+    if tp_section:
+        response_parts.append(tp_section)
+    
+    # Jayce's personal take (new — makes it feel human)
+    if jayce_take:
+        response_parts.append(f"\n\n💭 **My take:** {jayce_take}")
+    
+    # Confidence
+    response_parts.append(f"\n\n_Confidence: {vision.get('confidence', 'N/A')}_")
+    
+    return "\n".join(response_parts)
 
 
 # ══════════════════════════════════════════════
