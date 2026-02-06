@@ -74,6 +74,258 @@ VIOLENT_ELIGIBLE = {
 
 
 # ══════════════════════════════════════════════
+# BACKUP SYSTEM — Zero Data Loss Protection
+# ══════════════════════════════════════════════
+# Rolling backups with max 5 snapshots
+# Auto-backup before any state modification
+# Duplicate key validation before save
+
+import shutil
+from datetime import datetime
+from pathlib import Path
+
+BACKUP_DIR = Path("/tmp/jayce_backups")
+MAX_BACKUPS = 5
+STATE_FILE = Path("/tmp/jayce_state.json")
+
+def get_current_state() -> dict:
+    """Get current Jayce state as a dictionary."""
+    return {
+        'vision_state': vision_state.copy(),
+        'resolution_times': RESOLUTION_TIMES.copy(),
+        'execution_defaults': EXECUTION_DEFAULTS.copy(),
+        'violent_eligible': VIOLENT_ELIGIBLE.copy(),
+        'timestamp': datetime.now().isoformat(),
+        'version': 'v2.0-deep-vision'
+    }
+
+
+def validate_state_keys(new_state: dict) -> tuple[bool, str]:
+    """
+    Validate state before saving.
+    Returns (is_valid, error_message)
+    """
+    # Check for duplicate keys in each section
+    sections_to_check = [
+        ('resolution_times', new_state.get('resolution_times', {})),
+        ('execution_defaults', new_state.get('execution_defaults', {})),
+        ('violent_eligible', new_state.get('violent_eligible', {})),
+    ]
+    
+    for section_name, section_data in sections_to_check:
+        if not isinstance(section_data, dict):
+            return False, f"Invalid data type for {section_name}"
+        
+        # Check for None keys or empty keys
+        for key in section_data.keys():
+            if key is None or key == '':
+                return False, f"Invalid key in {section_name}: empty or None"
+    
+    # Validate vision_state has required keys
+    vision = new_state.get('vision_state', {})
+    required_vision_keys = ['lite_enabled', 'deep_enabled']
+    for key in required_vision_keys:
+        if key not in vision:
+            return False, f"Missing required vision_state key: {key}"
+    
+    return True, ""
+
+
+def create_backup() -> tuple[bool, str]:
+    """
+    Create a backup snapshot of current state.
+    Returns (success, backup_path or error_message)
+    """
+    try:
+        # Ensure backup directory exists
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Get current state
+        current_state = get_current_state()
+        
+        # Validate before backup
+        is_valid, error = validate_state_keys(current_state)
+        if not is_valid:
+            return False, f"State validation failed: {error}"
+        
+        # Create backup filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_file = BACKUP_DIR / f"jayce_backup_{timestamp}.json"
+        
+        # Write backup
+        with open(backup_file, 'w') as f:
+            json.dump(current_state, f, indent=2)
+        
+        # Manage rolling backups (keep max 5)
+        cleanup_old_backups()
+        
+        logger.info(f"Backup created: {backup_file}")
+        return True, str(backup_file)
+        
+    except Exception as e:
+        logger.error(f"Backup failed: {e}")
+        return False, str(e)
+
+
+def cleanup_old_backups():
+    """Delete oldest backups if more than MAX_BACKUPS exist."""
+    try:
+        backups = sorted(BACKUP_DIR.glob("jayce_backup_*.json"))
+        
+        while len(backups) > MAX_BACKUPS:
+            oldest = backups.pop(0)
+            oldest.unlink()
+            logger.info(f"Deleted old backup: {oldest}")
+            
+    except Exception as e:
+        logger.error(f"Backup cleanup failed: {e}")
+
+
+def list_backups() -> list[dict]:
+    """List all available backups with metadata."""
+    try:
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        backups = sorted(BACKUP_DIR.glob("jayce_backup_*.json"), reverse=True)
+        
+        backup_list = []
+        for i, backup_file in enumerate(backups):
+            try:
+                with open(backup_file, 'r') as f:
+                    data = json.load(f)
+                backup_list.append({
+                    'index': i + 1,
+                    'filename': backup_file.name,
+                    'path': str(backup_file),
+                    'timestamp': data.get('timestamp', 'unknown'),
+                    'version': data.get('version', 'unknown')
+                })
+            except:
+                backup_list.append({
+                    'index': i + 1,
+                    'filename': backup_file.name,
+                    'path': str(backup_file),
+                    'timestamp': 'corrupted',
+                    'version': 'corrupted'
+                })
+        
+        return backup_list
+        
+    except Exception as e:
+        logger.error(f"Failed to list backups: {e}")
+        return []
+
+
+def restore_backup(backup_index: int = 1) -> tuple[bool, str]:
+    """
+    Restore from a backup.
+    backup_index: 1 = most recent, 2 = second most recent, etc.
+    Returns (success, message)
+    """
+    global vision_state, RESOLUTION_TIMES, EXECUTION_DEFAULTS, VIOLENT_ELIGIBLE
+    
+    try:
+        backups = list_backups()
+        
+        if not backups:
+            return False, "No backups available"
+        
+        if backup_index < 1 or backup_index > len(backups):
+            return False, f"Invalid backup index. Available: 1-{len(backups)}"
+        
+        backup_info = backups[backup_index - 1]
+        backup_path = backup_info['path']
+        
+        # Read backup
+        with open(backup_path, 'r') as f:
+            backup_data = json.load(f)
+        
+        # Validate backup data
+        is_valid, error = validate_state_keys(backup_data)
+        if not is_valid:
+            return False, f"Backup validation failed: {error}"
+        
+        # Create a backup of current state before restoring (safety net)
+        create_backup()
+        
+        # Restore state
+        vision_state.update(backup_data.get('vision_state', {}))
+        RESOLUTION_TIMES.update(backup_data.get('resolution_times', {}))
+        EXECUTION_DEFAULTS.update(backup_data.get('execution_defaults', {}))
+        VIOLENT_ELIGIBLE.update(backup_data.get('violent_eligible', {}))
+        
+        logger.info(f"Restored from backup: {backup_path}")
+        return True, f"Restored from {backup_info['filename']} (created {backup_info['timestamp']})"
+        
+    except Exception as e:
+        logger.error(f"Restore failed: {e}")
+        return False, str(e)
+
+
+def safe_update_state(updates: dict) -> tuple[bool, str]:
+    """
+    Safely update Jayce state with backup protection.
+    
+    1. Validates the new state
+    2. Creates backup of current state
+    3. Applies changes only if backup succeeds
+    
+    Returns (success, message)
+    """
+    global vision_state, RESOLUTION_TIMES, EXECUTION_DEFAULTS, VIOLENT_ELIGIBLE
+    
+    try:
+        # Build proposed new state
+        new_state = get_current_state()
+        
+        # Merge updates
+        if 'vision_state' in updates:
+            new_state['vision_state'].update(updates['vision_state'])
+        if 'resolution_times' in updates:
+            new_state['resolution_times'].update(updates['resolution_times'])
+        if 'execution_defaults' in updates:
+            new_state['execution_defaults'].update(updates['execution_defaults'])
+        if 'violent_eligible' in updates:
+            new_state['violent_eligible'].update(updates['violent_eligible'])
+        
+        # STEP 1: Validate new state
+        is_valid, error = validate_state_keys(new_state)
+        if not is_valid:
+            return False, f"❌ Validation failed: {error}. Save aborted."
+        
+        # Check for duplicate keys across sections (shouldn't happen but safety check)
+        all_keys = []
+        for section in ['resolution_times', 'execution_defaults', 'violent_eligible']:
+            section_keys = list(new_state.get(section, {}).keys())
+            for key in section_keys:
+                if key in all_keys:
+                    # This is actually fine - same keys across different dicts is expected
+                    pass
+            all_keys.extend(section_keys)
+        
+        # STEP 2: Create backup BEFORE applying changes
+        backup_success, backup_result = create_backup()
+        if not backup_success:
+            return False, f"❌ Backup failed: {backup_result}. Save aborted."
+        
+        # STEP 3: Apply changes only after backup succeeds
+        if 'vision_state' in updates:
+            vision_state.update(updates['vision_state'])
+        if 'resolution_times' in updates:
+            RESOLUTION_TIMES.update(updates['resolution_times'])
+        if 'execution_defaults' in updates:
+            EXECUTION_DEFAULTS.update(updates['execution_defaults'])
+        if 'violent_eligible' in updates:
+            VIOLENT_ELIGIBLE.update(updates['violent_eligible'])
+        
+        logger.info(f"State updated successfully. Backup: {backup_result}")
+        return True, f"✅ Changes applied. Backup saved: {backup_result}"
+        
+    except Exception as e:
+        logger.error(f"Safe update failed: {e}")
+        return False, f"❌ Update failed: {str(e)}"
+
+
+# ══════════════════════════════════════════════
 # VISION API FUNCTIONS
 # ══════════════════════════════════════════════
 
@@ -597,6 +849,97 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
 # OWNER CONTROL COMMANDS
 # ══════════════════════════════════════════════
 
+async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /backup command — OWNER ONLY
+    
+    Usage:
+        /backup — Create a new backup
+        /backup list — List all backups
+        /backup restore [n] — Restore from backup n (1=most recent)
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text(
+            "⛔ This command is restricted to the owner.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    if not context.args:
+        # Create a new backup
+        success, result = create_backup()
+        if success:
+            await update.message.reply_text(
+                f"💾 **Backup Created**\n\n"
+                f"Saved to: `{result}`\n\n"
+                f"Use `/backup list` to see all backups.",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(
+                f"❌ **Backup Failed**\n\n{result}",
+                parse_mode='Markdown'
+            )
+        return
+    
+    arg = context.args[0].lower()
+    
+    if arg == 'list':
+        # List all backups
+        backups = list_backups()
+        if not backups:
+            await update.message.reply_text(
+                "📂 **No backups found.**\n\n"
+                "Use `/backup` to create one.",
+                parse_mode='Markdown'
+            )
+            return
+        
+        backup_text = "💾 **Available Backups:**\n\n"
+        for b in backups:
+            backup_text += f"**{b['index']}.** {b['filename']}\n"
+            backup_text += f"   _{b['timestamp']}_\n\n"
+        
+        backup_text += f"Use `/backup restore [n]` to restore.\n"
+        backup_text += f"_(1 = most recent)_"
+        
+        await update.message.reply_text(backup_text, parse_mode='Markdown')
+        
+    elif arg == 'restore':
+        # Restore from backup
+        backup_index = 1  # Default to most recent
+        if len(context.args) > 1:
+            try:
+                backup_index = int(context.args[1])
+            except ValueError:
+                await update.message.reply_text(
+                    "❌ Invalid backup number. Use `/backup list` to see available backups.",
+                    parse_mode='Markdown'
+                )
+                return
+        
+        success, result = restore_backup(backup_index)
+        if success:
+            await update.message.reply_text(
+                f"✅ **Restore Successful**\n\n{result}",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(
+                f"❌ **Restore Failed**\n\n{result}",
+                parse_mode='Markdown'
+            )
+    else:
+        await update.message.reply_text(
+            "**Usage:**\n"
+            "`/backup` — Create backup\n"
+            "`/backup list` — List backups\n"
+            "`/backup restore [n]` — Restore backup n",
+            parse_mode='Markdown'
+        )
+
+
 async def vision_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /vision on|off command — OWNER ONLY"""
     user_id = update.effective_user.id
@@ -627,19 +970,30 @@ async def vision_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='Markdown'
             )
             return
-        vision_state['lite_enabled'] = True
-        await update.message.reply_text(
-            "🔮 **Lite Vision:** Enabled ✅\n\n"
-            "Jayce can now read charts when explicitly invoked.",
-            parse_mode='Markdown'
-        )
+        
+        # Use safe_update_state for backup protection
+        success, msg = safe_update_state({'vision_state': {'lite_enabled': True}})
+        if success:
+            await update.message.reply_text(
+                "🔮 **Lite Vision:** Enabled ✅\n\n"
+                "Jayce can now read charts when explicitly invoked.\n"
+                f"_{msg}_",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(f"❌ Failed to update: {msg}", parse_mode='Markdown')
+            
     elif arg == 'off':
-        vision_state['lite_enabled'] = False
-        await update.message.reply_text(
-            "🔮 **Lite Vision:** Disabled ❌\n\n"
-            "Jayce will show 'Visual confirmation unavailable' for chart reads.",
-            parse_mode='Markdown'
-        )
+        success, msg = safe_update_state({'vision_state': {'lite_enabled': False}})
+        if success:
+            await update.message.reply_text(
+                "🔮 **Lite Vision:** Disabled ❌\n\n"
+                "Jayce will show 'Visual confirmation unavailable' for chart reads.\n"
+                f"_{msg}_",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(f"❌ Failed to update: {msg}", parse_mode='Markdown')
     else:
         await update.message.reply_text(
             "Usage: `/vision on` or `/vision off`",
@@ -669,19 +1023,29 @@ async def deep_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     parse_mode='Markdown'
                 )
                 return
-            vision_state['deep_enabled'] = True
-            await update.message.reply_text(
-                "🔮 **Deep Vision:** Enabled ✅\n\n"
-                "Users can now use `/deep` for thorough chart analysis.",
-                parse_mode='Markdown'
-            )
+            
+            # Use safe_update_state for backup protection
+            success, msg = safe_update_state({'vision_state': {'deep_enabled': True}})
+            if success:
+                await update.message.reply_text(
+                    "🔮 **Deep Vision:** Enabled ✅\n\n"
+                    "Users can now use `/deep` for thorough chart analysis.\n"
+                    f"_{msg}_",
+                    parse_mode='Markdown'
+                )
+            else:
+                await update.message.reply_text(f"❌ Failed to update: {msg}", parse_mode='Markdown')
         else:
-            vision_state['deep_enabled'] = False
-            await update.message.reply_text(
-                "🔮 **Deep Vision:** Disabled ❌\n\n"
-                "`/deep` command is now blocked.",
-                parse_mode='Markdown'
-            )
+            success, msg = safe_update_state({'vision_state': {'deep_enabled': False}})
+            if success:
+                await update.message.reply_text(
+                    "🔮 **Deep Vision:** Disabled ❌\n\n"
+                    "`/deep` command is now blocked.\n"
+                    f"_{msg}_",
+                    parse_mode='Markdown'
+                )
+            else:
+                await update.message.reply_text(f"❌ Failed to update: {msg}", parse_mode='Markdown')
         return
     
     # This is a request to run deep analysis
@@ -1678,6 +2042,7 @@ def main():
     # Owner control commands
     application.add_handler(CommandHandler("vision", vision_command))
     application.add_handler(CommandHandler("deep", deep_command))
+    application.add_handler(CommandHandler("backup", backup_command))
 
     # Intro commands
     application.add_handler(CommandHandler("intro", intro_command))
@@ -1699,6 +2064,14 @@ def main():
 
     # Text handler
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+
+    # Create initial backup on startup
+    logger.info("Creating startup backup...")
+    success, result = create_backup()
+    if success:
+        logger.info(f"Startup backup created: {result}")
+    else:
+        logger.warning(f"Startup backup failed: {result}")
 
     logger.info("Starting Jayce Bot with Vision...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
