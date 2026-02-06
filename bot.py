@@ -77,6 +77,22 @@ VIOLENT_ELIGIBLE = {
 # VISION API FUNCTIONS
 # ══════════════════════════════════════════════
 
+def detect_image_type(image_bytes: bytes) -> str:
+    """Detect image MIME type from bytes."""
+    # Check magic bytes
+    if image_bytes[:8] == b'\x89PNG\r\n\x1a\n':
+        return "image/png"
+    elif image_bytes[:2] == b'\xff\xd8':
+        return "image/jpeg"
+    elif image_bytes[:6] in (b'GIF87a', b'GIF89a'):
+        return "image/gif"
+    elif image_bytes[:4] == b'RIFF' and image_bytes[8:12] == b'WEBP':
+        return "image/webp"
+    else:
+        # Default to JPEG
+        return "image/jpeg"
+
+
 async def download_telegram_image(context: ContextTypes.DEFAULT_TYPE, file_id: str) -> bytes:
     """Download image from Telegram and return as bytes."""
     file = await context.bot.get_file(file_id)
@@ -101,8 +117,14 @@ async def call_lite_vision(image_bytes: bytes, user_plan: str) -> dict:
     if not ANTHROPIC_API_KEY:
         return {'error': 'API key not configured'}
     
+    # Detect image type
+    media_type = detect_image_type(image_bytes)
+    
     # Encode image to base64
     image_base64 = base64.standard_b64encode(image_bytes).decode('utf-8')
+    
+    # Log image size for debugging
+    logger.info(f"Lite Vision: Image size {len(image_bytes)} bytes, type {media_type}")
     
     # Lite Vision system prompt — disciplined, no hype, no predictions
     system_prompt = """You are Jayce's Lite Vision module — a disciplined chart reader for Wiz Theory analysis.
@@ -146,6 +168,33 @@ Provide your Lite Vision analysis as JSON."""
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
+            request_body = {
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 1024,
+                "system": system_prompt,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": media_type,
+                                    "data": image_base64,
+                                },
+                            },
+                            {
+                                "type": "text",
+                                "text": user_message,
+                            },
+                        ],
+                    }
+                ],
+            }
+            
+            logger.info(f"Calling Claude API with model claude-sonnet-4-20250514")
+            
             response = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
@@ -153,35 +202,13 @@ Provide your Lite Vision analysis as JSON."""
                     "anthropic-version": "2023-06-01",
                     "content-type": "application/json",
                 },
-                json={
-                    "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 1024,
-                    "system": system_prompt,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "image",
-                                    "source": {
-                                        "type": "base64",
-                                        "media_type": "image/jpeg",
-                                        "data": image_base64,
-                                    },
-                                },
-                                {
-                                    "type": "text",
-                                    "text": user_message,
-                                },
-                            ],
-                        }
-                    ],
-                },
+                json=request_body,
             )
             
             if response.status_code != 200:
-                logger.error(f"Claude API error: {response.status_code} - {response.text}")
-                return {'error': f'API returned {response.status_code}'}
+                error_body = response.text
+                logger.error(f"Claude API error: {response.status_code} - {error_body}")
+                return {'error': f'API returned {response.status_code}', 'detail': error_body[:500]}
             
             result = response.json()
             content = result.get('content', [{}])[0].get('text', '{}')
@@ -270,6 +297,10 @@ User's stated plan: {user_plan if user_plan else 'No plan provided'}
 
 Provide thorough analysis as JSON."""
 
+    # Detect image type
+    media_type = detect_image_type(image_bytes)
+    logger.info(f"Deep Vision: Image size {len(image_bytes)} bytes, type {media_type}")
+
     try:
         async with httpx.AsyncClient(timeout=45.0) as client:
             response = await client.post(
@@ -291,7 +322,7 @@ Provide thorough analysis as JSON."""
                                     "type": "image",
                                     "source": {
                                         "type": "base64",
-                                        "media_type": "image/jpeg",
+                                        "media_type": media_type,
                                         "data": image_base64,
                                     },
                                 },
@@ -306,8 +337,9 @@ Provide thorough analysis as JSON."""
             )
             
             if response.status_code != 200:
-                logger.error(f"Claude API error: {response.status_code} - {response.text}")
-                return {'error': f'API returned {response.status_code}'}
+                error_body = response.text
+                logger.error(f"Deep Vision API error: {response.status_code} - {error_body}")
+                return {'error': f'API returned {response.status_code}', 'detail': error_body[:500]}
             
             result = response.json()
             content = result.get('content', [{}])[0].get('text', '{}')
