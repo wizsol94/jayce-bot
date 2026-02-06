@@ -239,11 +239,13 @@ async def call_deep_vision(image_bytes: bytes, user_plan: str) -> dict:
     More thorough analysis including RSI, momentum, volume.
     
     Deep Vision scope (in addition to Lite):
-    - RSI reading and interpretation
+    - RSI reading, interpretation, and slope analysis
+    - Divergence detection (bullish/bearish)
     - Momentum health assessment
-    - Volume analysis
     - Deeper structure analysis
     - Historical pattern recognition
+    
+    NOTE: Volume is deprioritized. Focus on RSI + divergence for momentum context.
     """
     if not ANTHROPIC_API_KEY:
         return {'error': 'API key not configured'}
@@ -254,11 +256,20 @@ async def call_deep_vision(image_bytes: bytes, user_plan: str) -> dict:
 
 YOUR SCOPE (Deep Vision - full analysis):
 1. Everything from Lite Vision (timeframe, fib level, structure, market state)
-2. RSI reading (if visible on chart)
-3. Momentum health assessment
-4. Volume analysis (if visible)
-5. Deeper structure quality assessment
-6. Pattern recognition relevant to the setup
+2. RSI reading and interpretation (if visible on chart)
+3. RSI slope analysis (Rising / Falling / Flat)
+4. Divergence detection (bullish or bearish divergence between price and RSI)
+5. Momentum health assessment
+6. Deeper structure quality assessment
+7. Pattern recognition relevant to the setup
+
+DIVERGENCE RULES (critical):
+- Divergence is PROBABILITY CONTEXT, never prediction
+- Bullish divergence = RSI making higher lows while price makes lower lows
+- Bearish divergence = RSI making lower highs while price makes higher highs
+- Divergence NEVER overrides structure — if structure breaks, divergence doesn't save the trade
+- Divergence NEVER overrides setup validity — it's supplemental information only
+- Frame divergence as "increases probability of reaction" NOT "price will reverse"
 
 RULES (non-negotiable):
 - NO hype language
@@ -279,11 +290,14 @@ OUTPUT FORMAT (JSON only):
     "market_state": "Pullback / Breakout / Range / Unclear",
     "rsi_reading": "value or 'Not visible on chart'",
     "rsi_interpretation": "Oversold / Neutral / Overbought / N/A",
+    "rsi_slope": "Rising / Falling / Flat / Unable to assess",
     "momentum_health": "Strong / Weakening / Weak / Unable to assess",
     "momentum_notes": "brief momentum observation",
-    "volume_assessment": "Increasing / Decreasing / Stable / Not visible",
+    "divergence_detected": true or false,
+    "divergence_type": "Bullish / Bearish / None / Unable to assess",
+    "divergence_note": "probability context statement explaining the divergence significance, or null if none",
     "pattern_notes": "any relevant pattern observations",
-    "conflict_detected": true/false,
+    "conflict_detected": true or false,
     "conflict_detail": "description or null",
     "confidence": "High / Medium / Low",
     "deep_summary": "one sentence synthesis"
@@ -545,6 +559,24 @@ def build_deep_analysis_response(vision: dict, user_plan: str) -> str:
             f"_Please confirm your intended setup before proceeding._\n"
         )
     
+    # Build RSI section with slope
+    rsi_reading = vision.get('rsi_reading', 'Not visible')
+    rsi_interp = vision.get('rsi_interpretation', 'N/A')
+    rsi_slope = vision.get('rsi_slope', 'Unable to assess')
+    rsi_section = f"📈 **RSI:** {rsi_reading} ({rsi_interp}) — Slope: {rsi_slope}"
+    
+    # Build divergence section
+    divergence_section = ""
+    if vision.get('divergence_detected'):
+        div_type = vision.get('divergence_type', 'Unknown')
+        div_note = vision.get('divergence_note', '')
+        divergence_section = (
+            f"\n📐 **Divergence:** {div_type} detected\n"
+            f"_{div_note}_\n"
+        )
+    else:
+        divergence_section = "\n📐 **Divergence:** None detected\n"
+    
     return (
         f"🔮 **JAYCE DEEP VISION**\n\n"
         f"**Timeframe:** {vision.get('timeframe', 'Unable to confirm')}\n"
@@ -555,8 +587,8 @@ def build_deep_analysis_response(vision: dict, user_plan: str) -> str:
         f"{vision.get('structure_notes', 'No structure notes available.')}\n\n"
         f"📊 **Momentum Health:** {vision.get('momentum_health', 'Unable to assess')}\n"
         f"{vision.get('momentum_notes', '')}\n\n"
-        f"📈 **RSI:** {vision.get('rsi_reading', 'Not visible')} ({vision.get('rsi_interpretation', 'N/A')})\n"
-        f"📉 **Volume:** {vision.get('volume_assessment', 'Not visible')}\n\n"
+        f"{rsi_section}\n"
+        f"{divergence_section}\n"
         f"🧠 **Pattern Notes:**\n{vision.get('pattern_notes', 'None observed.')}\n\n"
         f"**Confidence:** {vision.get('confidence', 'N/A')}\n\n"
         f"💡 **Summary:** {vision.get('deep_summary', 'No summary available.')}\n\n"
