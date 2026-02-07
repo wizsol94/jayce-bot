@@ -1777,21 +1777,13 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         return
     
     # ══════════════════════════════════════════════
-    # UNKNOWN INTENT — Ask clarifying question
-    # (But NOT for memory mode — that's already handled above)
+    # UNKNOWN INTENT — Default to PLANNED_SETUP (non-blocking)
+    # /deep always proceeds with analysis
+    # Jayce acts like a system-trader assistant, not a form
     # ══════════════════════════════════════════════
-    if intent == "UNKNOWN" and user_plan.strip():
-        await update.message.reply_text(
-            "🔮 **JAYCE**\n\n"
-            "Before I analyze, quick question:\n\n"
-            "**Are you planning to enter at the flip zone, or are you already in?**\n\n"
-            "→ `planning to enter at [price]` — setup analysis\n"
-            "→ `already in at [price]` — live trade analysis\n"
-            "→ `this hit TP, remember this` — save to memory\n\n"
-            "_Helps me give you the right read._",
-            parse_mode='Markdown'
-        )
-        return
+    if intent == "UNKNOWN":
+        # Default to PLANNED_SETUP — analyze first, clarify later if needed
+        intent = "PLANNED_SETUP"
     
     # ══════════════════════════════════════════════
     # STEP 2: RUN VISION ANALYSIS
