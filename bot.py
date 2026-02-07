@@ -558,14 +558,64 @@ def build_memory_response(memory_data: dict, username: str = None) -> str:
     return "\n".join(lines)
 
 
-def get_similar_memories(setup_type: str, limit: int = 3) -> list:
+def get_similar_memories(setup_type: str, limit: int = 1) -> list:
     """Get similar past setups from memory."""
     memories = load_memories()
     
     similar = [m for m in memories if m.get('setup_type') == setup_type]
     
-    # Return most recent ones
+    # Return most recent ones (default limit=1 for Deep Vision)
     return similar[-limit:] if similar else []
+
+
+def build_similar_pattern_note(setup_type: str) -> str:
+    """
+    Build a similar pattern note from memory for Deep Vision.
+    
+    Rules:
+    - Only return note if a relevant memory exists
+    - Keep it short (1-2 lines max)
+    - Frame as experience context, not proof
+    - Return empty string if no match found
+    """
+    similar = get_similar_memories(setup_type, limit=1)
+    
+    if not similar:
+        return ""
+    
+    # Get the most recent matching memory
+    memory = similar[0]
+    outcome = memory.get('outcome', '')
+    conditions = memory.get('conditions', '')
+    resolution = memory.get('resolution', 'normal')
+    
+    # Build natural language note
+    note_parts = [f"This resembles a prior {setup_type}"]
+    
+    # Add outcome context
+    if "magnet" in outcome.lower():
+        if "0.50" in outcome:
+            note_parts.append("that resolved to the 0.50 magnet")
+        elif "0.382" in outcome:
+            note_parts.append("that resolved to the 0.382 magnet")
+        else:
+            note_parts.append("that hit TP")
+    elif "hit tp" in outcome.lower():
+        note_parts.append("that hit TP")
+    else:
+        note_parts.append("that played out")
+    
+    # Add condition context if meaningful
+    if "clean" in conditions.lower() or "reclaim" in conditions.lower():
+        note_parts.append("after a clean reclaim")
+    elif "divergence" in conditions.lower():
+        note_parts.append("with divergence confirmation")
+    
+    # Add resolution context for violent
+    if resolution == "violent":
+        note_parts.append("(violent resolution)")
+    
+    return " ".join(note_parts) + "."
 
 
 # ══════════════════════════════════════════════
@@ -1123,9 +1173,10 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
         response_parts.append(f", slope {rsi_slope.lower()}")
     response_parts.append(f"\n• Momentum: {momentum}\n")
     
-    # Similar pattern memory
+    # Similar Pattern Note (from memory lookup)
+    # Only show if we have a similar pattern, omit entirely if none
     if similar_pattern:
-        response_parts.append(f"\n🧠 **Similar patterns:** {similar_pattern}\n")
+        response_parts.append(f"\n🧠 **Similar Pattern Note:**\n• _{similar_pattern}_\n")
     
     # How I'd think about this
     response_parts.append(f"\n💭 **How I'd think about this:**\n{setup_guidance}")
@@ -1556,6 +1607,32 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
             return
         
         # ══════════════════════════════════════════════
+        # STEP 2.5: LOOKUP SIMILAR MEMORIES (Deep Vision only)
+        # Only after setup type is detected and structure confirmed
+        # ══════════════════════════════════════════════
+        wiz_setup_type = vision_result.get('wiz_setup_type', '')
+        structure_quality = vision_result.get('structure_quality', '')
+        
+        # Only lookup if we have a confirmed setup type (not Unknown/Unclear)
+        if wiz_setup_type and wiz_setup_type not in ['Unknown', 'Unclear', '']:
+            similar_memories = get_similar_memories(wiz_setup_type, limit=1)
+            
+            # If we found a relevant memory, add it to vision_result
+            if similar_memories:
+                memory = similar_memories[0]  # Top 1 only
+                memory_outcome = memory.get('outcome', '')
+                memory_conditions = memory.get('conditions', '')
+                
+                # Build short reference (1-2 lines max)
+                similar_note = f"This resembles a prior {wiz_setup_type} that {memory_outcome.lower()}"
+                if memory_conditions and memory_conditions != 'standard conditions':
+                    similar_note += f" with {memory_conditions}"
+                similar_note += "."
+                
+                # Add to vision_result for response builder to use
+                vision_result['similar_pattern_note'] = similar_note
+        
+        # ══════════════════════════════════════════════
         # STEP 3: BUILD RESPONSE BASED ON INTENT MODE
         # ══════════════════════════════════════════════
         
@@ -1662,9 +1739,10 @@ def build_deep_analysis_response(vision: dict, user_plan: str, username: str = N
     if tp_conditional:
         response_parts.append(f"\n\n🎯 **TP Outlook:**\n_{tp_conditional}_")
     
-    # Similar Pattern Memory (lightweight)
+    # Similar Pattern Note (from memory lookup)
+    # Only show if we have a similar pattern, omit entirely if none
     if similar_pattern:
-        response_parts.append(f"\n\n🧠 **Similar patterns:** {similar_pattern}")
+        response_parts.append(f"\n\n🧠 **Similar Pattern Note:**\n• _{similar_pattern}_")
     
     # Jayce's personal take (human touch)
     if jayce_take:
