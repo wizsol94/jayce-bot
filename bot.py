@@ -1015,6 +1015,29 @@ TONE REQUIREMENTS
 - Reinforce Wiz Theory principles: Patience is the edge. Discomfort above momentum floors is opportunity. Off-beat at zone is normal, not weakness.
 
 ═══════════════════════════════════════════════════════════
+LANGUAGE ROTATION (CRITICAL — avoid repetition)
+═══════════════════════════════════════════════════════════
+Do NOT overuse the word "reclaim". Use it ONCE for clarity, then rotate to alternatives:
+
+Instead of repeating "reclaim", use:
+- "structure regained"
+- "buyers defended the level"
+- "support held after the flip"
+- "level held with authority"
+- "control returned to buyers"
+- "zone held"
+- "price accepted above the level"
+- "structure intact"
+
+EXAMPLE (bad — repetitive):
+❌ "If price reclaims, reclaim upgrades hold confidence. Watch for reclaim behavior."
+
+EXAMPLE (good — professional):
+✅ "If buyers defend the level, hold confidence increases. Watch for structure to regain above the zone."
+
+Sound like a professional trader explaining structure, not a mechanical TA narrator.
+
+═══════════════════════════════════════════════════════════
 OUTPUT FORMAT (JSON only)
 ═══════════════════════════════════════════════════════════
 {
@@ -1031,14 +1054,14 @@ OUTPUT FORMAT (JSON only)
     
     "game_plan": {
         "entry": "Limit at zone (edge-based)",
-        "reclaim_expectation": "what reclaim behavior upgrades hold confidence",
+        "hold_upgrade_trigger": "what behavior upgrades hold confidence (use varied language, not just 'reclaim')",
         "partial_tp": "Wiz Theory aligned TP guidance",
-        "continuation_logic": "how to manage runners after reclaim"
+        "continuation_logic": "how to manage runners after structure confirms"
     },
     
     "invalidation": {
         "price_based": "specific price level or zone",
-        "behavior_based": "RSI failure, no reclaim attempt, momentum damage"
+        "behavior_based": "RSI failure, structure loss, momentum damage"
     },
     
     "probability_framing": "conditional statement (Favored — edge at zone, Reduced IF..., Blocked IF...)",
@@ -1058,8 +1081,8 @@ OUTPUT FORMAT (JSON only)
     "divergence_impact": "expectation adjustment only (e.g., 'may reduce expansion quality') or null",
     
     "direct_answer": "answer user's actual question first (2-3 sentences)",
-    "jayce_take": "1-2 sentence execution-focused take using correct Wiz Theory language",
-    "confidence_statement": "hold confidence statement (reclaim upgrades confidence, not entry validity)",
+    "jayce_take": "1-2 sentence execution-focused take using varied professional language",
+    "confidence_statement": "hold confidence statement using varied language (not repetitive 'reclaim')",
     
     "conflict_detected": true or false,
     "conflict_detail": "only if REAL conflict exists"
@@ -1221,9 +1244,11 @@ def detect_intent(user_text: str) -> str:
             return "LIVE_TRADE"
     
     # ══════════════════════════════════════════════
-    # PLANNED_SETUP — User is planning to enter
+    # PLANNED_SETUP — User is planning to enter OR evaluating
+    # Default assumption when not explicitly in a trade
     # ══════════════════════════════════════════════
     planned_setup_phrases = [
+        # Planning language
         "looking to enter", "looking to buy", "looking to get in",
         "plan to enter", "planning to enter", "planning to buy",
         "want to enter", "want to buy", "want to get in",
@@ -1234,7 +1259,18 @@ def detect_intent(user_text: str) -> str:
         "set a limit", "setting limit", "placing limit",
         "targeting entry", "entry target", "planned entry",
         "under-fib", "underfib", "under fib",
-        ".786", ".618", ".50", ".382"  # Fib levels suggest planned setup
+        ".786", ".618", ".50", ".382",  # Fib levels suggest planned setup
+        
+        # Evaluation / analysis language (NOT in a trade yet)
+        "what's your thoughts", "whats your thoughts", "your thoughts",
+        "what do you think", "what you think", "thoughts on this",
+        "is this valid", "is this a valid", "valid setup",
+        "how does this look", "does this look good", "look good",
+        "should i enter", "should i take this", "worth taking",
+        "looking to tp", "looking to take profit", "where to tp",
+        "what's the target", "whats the target", "target here",
+        "analyze this", "read this", "check this",
+        "is this clean", "is this good", "good setup"
     ]
     
     for phrase in planned_setup_phrases:
@@ -1266,7 +1302,7 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
     timeframe = vision.get('timeframe', 'Unable to confirm')
     similar_pattern = vision.get('similar_pattern_note', '')
     jayce_take = vision.get('jayce_take', '')
-    confidence_statement = vision.get('confidence_statement', 'Entry valid at zone — reclaim upgrades hold confidence for continuation')
+    confidence_statement = vision.get('confidence_statement', 'Entry valid at zone — hold confidence increases when buyers defend the level')
     
     # New mandatory fields
     structure_state = vision.get('structure_state', 'Unknown')
@@ -1323,19 +1359,19 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
     response_parts.append(f"\n\n📋 **Game Plan:**")
     if game_plan:
         entry = game_plan.get('entry', game_plan.get('entry_type', 'Limit at zone'))
-        reclaim_exp = game_plan.get('reclaim_expectation', game_plan.get('confirmation_trigger', ''))
+        hold_upgrade = game_plan.get('hold_upgrade_trigger', game_plan.get('reclaim_expectation', game_plan.get('confirmation_trigger', '')))
         partial_tp = game_plan.get('partial_tp', '')
         
         response_parts.append(f"\n• **Entry:** {entry}")
-        if reclaim_exp:
-            response_parts.append(f"\n• **Reclaim upgrades hold when:** {reclaim_exp}")
+        if hold_upgrade:
+            response_parts.append(f"\n• **Hold upgrades when:** {hold_upgrade}")
         if partial_tp:
             response_parts.append(f"\n• **Partial TP:** {partial_tp}")
     else:
         # Default game plan for under-fib / .786
         if fib_level in ['.786', 'under-fib']:
             response_parts.append(f"\n• **Entry:** Limit at zone — edge identified")
-            response_parts.append(f"\n• **Reclaim upgrades hold when:** Price reclaims and holds above zone")
+            response_parts.append(f"\n• **Hold upgrades when:** Buyers defend the level and structure regains")
             response_parts.append(f"\n• **Partial TP:** Secure 40-60% on first expansion to magnet")
         else:
             response_parts.append(f"\n• **Entry:** Limit at zone")
@@ -1362,7 +1398,7 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
     if probability_framing:
         response_parts.append(f"\n\n🎯 **Probability:**\n_{probability_framing}_")
     else:
-        response_parts.append(f"\n\n🎯 **Probability:**\n_Edge at zone — reclaim upgrades hold confidence for continuation_")
+        response_parts.append(f"\n\n🎯 **Probability:**\n_Edge at zone — hold confidence increases when structure is defended_")
     
     # ══════════════════════════════════════════════
     # RSI (current read — will change by entry)
@@ -1961,20 +1997,20 @@ def build_deep_analysis_response(vision: dict, user_plan: str, username: str = N
     response_parts.append(f"\n\n📋 **Game Plan:**")
     if game_plan:
         entry = game_plan.get('entry', game_plan.get('entry_type', 'Limit at zone'))
-        reclaim_exp = game_plan.get('reclaim_expectation', game_plan.get('confirmation_trigger', ''))
+        hold_upgrade = game_plan.get('hold_upgrade_trigger', game_plan.get('reclaim_expectation', game_plan.get('confirmation_trigger', '')))
         partial_tp = game_plan.get('partial_tp', '')
         continuation = game_plan.get('continuation_logic', '')
         
         response_parts.append(f"\n• **Entry:** {entry}")
-        if reclaim_exp:
-            response_parts.append(f"\n• **Reclaim upgrades hold when:** {reclaim_exp}")
+        if hold_upgrade:
+            response_parts.append(f"\n• **Hold upgrades when:** {hold_upgrade}")
         if partial_tp:
             response_parts.append(f"\n• **Partial TP:** {partial_tp}")
         if continuation:
             response_parts.append(f"\n• **Continuation:** {continuation}")
     else:
         response_parts.append(f"\n• Entry valid at zone — edge identified")
-        response_parts.append(f"\n• Reclaim upgrades hold confidence for continuation")
+        response_parts.append(f"\n• Hold confidence increases when buyers defend the level")
     
     # ══════════════════════════════════════════════
     # 4. INVALIDATION (MANDATORY)
