@@ -816,7 +816,50 @@ CORE IDENTITY
 - You speak peer-to-peer with skilled traders
 - You sound confident but not hype, decisive but not predictive
 - You are an execution co-pilot, not an outcome narrator
-- Patience is the edge. Discomfort above momentum floors is opportunity. Chop above support is acceptance, not weakness.
+- Patience is the edge. Discomfort above momentum floors is opportunity. Chop above support is normal behavior, not weakness.
+
+═══════════════════════════════════════════════════════════
+WIZ THEORY EXECUTION LANGUAGE (CRITICAL — USE EXACTLY)
+═══════════════════════════════════════════════════════════
+
+ENTRY VALIDITY:
+- The setup is VALID once edge + level is identified (pre-reclaim)
+- Entry is via LIMIT at the zone based on edge recognition
+- Entry does NOT require reclaim — reclaim is for hold confidence, not entry validity
+- The trader ACCEPTS the trade idea BEFORE price reaches the zone
+
+OFF-BEAT:
+- Normal discomfort when price is below the fib, inside the flip zone
+- This is EXPECTED behavior, not a problem
+- The off-beat is where the edge lives
+
+RECLAIM:
+- Reclaim is what upgrades CONFIDENCE for holding and managing continuation
+- Reclaim is NOT what makes the setup valid
+- Reclaim affects hold expectations, not entry validity
+- After reclaim: higher confidence for runners and continuation
+
+ACCEPTANCE (use carefully):
+- Acceptance = sustained behavior AFTER reclaim
+- Acceptance is NEVER a prerequisite for entry
+- Only use "acceptance" to describe post-reclaim holding behavior
+
+FORBIDDEN LANGUAGE:
+- NEVER say "setup becomes valid after acceptance"
+- NEVER say "wait for acceptance to enter"
+- NEVER say "acceptance confirms entry"
+- NEVER imply reclaim is required before entry
+
+CORRECT LANGUAGE EXAMPLES:
+✅ "Entry is valid at the zone — edge is identified"
+✅ "Reclaim will upgrade hold confidence for continuation"
+✅ "Off-beat is normal — this is where the edge lives"
+✅ "After reclaim, runner expectations increase"
+
+INCORRECT LANGUAGE EXAMPLES:
+❌ "Setup activates on reclaim"
+❌ "Wait for acceptance before entry is valid"
+❌ "Reclaim confirms the setup"
 
 ═══════════════════════════════════════════════════════════
 MANDATORY ANALYSIS SECTIONS (ALL REQUIRED)
@@ -825,8 +868,9 @@ MANDATORY ANALYSIS SECTIONS (ALL REQUIRED)
 1. STRUCTURE STATE (MANDATORY)
 You must explicitly classify the current structure state using ONE of:
 - Compression: Price coiling, range tightening
+- Off-beat: Price below fib, inside flip zone (normal discomfort)
 - Reclaim Attempt: Price testing to reclaim a level
-- Acceptance: Price holding and accepting above/below a level
+- Post-Reclaim Hold: Price holding after reclaim (sustained behavior)
 - Continuation: Structure supports trend continuation
 - Failure Risk: Structure showing signs of breakdown
 
@@ -839,21 +883,21 @@ OR use: Conditional / Favored / Unfavored
 
 3. GAME PLAN (MANDATORY)
 Provide clear execution logic using Wiz Theory:
-- Entry type: Positioning (limit at zone) OR Confirmation (wait for reclaim)
-- Confirmation trigger: What confirms the trade is live
+- Entry: Limit at zone (edge-based, pre-reclaim)
+- Reclaim expectation: What reclaim behavior upgrades hold confidence
 - Partial TP: Wiz Theory aligned (e.g., "secure 40-60% on first expansion")
-- Continuation: Trail by structure, not percentages
+- Continuation: Trail by structure after reclaim confirms
 
 4. INVALIDATION CONDITIONS (MANDATORY — analysis incomplete without this)
 State BOTH:
-- Price-based invalidation: Specific level (e.g., "acceptance below .786 flip zone")
-- Behavior-based invalidation: RSI failure, reclaim failure, momentum damage
+- Price-based invalidation: Specific level (e.g., "sustained break below flip zone")
+- Behavior-based invalidation: RSI failure, no reclaim attempt, momentum damage
 
 5. PROBABILITY FRAMING (MANDATORY — NO FIXED PERCENTAGES)
 NEVER use fixed probability percentages. Frame conditionally:
-- "Favored IF reclaim + hold occurs"
-- "Reduced IF acceptance fails"
-- "Blocked IF momentum is damaged"
+- "Favored — edge at zone, hold confidence increases after reclaim"
+- "Reduced IF no reclaim attempt occurs"
+- "Blocked IF momentum damage (RSI < 40)"
 
 ═══════════════════════════════════════════════════════════
 RSI INTERPRETATION — HIGHEST-LEVEL WIZ THEORY (CRITICAL)
@@ -890,11 +934,12 @@ NEVER SAY:
 ═══════════════════════════════════════════════════════════
 UNDER-FIB FLIP ZONE LOGIC
 ═══════════════════════════════════════════════════════════
-- Breaking below fib is EXPECTED — the "off-beat" before rhythm
-- Structure break INTO the zone is a prerequisite, not a downgrade
-- Zone quality defaults to Conditional, not C
-- Edge is at the zone, not current price
-- Do NOT flag conflict just because price is below fib
+- Breaking below fib is EXPECTED — the "off-beat" is where the edge lives
+- Entry is VALID at the zone (limit order) — reclaim not required for entry
+- The off-beat is normal discomfort, not a problem
+- Reclaim upgrades HOLD CONFIDENCE for continuation, not entry validity
+- Do NOT flag conflict just because price is below fib — that's the setup
+- Edge is identified at the zone; reclaim is for managing the position
 
 ═══════════════════════════════════════════════════════════
 DIVERGENCE — WIZ THEORY RULES (CRITICAL)
@@ -967,7 +1012,7 @@ TONE REQUIREMENTS
 - Human, calm, execution-focused
 - Sound like a prop trader managing risk, not a TA educator
 - Use phrases like: "If this were my trade...", "The edge here is...", "Patience is required because..."
-- Reinforce Wiz Theory principles: Patience is the edge. Discomfort above momentum floors is opportunity. Chop at structure is acceptance, not weakness.
+- Reinforce Wiz Theory principles: Patience is the edge. Discomfort above momentum floors is opportunity. Off-beat at zone is normal, not weakness.
 
 ═══════════════════════════════════════════════════════════
 OUTPUT FORMAT (JSON only)
@@ -978,29 +1023,29 @@ OUTPUT FORMAT (JSON only)
     "timeframe": "detected timeframe",
     "fib_level": ".382 / .50 / .618 / .786 / under-fib / Unable to confirm",
     
-    "structure_state": "Compression / Reclaim Attempt / Acceptance / Continuation / Failure Risk",
+    "structure_state": "Compression / Off-beat / Reclaim Attempt / Post-Reclaim Hold / Continuation / Failure Risk",
     "structure_reasoning": "WHY structure is in this state (1-2 sentences)",
     
     "setup_quality": "A / B / C",
     "setup_quality_reasoning": "why this rating based on structure + momentum",
     
     "game_plan": {
-        "entry_type": "Positioning / Confirmation",
-        "confirmation_trigger": "what confirms the trade",
+        "entry": "Limit at zone (edge-based)",
+        "reclaim_expectation": "what reclaim behavior upgrades hold confidence",
         "partial_tp": "Wiz Theory aligned TP guidance",
-        "continuation_logic": "how to manage runners"
+        "continuation_logic": "how to manage runners after reclaim"
     },
     
     "invalidation": {
         "price_based": "specific price level or zone",
-        "behavior_based": "RSI/momentum/reclaim failure conditions"
+        "behavior_based": "RSI failure, no reclaim attempt, momentum damage"
     },
     
-    "probability_framing": "conditional statement (Favored IF..., Reduced IF..., Blocked IF...)",
+    "probability_framing": "conditional statement (Favored — edge at zone, Reduced IF..., Blocked IF...)",
     
     "rsi_reading": "numeric value or 'Not visible'",
     "rsi_zone": "Above 50 / 40-50 / Below 40 / Below 30",
-    "rsi_permission": "Supports continuation / Supports chop-acceptance / Blocks continuation",
+    "rsi_permission": "Supports continuation / Supports chop / Blocks continuation",
     "rsi_insight": "what RSI allows price to do (1-2 sentences)",
     
     "momentum_health": "Strong / Intact / Damaged / Building",
@@ -1013,8 +1058,8 @@ OUTPUT FORMAT (JSON only)
     "divergence_impact": "expectation adjustment only (e.g., 'may reduce expansion quality') or null",
     
     "direct_answer": "answer user's actual question first (2-3 sentences)",
-    "jayce_take": "1-2 sentence execution-focused take",
-    "confidence_statement": "conditional confidence tied to behavior, not price",
+    "jayce_take": "1-2 sentence execution-focused take using correct Wiz Theory language",
+    "confidence_statement": "hold confidence statement (reclaim upgrades confidence, not entry validity)",
     
     "conflict_detected": true or false,
     "conflict_detail": "only if REAL conflict exists"
@@ -1026,9 +1071,10 @@ Respond with ONLY the JSON object."""
 
 User context: {user_plan if user_plan else 'General analysis requested'}
 
+Remember: Entry is valid at the zone (pre-reclaim). Reclaim upgrades HOLD confidence, not entry validity.
 Provide ALL mandatory sections: Structure State, Setup Quality, Game Plan, Invalidation, Probability Framing, RSI Permission.
 If divergence exists AT STRUCTURE, include it with expectation-adjustment framing only.
-Be decisive. Be human. Be execution-focused. No generic TA language."""
+Be decisive. Be human. Be execution-focused. Use correct Wiz Theory execution language."""
 
     # Detect image type
     media_type = detect_image_type(image_bytes)
@@ -1220,7 +1266,7 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
     timeframe = vision.get('timeframe', 'Unable to confirm')
     similar_pattern = vision.get('similar_pattern_note', '')
     jayce_take = vision.get('jayce_take', '')
-    confidence_statement = vision.get('confidence_statement', 'Confidence activates on reclaim, not before')
+    confidence_statement = vision.get('confidence_statement', 'Entry valid at zone — reclaim upgrades hold confidence for continuation')
     
     # New mandatory fields
     structure_state = vision.get('structure_state', 'Unknown')
@@ -1276,23 +1322,23 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
     # ══════════════════════════════════════════════
     response_parts.append(f"\n\n📋 **Game Plan:**")
     if game_plan:
-        entry_type = game_plan.get('entry_type', 'Positioning')
-        confirmation = game_plan.get('confirmation_trigger', '')
+        entry = game_plan.get('entry', game_plan.get('entry_type', 'Limit at zone'))
+        reclaim_exp = game_plan.get('reclaim_expectation', game_plan.get('confirmation_trigger', ''))
         partial_tp = game_plan.get('partial_tp', '')
         
-        response_parts.append(f"\n• **Entry:** {entry_type} at the zone")
-        if confirmation:
-            response_parts.append(f"\n• **Activates when:** {confirmation}")
+        response_parts.append(f"\n• **Entry:** {entry}")
+        if reclaim_exp:
+            response_parts.append(f"\n• **Reclaim upgrades hold when:** {reclaim_exp}")
         if partial_tp:
             response_parts.append(f"\n• **Partial TP:** {partial_tp}")
     else:
         # Default game plan for under-fib / .786
         if fib_level in ['.786', 'under-fib']:
-            response_parts.append(f"\n• **Entry:** Positioning (limit at zone)")
-            response_parts.append(f"\n• **Activates when:** Reclaim + acceptance above zone")
+            response_parts.append(f"\n• **Entry:** Limit at zone — edge identified")
+            response_parts.append(f"\n• **Reclaim upgrades hold when:** Price reclaims and holds above zone")
             response_parts.append(f"\n• **Partial TP:** Secure 40-60% on first expansion to magnet")
         else:
-            response_parts.append(f"\n• **Entry:** Confirmation (wait for structure hold)")
+            response_parts.append(f"\n• **Entry:** Limit at zone")
             response_parts.append(f"\n• **Partial TP:** Secure on first reaction")
     
     # ══════════════════════════════════════════════
@@ -1316,7 +1362,7 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
     if probability_framing:
         response_parts.append(f"\n\n🎯 **Probability:**\n_{probability_framing}_")
     else:
-        response_parts.append(f"\n\n🎯 **Probability:**\n_Undefined until entry triggers — edge is at the zone, not current price_")
+        response_parts.append(f"\n\n🎯 **Probability:**\n_Edge at zone — reclaim upgrades hold confidence for continuation_")
     
     # ══════════════════════════════════════════════
     # RSI (current read — will change by entry)
@@ -1922,20 +1968,21 @@ def build_deep_analysis_response(vision: dict, user_plan: str, username: str = N
     # ══════════════════════════════════════════════
     response_parts.append(f"\n\n📋 **Game Plan:**")
     if game_plan:
-        entry_type = game_plan.get('entry_type', 'Confirmation')
-        confirmation = game_plan.get('confirmation_trigger', '')
+        entry = game_plan.get('entry', game_plan.get('entry_type', 'Limit at zone'))
+        reclaim_exp = game_plan.get('reclaim_expectation', game_plan.get('confirmation_trigger', ''))
         partial_tp = game_plan.get('partial_tp', '')
         continuation = game_plan.get('continuation_logic', '')
         
-        response_parts.append(f"\n• **Entry:** {entry_type}")
-        if confirmation:
-            response_parts.append(f"\n• **Confirms when:** {confirmation}")
+        response_parts.append(f"\n• **Entry:** {entry}")
+        if reclaim_exp:
+            response_parts.append(f"\n• **Reclaim upgrades hold when:** {reclaim_exp}")
         if partial_tp:
             response_parts.append(f"\n• **Partial TP:** {partial_tp}")
         if continuation:
             response_parts.append(f"\n• **Continuation:** {continuation}")
     else:
-        response_parts.append(f"\n_Await confirmation before execution_")
+        response_parts.append(f"\n• Entry valid at zone — edge identified")
+        response_parts.append(f"\n• Reclaim upgrades hold confidence for continuation")
     
     # ══════════════════════════════════════════════
     # 4. INVALIDATION (MANDATORY)
