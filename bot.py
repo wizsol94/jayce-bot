@@ -800,117 +800,168 @@ Return radar-level observations only. Do NOT analyze deeply or confirm anything.
 async def call_deep_vision(image_bytes: bytes, user_plan: str) -> dict:
     """
     Call Claude API with Deep Vision prompt.
-    More thorough analysis including RSI, momentum, volume.
-    
-    Deep Vision scope (in addition to Lite):
-    - RSI reading, interpretation, and slope analysis
-    - Divergence detection (bullish/bearish)
-    - Momentum health assessment
-    - Deeper structure analysis
-    - Historical pattern recognition
-    
-    NOTE: Volume is deprioritized. Focus on RSI + divergence for momentum context.
+    Execution-focused analysis with mandatory sections.
     """
     if not ANTHROPIC_API_KEY:
         return {'error': 'API key not configured'}
     
     image_base64 = base64.standard_b64encode(image_bytes).decode('utf-8')
     
-    system_prompt = """You are Jayce — a skilled chart analyst trained in Wiz Theory. You speak peer-to-peer with traders, not teacher-to-student.
+    system_prompt = """You are Jayce — an execution co-pilot for Wiz Theory traders. You are decisive, human, and execution-aware. You remain process-driven, not outcome-driven. No hype, no fake certainty, no generic TA language.
 
-CORE IDENTITY:
-- You assume the user is a skilled trader unless proven otherwise
-- You know the Wiz Theory rules by heart and use them as REASONING, not as a script
-- You answer the user's ACTUAL QUESTION first, then provide supporting context
-- You vary your tone: sometimes coaching, sometimes cautious, sometimes confirming
-- You sound human — "If this were my trade...", "How I'd think about this...", "This is one of those spots where waiting is the edge..."
+═══════════════════════════════════════════════════════════
+CORE IDENTITY
+═══════════════════════════════════════════════════════════
+- You are a professional proprietary system trader managing momentum, structure, and expectations
+- You speak peer-to-peer with skilled traders
+- You sound confident but not hype, decisive but not predictive
+- You are an execution co-pilot, not an outcome narrator
+- Patience is the edge. Discomfort above momentum floors is opportunity. Chop above support is acceptance, not weakness.
 
-UNDER-FIB FLIP ZONE LOGIC (critical — treat as ground truth):
-- Breaking below fib is EXPECTED, not a failure — this is the "off-beat" before rhythm
+═══════════════════════════════════════════════════════════
+MANDATORY ANALYSIS SECTIONS (ALL REQUIRED)
+═══════════════════════════════════════════════════════════
+
+1. STRUCTURE STATE (MANDATORY)
+You must explicitly classify the current structure state using ONE of:
+- Compression: Price coiling, range tightening
+- Reclaim Attempt: Price testing to reclaim a level
+- Acceptance: Price holding and accepting above/below a level
+- Continuation: Structure supports trend continuation
+- Failure Risk: Structure showing signs of breakdown
+
+2. SETUP QUALITY RATING (MANDATORY)
+Assign a quality rating based on structure + momentum (NOT outcome):
+- A: Strong structure, momentum aligned, high-quality setup
+- B: Decent structure, momentum acceptable, standard setup
+- C: Weak structure or momentum damage, defensive only
+OR use: Conditional / Favored / Unfavored
+
+3. GAME PLAN (MANDATORY)
+Provide clear execution logic using Wiz Theory:
+- Entry type: Positioning (limit at zone) OR Confirmation (wait for reclaim)
+- Confirmation trigger: What confirms the trade is live
+- Partial TP: Wiz Theory aligned (e.g., "secure 40-60% on first expansion")
+- Continuation: Trail by structure, not percentages
+
+4. INVALIDATION CONDITIONS (MANDATORY — analysis incomplete without this)
+State BOTH:
+- Price-based invalidation: Specific level (e.g., "acceptance below .786 flip zone")
+- Behavior-based invalidation: RSI failure, reclaim failure, momentum damage
+
+5. PROBABILITY FRAMING (MANDATORY — NO FIXED PERCENTAGES)
+NEVER use fixed probability percentages. Frame conditionally:
+- "Favored IF reclaim + hold occurs"
+- "Reduced IF acceptance fails"
+- "Blocked IF momentum is damaged"
+
+═══════════════════════════════════════════════════════════
+RSI INTERPRETATION — HIGHEST-LEVEL WIZ THEORY (CRITICAL)
+═══════════════════════════════════════════════════════════
+
+RSI is NEVER a signal, prediction tool, or overbought/oversold indicator.
+RSI is ONLY momentum memory and permission.
+
+RSI answers ONE question: What is price ALLOWED to do without momentum breaking?
+
+RSI ZONE INTERPRETATION (behavioral, not predictive):
+- RSI > 50: Momentum supports continuation and expansion
+- RSI 40-50: Momentum intact; chop/acceptance is bullish; continuation delayed, not denied
+- RSI < 40: Momentum damage; continuation probability reduced
+- RSI < 30: Trend integrity compromised (NOT "oversold")
+
+RSI RULES:
+1. RSI describes PERMISSION, not direction
+2. RSI is for expectation management, not entries
+3. RSI confirms SURVIVAL, not entries
+4. Holding above 40 during pullbacks = thesis intact
+5. Failure to reclaim 45-50 after bounce = caution
+
+You must state whether RSI:
+- Supports continuation
+- Supports chop/acceptance
+- Blocks continuation
+
+NEVER SAY:
+- "RSI is overbought/oversold"
+- "RSI means price will go up/down"
+- "RSI indicates a reversal"
+
+═══════════════════════════════════════════════════════════
+UNDER-FIB FLIP ZONE LOGIC
+═══════════════════════════════════════════════════════════
+- Breaking below fib is EXPECTED — the "off-beat" before rhythm
 - Structure break INTO the zone is a prerequisite, not a downgrade
-- Zone quality defaults to conditional A/B, not C — the setup is designed for deep pullbacks
-- Confidence comes from RECLAIM BEHAVIOR, not current price
-- The edge is at the zone, not where price is now
-- Do NOT flag "conflict" just because price is below fib — that's the setup working as intended
+- Zone quality defaults to Conditional, not C
+- Edge is at the zone, not current price
+- Do NOT flag conflict just because price is below fib
 
-CONFIDENCE FRAMING (critical — no static labels):
-- For Under-Fib and conditional setups: NEVER say "Confidence: High/Medium/Low" as a fixed label
-- Instead use CONDITIONAL language:
-  • "Confidence is neutral before reclaim"
-  • "Confidence increases after acceptance/reclaim"
-  • "This setup activates on reclaim, not before"
-- Confidence is tied to BEHAVIOR, not current price
+═══════════════════════════════════════════════════════════
+TONE REQUIREMENTS
+═══════════════════════════════════════════════════════════
+- Confident but not hype
+- Decisive but not predictive
+- Human, calm, execution-focused
+- Sound like a prop trader managing risk, not a TA educator
+- Use phrases like: "If this were my trade...", "The edge here is...", "Patience is required because..."
 
-PROBABILITY FRAMING (critical — conditional, not absolute):
-- When users ask about TP probability, respond with CONDITIONAL framing:
-  • "IF reclaim occurs, odds favor a move toward the magnet"
-  • "Before reclaim, probability is undefined because execution hasn't triggered"
-  • "Once the flip zone accepts, historical odds favor continuation"
-- Avoid raw percentages unless user explicitly asks for historical stats
-- Frame probability as contingent on the setup activating
-
-RSI/DIVERGENCE CLARITY:
-- Specify type if visible: Regular Bullish, Hidden Bullish, Regular Bearish, Hidden Bearish
-- Clarify divergence is SUPPORTIVE, not a trigger
-- Tie relevance to behavior AT THE FLIP ZONE, not current price
-- Example: "RSI showing hidden bullish divergence — supportive of a reaction IF price reclaims the zone"
-
-RESPONSE BEHAVIOR:
-1. First, identify what the user is actually asking: Probability? Entry logic? RSI read? Risk assessment? Patience guidance?
-2. Answer that question DIRECTLY in natural language
-3. Use Wiz Theory internally to reason, but don't recite rules mechanically
-4. Assume setup rules are understood and satisfied unless the chart clearly violates them
-5. Vary your structure — don't always use the same headers or format
-
-TONE VARIATION (rotate between these):
-- Coaching: "The edge here is in the wait, not the chase..."
-- Cautious: "I'd want to see that reclaim confirm before getting comfortable..."
-- Confirming: "Structure looks clean — if this were my trade, I'd be patient and let it work..."
-
-WHAT TO ANALYZE:
-- Pair/coin if visible on chart
-- Timeframe, fib level, market state
-- RSI reading, slope, interpretation, and divergence type
-- Momentum health
-- Structure quality with reasoning
-- WizTheory setup type if identifiable
-- Similar pattern context (brief, 1-2 lines)
-
-OUTPUT FORMAT (JSON only):
+═══════════════════════════════════════════════════════════
+OUTPUT FORMAT (JSON only)
+═══════════════════════════════════════════════════════════
 {
-    "pair_detected": "coin/pair if visible on chart, or 'Unable to detect'",
+    "pair_detected": "coin/pair if visible, or 'Unable to detect'",
     "wiz_setup_type": "Under-Fib Flip Zone / .786 Flip Zone / .618 Flip Zone / .50 Flip Zone / .382 Flip Zone / Unknown",
-    "user_question_detected": "what the user seems to be asking",
-    "direct_answer": "natural language response to their question (2-4 sentences, answer FIRST)",
     "timeframe": "detected timeframe",
     "fib_level": ".382 / .50 / .618 / .786 / under-fib / Unable to confirm",
-    "structure_status": "Holds / Breaks / Reclaiming / Unclear",
-    "structure_quality": "Strong / Moderate / Conditional / Weak",
-    "structure_reasoning": "WHY the structure looks this way, not just a grade",
-    "market_state": "Pullback / Breakout / Range / Off-beat (for under-fib)",
-    "rsi_reading": "value or 'Not visible on chart'",
-    "rsi_interpretation": "Oversold / Neutral / Overbought / N/A",
-    "rsi_slope": "Rising / Falling / Flat / Unable to assess",
+    
+    "structure_state": "Compression / Reclaim Attempt / Acceptance / Continuation / Failure Risk",
+    "structure_reasoning": "WHY structure is in this state (1-2 sentences)",
+    
+    "setup_quality": "A / B / C",
+    "setup_quality_reasoning": "why this rating based on structure + momentum",
+    
+    "game_plan": {
+        "entry_type": "Positioning / Confirmation",
+        "confirmation_trigger": "what confirms the trade",
+        "partial_tp": "Wiz Theory aligned TP guidance",
+        "continuation_logic": "how to manage runners"
+    },
+    
+    "invalidation": {
+        "price_based": "specific price level or zone",
+        "behavior_based": "RSI/momentum/reclaim failure conditions"
+    },
+    
+    "probability_framing": "conditional statement (Favored IF..., Reduced IF..., Blocked IF...)",
+    
+    "rsi_reading": "numeric value or 'Not visible'",
+    "rsi_zone": "Above 50 / 40-50 / Below 40 / Below 30",
+    "rsi_permission": "Supports continuation / Supports chop-acceptance / Blocks continuation",
+    "rsi_insight": "what RSI allows price to do (1-2 sentences)",
+    
+    "momentum_health": "Strong / Intact / Damaged / Building",
+    "momentum_insight": "natural language observation",
+    
     "divergence_detected": true or false,
-    "divergence_type": "Regular Bullish / Hidden Bullish / Regular Bearish / Hidden Bearish / None / Unable to assess",
-    "divergence_note": "supportive context tied to flip zone behavior, or null",
-    "momentum_health": "Strong / Weakening / Weak / Building / Unable to assess",
-    "momentum_insight": "natural language observation about momentum",
-    "tp_conditional_statement": "IF/THEN statement about TP probability (e.g., 'IF reclaim occurs, odds favor move to 0.50 magnet')",
-    "similar_pattern_note": "brief 1-2 line note about similar setups if recognizable, or null",
-    "jayce_take": "1-2 sentence personal take — how you'd think about it, with Wiz-style energy",
-    "confidence_statement": "conditional confidence statement, NOT a fixed label (e.g., 'Confidence activates on reclaim')",
+    "divergence_type": "Regular Bullish / Hidden Bullish / Regular Bearish / Hidden Bearish / None",
+    "divergence_note": "supportive context if detected, or null",
+    
+    "direct_answer": "answer user's actual question first (2-3 sentences)",
+    "jayce_take": "1-2 sentence execution-focused take",
+    "confidence_statement": "conditional confidence tied to behavior, not price",
+    
     "conflict_detected": true or false,
-    "conflict_detail": "only if there's a REAL conflict, not just price below fib for under-fib setups"
+    "conflict_detail": "only if REAL conflict exists"
 }
 
 Respond with ONLY the JSON object."""
 
-    user_message = f"""Analyze this chart for a trader asking:
+    user_message = f"""Analyze this chart for execution.
 
-{user_plan if user_plan else 'General analysis requested'}
+User context: {user_plan if user_plan else 'General analysis requested'}
 
-Remember: answer their question first, use conditional probability framing, vary your tone, speak peer-to-peer. Include pair if visible, setup type, and any similar pattern context."""
+Provide ALL mandatory sections: Structure State, Setup Quality, Game Plan, Invalidation, Probability Framing, RSI Permission.
+Be decisive. Be human. Be execution-focused. No generic TA language."""
 
     # Detect image type
     media_type = detect_image_type(image_bytes)
@@ -1088,107 +1139,157 @@ def detect_intent(user_text: str) -> str:
 
 
 def build_planned_setup_response(vision: dict, user_plan: str, username: str = None) -> str:
-    """Build response for PLANNED_SETUP mode — conversational, peer-to-peer tone with Wiz-style energy."""
+    """
+    Build response for PLANNED_SETUP mode.
     
-    # Get key values (using new field names with fallbacks)
+    Setup Mode focuses on zone quality and execution preparation.
+    Includes mandatory sections adapted for pre-entry context.
+    """
+    
+    # Extract fields
     pair_detected = vision.get('pair_detected', '')
     wiz_setup_type = vision.get('wiz_setup_type', '')
     fib_level = vision.get('fib_level', 'Unable to confirm')
-    structure_quality = vision.get('structure_quality', 'Unconfirmed')
-    structure_reasoning = vision.get('structure_reasoning', '')
-    market_state = vision.get('market_state', 'Unclear')
     timeframe = vision.get('timeframe', 'Unable to confirm')
-    rsi_reading = vision.get('rsi_reading', 'Not visible')
-    rsi_interp = vision.get('rsi_interpretation', 'N/A')
-    rsi_slope = vision.get('rsi_slope', '')
-    momentum = vision.get('momentum_health', 'Unable to assess')
+    similar_pattern = vision.get('similar_pattern_note', '')
     jayce_take = vision.get('jayce_take', '')
     confidence_statement = vision.get('confidence_statement', 'Confidence activates on reclaim, not before')
-    similar_pattern = vision.get('similar_pattern_note', '')
     
-    # Build conversational guidance based on setup type
-    if fib_level in ['.786', 'under-fib']:
-        setup_guidance = (
-            "This is one of those setups where patience is the edge. "
-            "You're waiting for the off-beat — price dipping into the zone — "
-            "then watching for the reclaim. The entry isn't valid until momentum confirms. "
-            "If this were my trade, I'd have my limit set and be watching for that shift. 🎯"
-        )
-    elif fib_level == '.618':
-        setup_guidance = (
-            "The .618 is a popular level, so watch for clean structure. "
-            "Does price accept the level or slice through? If it holds with momentum, you've got a setup. ⚡"
-        )
-    elif fib_level == '.50':
-        setup_guidance = (
-            "The .50 requires patience. It's not a momentum gift like the .382 — "
-            "you need structure to confirm before the edge is there. 🧱"
-        )
-    else:
-        setup_guidance = (
-            "Wait for price to reach your zone and watch the reaction. "
-            "Structure confirmation is key. 🔍"
-        )
+    # New mandatory fields
+    structure_state = vision.get('structure_state', 'Unknown')
+    structure_reasoning = vision.get('structure_reasoning', '')
+    setup_quality = vision.get('setup_quality', 'Conditional')
+    setup_quality_reasoning = vision.get('setup_quality_reasoning', '')
+    game_plan = vision.get('game_plan', {})
+    invalidation = vision.get('invalidation', {})
+    probability_framing = vision.get('probability_framing', '')
     
-    # What to watch for
-    if fib_level in ['.786', 'under-fib']:
-        watch_for = "📍 RSI approaching oversold → momentum shift on reclaim → acceptance above the zone"
-    else:
-        watch_for = "📍 Structure holding the level → momentum supporting reaction"
+    # RSI fields
+    rsi_reading = vision.get('rsi_reading', 'Not visible')
+    rsi_zone = vision.get('rsi_zone', '')
+    rsi_permission = vision.get('rsi_permission', '')
+    rsi_insight = vision.get('rsi_insight', '')
     
-    # Build the response with Wiz-style energy
+    # Momentum
+    momentum_health = vision.get('momentum_health', '')
+    
+    # Build response
     response_parts = []
     
-    # Header with pair if detected
+    # ══════════════════════════════════════════════
+    # HEADER
+    # ══════════════════════════════════════════════
     if pair_detected and pair_detected != 'Unable to detect':
-        response_parts.append(f"🔮 **JAYCE** — 🪙 {pair_detected}\n")
+        response_parts.append(f"🔮 **JAYCE** — 🪙 {pair_detected} | _Setup Mode_\n")
     else:
         response_parts.append(f"🔮 **JAYCE** — _Setup Mode_\n")
     
-    # WizTheory Setup Detection
     if wiz_setup_type and wiz_setup_type != 'Unknown':
-        response_parts.append(f"📐 **WizTheory Setup:** {wiz_setup_type}\n")
+        response_parts.append(f"📐 **{wiz_setup_type}** | {timeframe}\n")
     
-    response_parts.append(f"\nYou're planning an entry at the {fib_level} flip zone. Let me give you context on the zone. 👇\n")
+    response_parts.append(f"\nYou're planning an entry at the {fib_level} flip zone. Here's the zone context:\n")
     
-    # Zone details
-    response_parts.append(
-        f"\n📊 **The zone:**\n"
-        f"• {timeframe} timeframe\n"
-        f"• Structure: {structure_quality}"
-    )
+    # ══════════════════════════════════════════════
+    # STRUCTURE STATE
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n🧱 **Structure State:** {structure_state}")
     if structure_reasoning:
-        response_parts.append(f" — {structure_reasoning}")
-    response_parts.append("\n")
+        response_parts.append(f"\n_{structure_reasoning}_")
     
-    # What to watch for
-    response_parts.append(f"\n**What to watch for:**\n{watch_for}\n")
+    # ══════════════════════════════════════════════
+    # SETUP QUALITY
+    # ══════════════════════════════════════════════
+    quality_emoji = "🟢" if setup_quality == "A" else "🟡" if setup_quality in ["B", "Conditional"] else "🔴"
+    response_parts.append(f"\n\n{quality_emoji} **Setup Quality:** {setup_quality}")
+    if setup_quality_reasoning:
+        response_parts.append(f"\n_{setup_quality_reasoning}_")
     
-    # Current read (will change)
-    response_parts.append(
-        f"\n**Current read** _(will change by entry):_\n"
-        f"• RSI: {rsi_reading} ({rsi_interp})"
-    )
-    if rsi_slope:
-        response_parts.append(f", slope {rsi_slope.lower()}")
-    response_parts.append(f"\n• Momentum: {momentum}\n")
+    # ══════════════════════════════════════════════
+    # GAME PLAN (for planned entry)
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n\n📋 **Game Plan:**")
+    if game_plan:
+        entry_type = game_plan.get('entry_type', 'Positioning')
+        confirmation = game_plan.get('confirmation_trigger', '')
+        partial_tp = game_plan.get('partial_tp', '')
+        
+        response_parts.append(f"\n• **Entry:** {entry_type} at the zone")
+        if confirmation:
+            response_parts.append(f"\n• **Activates when:** {confirmation}")
+        if partial_tp:
+            response_parts.append(f"\n• **Partial TP:** {partial_tp}")
+    else:
+        # Default game plan for under-fib / .786
+        if fib_level in ['.786', 'under-fib']:
+            response_parts.append(f"\n• **Entry:** Positioning (limit at zone)")
+            response_parts.append(f"\n• **Activates when:** Reclaim + acceptance above zone")
+            response_parts.append(f"\n• **Partial TP:** Secure 40-60% on first expansion to magnet")
+        else:
+            response_parts.append(f"\n• **Entry:** Confirmation (wait for structure hold)")
+            response_parts.append(f"\n• **Partial TP:** Secure on first reaction")
     
-    # Similar Pattern Note (from memory lookup)
-    # Only show if we have a similar pattern, omit entirely if none
+    # ══════════════════════════════════════════════
+    # INVALIDATION (pre-entry context)
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n\n🚫 **Invalidation:**")
+    if invalidation:
+        price_inv = invalidation.get('price_based', '')
+        behavior_inv = invalidation.get('behavior_based', '')
+        
+        if price_inv:
+            response_parts.append(f"\n• **Price:** {price_inv}")
+        if behavior_inv:
+            response_parts.append(f"\n• **Behavior:** {behavior_inv}")
+    else:
+        response_parts.append(f"\n• Define your invalidation before limit fills")
+    
+    # ══════════════════════════════════════════════
+    # PROBABILITY (conditional)
+    # ══════════════════════════════════════════════
+    if probability_framing:
+        response_parts.append(f"\n\n🎯 **Probability:**\n_{probability_framing}_")
+    else:
+        response_parts.append(f"\n\n🎯 **Probability:**\n_Undefined until entry triggers — edge is at the zone, not current price_")
+    
+    # ══════════════════════════════════════════════
+    # RSI (current read — will change by entry)
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n\n📈 **RSI** _(current, will change by entry):_")
+    if rsi_reading and rsi_reading != 'Not visible':
+        response_parts.append(f"\n• RSI: {rsi_reading}")
+        if rsi_zone:
+            response_parts.append(f" ({rsi_zone})")
+        if rsi_permission:
+            response_parts.append(f"\n• {rsi_permission}")
+    else:
+        response_parts.append(f"\n• Not visible on chart")
+    
+    # ══════════════════════════════════════════════
+    # SIMILAR PATTERN
+    # ══════════════════════════════════════════════
     if similar_pattern:
-        response_parts.append(f"\n🧠 **Similar Pattern Note:**\n• _{similar_pattern}_\n")
+        response_parts.append(f"\n\n🧠 **Similar Pattern:**\n_{similar_pattern}_")
     
-    # How I'd think about this
-    response_parts.append(f"\n💭 **How I'd think about this:**\n{setup_guidance}")
+    # ══════════════════════════════════════════════
+    # JAYCE'S TAKE
+    # ══════════════════════════════════════════════
+    if jayce_take:
+        response_parts.append(f"\n\n💭 **My take:** {jayce_take}")
+    else:
+        # Default guidance based on setup type
+        if fib_level in ['.786', 'under-fib']:
+            response_parts.append(f"\n\n💭 **My take:** Patience is the edge here. Set your limit, define your invalidation, and let the zone do its work. 🎯")
+        else:
+            response_parts.append(f"\n\n💭 **My take:** Wait for structure to confirm at the zone before committing.")
     
-    # Jayce's personal take if different
-    if jayce_take and jayce_take not in setup_guidance:
-        response_parts.append(f"\n\n{jayce_take}")
-    
-    # Conditional confidence (not fixed label)
+    # ══════════════════════════════════════════════
+    # CONFIDENCE (conditional)
+    # ══════════════════════════════════════════════
     response_parts.append(f"\n\n_{confidence_statement}_")
     
-    # Human ownership footer
+    # ══════════════════════════════════════════════
+    # FOOTER
+    # ══════════════════════════════════════════════
     if username:
         response_parts.append(f"\n\n🧙‍♂️ _Analyzed for: {username}_")
     
@@ -1655,104 +1756,191 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 
 
 def build_deep_analysis_response(vision: dict, user_plan: str, username: str = None) -> str:
-    """Build formatted response from deep vision results — conversational, peer-to-peer tone with Wiz-style energy."""
+    """
+    Build formatted response from Deep Vision results.
     
-    # Extract new fields
+    MANDATORY SECTIONS (all required):
+    1. Structure State
+    2. Setup Quality Rating
+    3. Game Plan (Execution Logic)
+    4. Invalidation Conditions
+    5. Probability Framing (conditional, no fixed %)
+    6. RSI Permission (not overbought/oversold)
+    7. Jayce's Take
+    """
+    
+    # Extract fields
     pair_detected = vision.get('pair_detected', '')
     wiz_setup_type = vision.get('wiz_setup_type', '')
+    timeframe = vision.get('timeframe', '?')
+    fib_level = vision.get('fib_level', '?')
     direct_answer = vision.get('direct_answer', '')
     jayce_take = vision.get('jayce_take', '')
     similar_pattern = vision.get('similar_pattern_note', '')
     confidence_statement = vision.get('confidence_statement', '')
-    tp_conditional = vision.get('tp_conditional_statement', '')
     
-    # Handle conflict (only real conflicts, not under-fib expected behavior)
-    conflict_section = ""
-    if vision.get('conflict_detected') and vision.get('conflict_detail'):
-        conflict_section = (
-            f"\n⚠️ **Heads up:** {vision.get('conflict_detail')}\n"
-            f"_Let me know if I'm reading this wrong._\n"
-        )
-    
-    # Build RSI section with divergence type clarity
-    rsi_reading = vision.get('rsi_reading', 'Not visible')
-    rsi_interp = vision.get('rsi_interpretation', 'N/A')
-    rsi_slope = vision.get('rsi_slope', 'Unable to assess')
-    
-    # Build divergence note (with type specification)
-    divergence_note = ""
-    if vision.get('divergence_detected'):
-        div_type = vision.get('divergence_type', '')
-        div_note = vision.get('divergence_note', '')
-        if div_type and div_type != 'None':
-            divergence_note = f"\n📐 **{div_type} Divergence** — {div_note}" if div_note else f"\n📐 **{div_type} Divergence** detected (supportive, not a trigger)"
-    
-    # Get structure info
-    structure_quality = vision.get('structure_quality', 'Unconfirmed')
+    # New mandatory fields
+    structure_state = vision.get('structure_state', 'Unknown')
     structure_reasoning = vision.get('structure_reasoning', '')
+    setup_quality = vision.get('setup_quality', 'B')
+    setup_quality_reasoning = vision.get('setup_quality_reasoning', '')
+    game_plan = vision.get('game_plan', {})
+    invalidation = vision.get('invalidation', {})
+    probability_framing = vision.get('probability_framing', '')
+    
+    # RSI fields (new format)
+    rsi_reading = vision.get('rsi_reading', 'Not visible')
+    rsi_zone = vision.get('rsi_zone', '')
+    rsi_permission = vision.get('rsi_permission', '')
+    rsi_insight = vision.get('rsi_insight', '')
+    
+    # Momentum
+    momentum_health = vision.get('momentum_health', '')
     momentum_insight = vision.get('momentum_insight', '')
     
-    # Build the response with Wiz-style energy
+    # Divergence
+    divergence_detected = vision.get('divergence_detected', False)
+    divergence_type = vision.get('divergence_type', '')
+    divergence_note = vision.get('divergence_note', '')
+    
+    # Conflict
+    conflict_detected = vision.get('conflict_detected', False)
+    conflict_detail = vision.get('conflict_detail', '')
+    
+    # Build response
     response_parts = []
     
-    # Header with pair if detected
+    # ══════════════════════════════════════════════
+    # HEADER
+    # ══════════════════════════════════════════════
     if pair_detected and pair_detected != 'Unable to detect':
         response_parts.append(f"🔮 **JAYCE** — 🪙 {pair_detected}\n")
     else:
         response_parts.append(f"🔮 **JAYCE**\n")
     
-    # WizTheory Setup Detection
     if wiz_setup_type and wiz_setup_type != 'Unknown':
-        response_parts.append(f"📐 **WizTheory Setup:** {wiz_setup_type}\n")
+        response_parts.append(f"📐 **{wiz_setup_type}** | {timeframe}\n")
     
-    # Lead with direct answer (ANSWER FIRST)
+    # ══════════════════════════════════════════════
+    # DIRECT ANSWER (answer user's question first)
+    # ══════════════════════════════════════════════
     if direct_answer:
         response_parts.append(f"\n{direct_answer}\n")
     
-    # Add conflict warning if needed
-    if conflict_section:
-        response_parts.append(conflict_section)
+    # ══════════════════════════════════════════════
+    # CONFLICT WARNING (if any)
+    # ══════════════════════════════════════════════
+    if conflict_detected and conflict_detail:
+        response_parts.append(f"\n⚠️ **Heads up:** {conflict_detail}\n")
     
-    # Chart reading section (varied, not mechanical)
-    response_parts.append(
-        f"\n📊 **Reading the chart:**\n"
-        f"• {vision.get('timeframe', '?')} timeframe\n"
-        f"• {vision.get('fib_level', '?')} level — {vision.get('market_state', 'unclear')}\n"
-        f"• Structure: {structure_quality}"
-    )
+    # ══════════════════════════════════════════════
+    # 1. STRUCTURE STATE (MANDATORY)
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n🧱 **Structure State:** {structure_state}")
     if structure_reasoning:
-        response_parts.append(f" — {structure_reasoning}")
-    response_parts.append("\n")
+        response_parts.append(f"\n_{structure_reasoning}_")
     
-    # Momentum (conversational)
-    if momentum_insight:
-        response_parts.append(f"\n⚡ **Momentum:** {momentum_insight}")
+    # ══════════════════════════════════════════════
+    # 2. SETUP QUALITY (MANDATORY)
+    # ══════════════════════════════════════════════
+    quality_emoji = "🟢" if setup_quality == "A" else "🟡" if setup_quality == "B" else "🔴"
+    response_parts.append(f"\n\n{quality_emoji} **Setup Quality:** {setup_quality}")
+    if setup_quality_reasoning:
+        response_parts.append(f"\n_{setup_quality_reasoning}_")
     
-    # RSI with slope
-    response_parts.append(f"\n📈 **RSI:** {rsi_reading} ({rsi_interp}), slope {rsi_slope.lower() if rsi_slope else 'unknown'}")
+    # ══════════════════════════════════════════════
+    # 3. GAME PLAN (MANDATORY)
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n\n📋 **Game Plan:**")
+    if game_plan:
+        entry_type = game_plan.get('entry_type', 'Confirmation')
+        confirmation = game_plan.get('confirmation_trigger', '')
+        partial_tp = game_plan.get('partial_tp', '')
+        continuation = game_plan.get('continuation_logic', '')
+        
+        response_parts.append(f"\n• **Entry:** {entry_type}")
+        if confirmation:
+            response_parts.append(f"\n• **Confirms when:** {confirmation}")
+        if partial_tp:
+            response_parts.append(f"\n• **Partial TP:** {partial_tp}")
+        if continuation:
+            response_parts.append(f"\n• **Continuation:** {continuation}")
+    else:
+        response_parts.append(f"\n_Await confirmation before execution_")
     
-    # Divergence (with type clarity)
-    if divergence_note:
-        response_parts.append(divergence_note)
+    # ══════════════════════════════════════════════
+    # 4. INVALIDATION (MANDATORY)
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n\n🚫 **Invalidation:**")
+    if invalidation:
+        price_inv = invalidation.get('price_based', '')
+        behavior_inv = invalidation.get('behavior_based', '')
+        
+        if price_inv:
+            response_parts.append(f"\n• **Price:** {price_inv}")
+        if behavior_inv:
+            response_parts.append(f"\n• **Behavior:** {behavior_inv}")
+    else:
+        response_parts.append(f"\n_Define your invalidation before entry_")
     
-    # TP Probability — CONDITIONAL framing
-    if tp_conditional:
-        response_parts.append(f"\n\n🎯 **TP Outlook:**\n_{tp_conditional}_")
+    # ══════════════════════════════════════════════
+    # 5. PROBABILITY FRAMING (MANDATORY — NO FIXED %)
+    # ══════════════════════════════════════════════
+    if probability_framing:
+        response_parts.append(f"\n\n🎯 **Probability:**\n_{probability_framing}_")
     
-    # Similar Pattern Note (from memory lookup)
-    # Only show if we have a similar pattern, omit entirely if none
+    # ══════════════════════════════════════════════
+    # 6. RSI PERMISSION (MANDATORY — NOT overbought/oversold)
+    # ══════════════════════════════════════════════
+    response_parts.append(f"\n\n📈 **RSI Permission:**")
+    if rsi_reading and rsi_reading != 'Not visible':
+        response_parts.append(f"\n• RSI: {rsi_reading}")
+        if rsi_zone:
+            response_parts.append(f" ({rsi_zone})")
+        if rsi_permission:
+            response_parts.append(f"\n• **{rsi_permission}**")
+        if rsi_insight:
+            response_parts.append(f"\n_{rsi_insight}_")
+    else:
+        response_parts.append(f"\n_RSI not visible on chart_")
+    
+    # ══════════════════════════════════════════════
+    # MOMENTUM (supporting context)
+    # ══════════════════════════════════════════════
+    if momentum_health or momentum_insight:
+        response_parts.append(f"\n\n⚡ **Momentum:** {momentum_health}")
+        if momentum_insight:
+            response_parts.append(f"\n_{momentum_insight}_")
+    
+    # ══════════════════════════════════════════════
+    # DIVERGENCE (if detected)
+    # ══════════════════════════════════════════════
+    if divergence_detected and divergence_type and divergence_type != 'None':
+        response_parts.append(f"\n\n📐 **{divergence_type} Divergence**")
+        if divergence_note:
+            response_parts.append(f"\n_{divergence_note}_")
+    
+    # ══════════════════════════════════════════════
+    # SIMILAR PATTERN (from memory)
+    # ══════════════════════════════════════════════
     if similar_pattern:
-        response_parts.append(f"\n\n🧠 **Similar Pattern Note:**\n• _{similar_pattern}_")
+        response_parts.append(f"\n\n🧠 **Similar Pattern:**\n_{similar_pattern}_")
     
-    # Jayce's personal take (human touch)
+    # ══════════════════════════════════════════════
+    # 7. JAYCE'S TAKE (execution-focused)
+    # ══════════════════════════════════════════════
     if jayce_take:
         response_parts.append(f"\n\n💭 **My take:** {jayce_take}")
     
-    # Confidence — CONDITIONAL statement, not fixed label
+    # ══════════════════════════════════════════════
+    # CONFIDENCE (conditional)
+    # ══════════════════════════════════════════════
     if confidence_statement:
         response_parts.append(f"\n\n_{confidence_statement}_")
     
-    # Human ownership footer
+    # ══════════════════════════════════════════════
+    # FOOTER
+    # ══════════════════════════════════════════════
     if username:
         response_parts.append(f"\n\n🧙‍♂️ _Analyzed for: {username}_")
     
