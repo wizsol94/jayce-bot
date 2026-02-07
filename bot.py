@@ -897,6 +897,69 @@ UNDER-FIB FLIP ZONE LOGIC
 - Do NOT flag conflict just because price is below fib
 
 ═══════════════════════════════════════════════════════════
+DIVERGENCE — WIZ THEORY RULES (CRITICAL)
+═══════════════════════════════════════════════════════════
+
+CORE PRINCIPLE (MANDATORY):
+Divergence only matters where structure is being decided, and only to adjust expectations — NEVER to predict outcomes.
+
+ANALYSIS ORDER (NON-NEGOTIABLE):
+Structure → RSI Permission → Divergence (if applicable)
+Divergence is ALWAYS analyzed LAST, after structure and RSI permission are established.
+
+WHERE DIVERGENCE MAY BE DETECTED (valid locations only):
+- Fib interaction levels (.382 / .50 / .618 / .786)
+- Flip zones (support ↔ resistance transitions)
+- Range highs/lows created by impulse
+- Liquidity targets / prior reaction points
+
+WHERE DIVERGENCE MUST BE COMPLETELY IGNORED:
+- Mid-range (between structure levels)
+- Between fib levels
+- During random chop
+- Without active structure interaction
+If divergence appears in these locations, do NOT mention it at all.
+
+DIVERGENCE FRAMING (how to communicate):
+Divergence is ONLY:
+- Momentum efficiency change
+- Expectation modifier (expansion speed, quality, TP behavior)
+- Context for execution adjustments
+
+Divergence is NEVER:
+- A buy/sell signal
+- A reversal indicator
+- A standalone invalidation
+- A prediction of direction
+
+ACCEPTABLE LANGUAGE:
+✅ "RSI divergence at structure suggests momentum efficiency is declining at this decision point."
+✅ "Divergence at the flip zone may reduce expansion quality if reclaim stalls, while structure remains intact."
+✅ "Divergence is forming — this adjusts expansion expectations, not the thesis."
+
+FORBIDDEN LANGUAGE:
+❌ "Bearish divergence means sell"
+❌ "Bullish divergence means buy"
+❌ "Divergence confirms reversal"
+❌ "Divergence invalidates the setup"
+
+RSI + DIVERGENCE INTERACTION RULES:
+1. Structure holds + RSI holds above 40-45 + Divergence present:
+   → Divergence is harmless; expect chop or slower expansion; thesis intact
+
+2. Structure holds + RSI diverges but remains above momentum floors:
+   → Continuation still allowed; manage expectations; secure more conservatively
+
+3. Structure fails + RSI diverges + RSI breaks below 40:
+   → Momentum damage confirmed; setup invalidated (but invalidation is from RSI failure, not divergence alone)
+
+DIVERGENCE OUTPUT RULES:
+- Only populate divergence fields if divergence is at valid structure
+- If divergence is mid-range or irrelevant, set divergence_detected: false
+- divergence_at_structure: must be true for divergence to be mentioned
+- divergence_impact: must explain expectation adjustment, not prediction
+
+═══════════════════════════════════════════════════════════
 TONE REQUIREMENTS
 ═══════════════════════════════════════════════════════════
 - Confident but not hype
@@ -904,6 +967,7 @@ TONE REQUIREMENTS
 - Human, calm, execution-focused
 - Sound like a prop trader managing risk, not a TA educator
 - Use phrases like: "If this were my trade...", "The edge here is...", "Patience is required because..."
+- Reinforce Wiz Theory principles: Patience is the edge. Discomfort above momentum floors is opportunity. Chop at structure is acceptance, not weakness.
 
 ═══════════════════════════════════════════════════════════
 OUTPUT FORMAT (JSON only)
@@ -943,8 +1007,10 @@ OUTPUT FORMAT (JSON only)
     "momentum_insight": "natural language observation",
     
     "divergence_detected": true or false,
+    "divergence_at_structure": true or false,
     "divergence_type": "Regular Bullish / Hidden Bullish / Regular Bearish / Hidden Bearish / None",
-    "divergence_note": "supportive context if detected, or null",
+    "divergence_location": "where divergence is forming (e.g., 'at .786 flip zone') or null",
+    "divergence_impact": "expectation adjustment only (e.g., 'may reduce expansion quality') or null",
     
     "direct_answer": "answer user's actual question first (2-3 sentences)",
     "jayce_take": "1-2 sentence execution-focused take",
@@ -961,6 +1027,7 @@ Respond with ONLY the JSON object."""
 User context: {user_plan if user_plan else 'General analysis requested'}
 
 Provide ALL mandatory sections: Structure State, Setup Quality, Game Plan, Invalidation, Probability Framing, RSI Permission.
+If divergence exists AT STRUCTURE, include it with expectation-adjustment framing only.
 Be decisive. Be human. Be execution-focused. No generic TA language."""
 
     # Detect image type
@@ -1798,10 +1865,12 @@ def build_deep_analysis_response(vision: dict, user_plan: str, username: str = N
     momentum_health = vision.get('momentum_health', '')
     momentum_insight = vision.get('momentum_insight', '')
     
-    # Divergence
+    # Divergence (new fields)
     divergence_detected = vision.get('divergence_detected', False)
+    divergence_at_structure = vision.get('divergence_at_structure', False)
     divergence_type = vision.get('divergence_type', '')
-    divergence_note = vision.get('divergence_note', '')
+    divergence_location = vision.get('divergence_location', '')
+    divergence_impact = vision.get('divergence_impact', '')
     
     # Conflict
     conflict_detected = vision.get('conflict_detected', False)
@@ -1913,12 +1982,19 @@ def build_deep_analysis_response(vision: dict, user_plan: str, username: str = N
             response_parts.append(f"\n_{momentum_insight}_")
     
     # ══════════════════════════════════════════════
-    # DIVERGENCE (if detected)
+    # DIVERGENCE (only if at structure — Wiz Theory rules)
+    # Analyzed LAST, after Structure and RSI Permission
+    # Only shown if divergence_at_structure is true
     # ══════════════════════════════════════════════
-    if divergence_detected and divergence_type and divergence_type != 'None':
-        response_parts.append(f"\n\n📐 **{divergence_type} Divergence**")
-        if divergence_note:
-            response_parts.append(f"\n_{divergence_note}_")
+    if divergence_detected and divergence_at_structure and divergence_type and divergence_type != 'None':
+        response_parts.append(f"\n\n📐 **Divergence at Structure:** {divergence_type}")
+        if divergence_location:
+            response_parts.append(f"\n_Location: {divergence_location}_")
+        if divergence_impact:
+            response_parts.append(f"\n_{divergence_impact}_")
+        else:
+            # Default Wiz Theory framing if no specific impact provided
+            response_parts.append(f"\n_This adjusts expansion expectations, not the thesis. Secure more conservatively if structure holds._")
     
     # ══════════════════════════════════════════════
     # SIMILAR PATTERN (from memory)
