@@ -2612,6 +2612,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     TRIGGER RULES (locked):
     - Jayce only analyzes when EXPLICITLY invoked
     - If chart posted without invocation → Jayce remains SILENT
+    - MEMORY SAVES take priority over analysis
     """
     chat_id = update.effective_chat.id
     image_file_id = update.message.photo[-1].file_id
@@ -2619,6 +2620,41 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     caption = update.message.caption if update.message.caption else ""
     caption_lower = caption.lower()
+
+    # ══════════════════════════════════════════════
+    # MEMORY MODE — Check FIRST (highest priority)
+    # Memory saves do NOT require /deep
+    # ══════════════════════════════════════════════
+    memory_triggers = [
+        "lock this in", "lock it in", "lock in",
+        "save this", "save as", "remember this",
+        "remember as", "store this", "log this"
+    ]
+    
+    if any(trigger in caption_lower for trigger in memory_triggers):
+        # Get username
+        username = None
+        if update.effective_user:
+            username = update.effective_user.first_name or update.effective_user.username
+        
+        # Parse memory from user text
+        memory_data = parse_memory_from_text(caption)
+        
+        # Store the memory
+        success, msg = store_memory(memory_data)
+        
+        if success:
+            # Build human, collaborative, Wiz-native response
+            response = build_memory_response(memory_data, username)
+            await update.message.reply_text(response, parse_mode='Markdown')
+        else:
+            await update.message.reply_text(
+                "🧠 **Memory**\n\n"
+                f"⚠️ Couldn't lock that in: {msg}\n\n"
+                "Try again — keep it simple. 🔮",
+                parse_mode='Markdown'
+            )
+        return  # Exit early — don't run analysis
 
     explicit_triggers = [
         '/jayce', '/analyze', '/valid', '/violent', '/deep',
