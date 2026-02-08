@@ -398,21 +398,87 @@ def parse_memory_from_text(user_text: str) -> dict:
     """
     Parse memory data from user's description of a past outcome.
     Extracts setup type, outcome, conditions, etc.
+    
+    IMPORTANT:
+    - Do NOT infer setup names from chart text alone
+    - If user explicitly says "lock this in as [SETUP NAME]", use that setup name
+    - Only mark as Unknown if setup name is not explicitly stated
     """
     text_lower = user_text.lower()
     
-    # Detect setup type
+    # ══════════════════════════════════════════════
+    # EXPLICIT SETUP NAME DETECTION (highest priority)
+    # Pattern: "lock this in as [setup name]" or "save as [setup name]"
+    # ══════════════════════════════════════════════
+    import re
+    
+    # Define recognized Wiz Theory setup patterns
+    setup_patterns = {
+        'under-fib flip zone': "Under-Fib Flip Zone",
+        'underfib flip zone': "Under-Fib Flip Zone",
+        'under fib flip zone': "Under-Fib Flip Zone",
+        'under-fib': "Under-Fib Flip Zone",
+        'underfib': "Under-Fib Flip Zone",
+        '.786 flip zone': ".786 Flip Zone",
+        '786 flip zone': ".786 Flip Zone",
+        '.786': ".786 Flip Zone",
+        '786': ".786 Flip Zone",
+        '.618 flip zone': ".618 Flip Zone",
+        '618 flip zone': ".618 Flip Zone",
+        '.618': ".618 Flip Zone",
+        '618': ".618 Flip Zone",
+        '.50 flip zone': ".50 Flip Zone",
+        '50 flip zone': ".50 Flip Zone",
+        '.50': ".50 Flip Zone",
+        '.382 flip zone': ".382 Flip Zone",
+        '382 flip zone': ".382 Flip Zone",
+        '.382': ".382 Flip Zone",
+        '382': ".382 Flip Zone",
+    }
+    
     setup_type = "Unknown"
-    if "under-fib" in text_lower or "underfib" in text_lower:
-        setup_type = "Under-Fib Flip Zone"
-    elif ".786" in text_lower or "786" in text_lower:
-        setup_type = ".786 Flip Zone"
-    elif ".618" in text_lower or "618" in text_lower:
-        setup_type = ".618 Flip Zone"
-    elif ".50" in text_lower or "50 fib" in text_lower:
-        setup_type = ".50 Flip Zone"
-    elif ".382" in text_lower or "382" in text_lower:
-        setup_type = ".382 Flip Zone"
+    
+    # Check for explicit "lock this in as" or "save as" patterns FIRST
+    explicit_patterns = [
+        r'lock\s*(?:this\s*)?in\s*as\s+(.+?)(?:\s*[.,]|$)',
+        r'save\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
+        r'remember\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
+        r'store\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
+        r'log\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
+    ]
+    
+    for pattern in explicit_patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            explicit_setup = match.group(1).strip()
+            # Try to match to a recognized setup
+            for key, value in setup_patterns.items():
+                if key in explicit_setup:
+                    setup_type = value
+                    break
+            # If still unknown but user explicitly named something, use it
+            if setup_type == "Unknown" and explicit_setup:
+                # Capitalize first letter of each word for display
+                setup_type = explicit_setup.title()
+            break
+    
+    # If no explicit "as [setup]" pattern found, check for setup mentions in general text
+    # But ONLY if the user is clearly describing the setup, not just mentioning it
+    if setup_type == "Unknown":
+        # Only detect if setup type is mentioned alongside outcome words
+        outcome_context = any(word in text_lower for word in ['hit', 'worked', 'printed', 'played', 'secured', 'banked', 'closed'])
+        
+        if outcome_context:
+            if "under-fib" in text_lower or "underfib" in text_lower or "under fib" in text_lower:
+                setup_type = "Under-Fib Flip Zone"
+            elif ".786" in text_lower or "786 flip" in text_lower:
+                setup_type = ".786 Flip Zone"
+            elif ".618" in text_lower or "618 flip" in text_lower:
+                setup_type = ".618 Flip Zone"
+            elif ".50" in text_lower or "50 flip" in text_lower:
+                setup_type = ".50 Flip Zone"
+            elif ".382" in text_lower or "382 flip" in text_lower:
+                setup_type = ".382 Flip Zone"
     
     # Detect outcome
     outcome = "Completed successfully"
@@ -427,7 +493,6 @@ def parse_memory_from_text(user_text: str) -> dict:
             outcome = "Hit 0.382 magnet"
     
     # Try to extract percentage
-    import re
     pct_match = re.search(r'[+]?\s*(\d+)\s*%', user_text)
     if pct_match:
         outcome_pct = int(pct_match.group(1))
@@ -478,7 +543,7 @@ def build_memory_response(memory_data: dict, username: str = None) -> str:
     - Short, human, collaborative, confident
     - Wiz.sol style with emojis (🔥 🧙‍♂️ 💎 📈)
     - Acknowledge the update
-    - Confirm what was stored
+    - Confirm what was stored (especially setup name if explicitly stated)
     - Reinforce future usage
     - For strong outcomes: celebrate the PROCESS, not luck
     """
@@ -497,13 +562,23 @@ def build_memory_response(memory_data: dict, username: str = None) -> str:
     # Build response lines
     lines = []
     
-    # Header — varies based on outcome quality
-    if is_banger:
-        lines.append("🔥 **Locked and loaded.**")
-    elif is_violent:
-        lines.append("😈 **Violent execution. Locked.**")
+    # Header — varies based on outcome quality and whether setup was explicitly named
+    if setup_type != "Unknown":
+        # Setup was explicitly named — confirm it
+        if is_banger:
+            lines.append(f"🔥 **Saved as {setup_type} reference.**")
+        elif is_violent:
+            lines.append(f"😈 **Saved as {setup_type} reference.**")
+        else:
+            lines.append(f"🧠 **Saved as {setup_type} reference.**")
     else:
-        lines.append("🧠 **Locked in.**")
+        # Setup not named — generic header
+        if is_banger:
+            lines.append("🔥 **Locked and loaded.**")
+        elif is_violent:
+            lines.append("😈 **Violent execution. Locked.**")
+        else:
+            lines.append("🧠 **Locked in.**")
     
     lines.append("")
     
@@ -549,7 +624,10 @@ def build_memory_response(memory_data: dict, username: str = None) -> str:
         lines.append("")
     
     # Future reference line
-    lines.append("_I'll reference this when I see similar structure + behavior._ 🔮")
+    if setup_type != "Unknown":
+        lines.append(f"_I'll reference this {setup_type} when I see similar structure._ 🔮")
+    else:
+        lines.append("_I'll reference this when I see similar structure + behavior._ 🔮")
     
     # Username footer
     if username:
@@ -2572,6 +2650,41 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     text = update.message.text.lower()
     full_text = update.message.text
     chat_id = update.effective_chat.id
+
+    # ══════════════════════════════════════════════
+    # MEMORY MODE — Check FIRST (highest priority)
+    # Simple memory saves should NOT require /deep
+    # ══════════════════════════════════════════════
+    memory_triggers = [
+        "lock this in", "lock it in", "lock in",
+        "save this", "save as", "remember this",
+        "remember as", "store this", "log this"
+    ]
+    
+    if any(trigger in text for trigger in memory_triggers):
+        # Get username
+        username = None
+        if update.effective_user:
+            username = update.effective_user.first_name or update.effective_user.username
+        
+        # Parse memory from user text
+        memory_data = parse_memory_from_text(full_text)
+        
+        # Store the memory
+        success, msg = store_memory(memory_data)
+        
+        if success:
+            # Build human, collaborative, Wiz-native response
+            response = build_memory_response(memory_data, username)
+            await update.message.reply_text(response, parse_mode='Markdown')
+        else:
+            await update.message.reply_text(
+                "🧠 **Memory**\n\n"
+                f"⚠️ Couldn't lock that in: {msg}\n\n"
+                "Try again — keep it simple. 🔮",
+                parse_mode='Markdown'
+            )
+        return
 
     intro_triggers = [
         'introduce yourself', 'introduce urself',
