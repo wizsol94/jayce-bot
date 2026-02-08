@@ -413,25 +413,54 @@ def parse_memory_from_text(user_text: str) -> dict:
     import re
     
     # Define recognized Wiz Theory setup patterns
+    # Order matters — more specific patterns first
     setup_patterns = {
+        # Under-fib variations (most common issue)
         'under-fib flip zone': "Under-Fib Flip Zone",
         'underfib flip zone': "Under-Fib Flip Zone",
         'under fib flip zone': "Under-Fib Flip Zone",
+        'under-fib flipzone': "Under-Fib Flip Zone",
+        'underfib flipzone': "Under-Fib Flip Zone",
+        'under fib flipzone': "Under-Fib Flip Zone",
+        'under-fib fz': "Under-Fib Flip Zone",
+        'underfib fz': "Under-Fib Flip Zone",
+        'under fib fz': "Under-Fib Flip Zone",
         'under-fib': "Under-Fib Flip Zone",
         'underfib': "Under-Fib Flip Zone",
+        'under fib': "Under-Fib Flip Zone",  # Added standalone
+        # .786 variations
         '.786 flip zone': ".786 Flip Zone",
         '786 flip zone': ".786 Flip Zone",
+        '.786 flipzone': ".786 Flip Zone",
+        '786 flipzone': ".786 Flip Zone",
+        '.786 fz': ".786 Flip Zone",
+        '786 fz': ".786 Flip Zone",
         '.786': ".786 Flip Zone",
         '786': ".786 Flip Zone",
+        # .618 variations
         '.618 flip zone': ".618 Flip Zone",
         '618 flip zone': ".618 Flip Zone",
+        '.618 flipzone': ".618 Flip Zone",
+        '618 flipzone': ".618 Flip Zone",
+        '.618 fz': ".618 Flip Zone",
+        '618 fz': ".618 Flip Zone",
         '.618': ".618 Flip Zone",
         '618': ".618 Flip Zone",
+        # .50 variations
         '.50 flip zone': ".50 Flip Zone",
         '50 flip zone': ".50 Flip Zone",
+        '.50 flipzone': ".50 Flip Zone",
+        '50 flipzone': ".50 Flip Zone",
+        '.50 fz': ".50 Flip Zone",
+        '50 fz': ".50 Flip Zone",
         '.50': ".50 Flip Zone",
+        # .382 variations
         '.382 flip zone': ".382 Flip Zone",
         '382 flip zone': ".382 Flip Zone",
+        '.382 flipzone': ".382 Flip Zone",
+        '382 flipzone': ".382 Flip Zone",
+        '.382 fz': ".382 Flip Zone",
+        '382 fz': ".382 Flip Zone",
         '.382': ".382 Flip Zone",
         '382': ".382 Flip Zone",
     }
@@ -451,8 +480,10 @@ def parse_memory_from_text(user_text: str) -> dict:
         match = re.search(pattern, text_lower)
         if match:
             explicit_setup = match.group(1).strip()
-            # Try to match to a recognized setup
-            for key, value in setup_patterns.items():
+            # Try to match to a recognized setup - check longer patterns first
+            # Sort by length descending to match most specific first
+            sorted_patterns = sorted(setup_patterns.items(), key=lambda x: len(x[0]), reverse=True)
+            for key, value in sorted_patterns:
                 if key in explicit_setup:
                     setup_type = value
                     break
@@ -462,23 +493,15 @@ def parse_memory_from_text(user_text: str) -> dict:
                 setup_type = explicit_setup.title()
             break
     
-    # If no explicit "as [setup]" pattern found, check for setup mentions in general text
-    # But ONLY if the user is clearly describing the setup, not just mentioning it
+    # If no explicit "as [setup]" pattern found, do a direct scan of the full text
+    # for setup keywords (useful when pattern matching fails)
     if setup_type == "Unknown":
-        # Only detect if setup type is mentioned alongside outcome words
-        outcome_context = any(word in text_lower for word in ['hit', 'worked', 'printed', 'played', 'secured', 'banked', 'closed'])
-        
-        if outcome_context:
-            if "under-fib" in text_lower or "underfib" in text_lower or "under fib" in text_lower:
-                setup_type = "Under-Fib Flip Zone"
-            elif ".786" in text_lower or "786 flip" in text_lower:
-                setup_type = ".786 Flip Zone"
-            elif ".618" in text_lower or "618 flip" in text_lower:
-                setup_type = ".618 Flip Zone"
-            elif ".50" in text_lower or "50 flip" in text_lower:
-                setup_type = ".50 Flip Zone"
-            elif ".382" in text_lower or "382 flip" in text_lower:
-                setup_type = ".382 Flip Zone"
+        # Sort by length descending to match most specific first
+        sorted_patterns = sorted(setup_patterns.items(), key=lambda x: len(x[0]), reverse=True)
+        for key, value in sorted_patterns:
+            if key in text_lower:
+                setup_type = value
+                break
     
     # Detect outcome
     outcome = "Completed successfully"
