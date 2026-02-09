@@ -82,35 +82,41 @@ VIOLENT_ELIGIBLE = {
 # Format: canonical_key -> (display_name, [aliases])
 SETUP_DEFINITIONS = {
     '382_flip_zone': {
-        'display': '.382 + Flip Zone',
+        'display': '382 + Flip Zone',
         'aliases': [
             '382 flip zone', '382 + flip zone', '0.382 flip zone', '.382 flip zone',
-            '382 flipzone', '382 fz', '382+fz', '382+flip zone', '.382 fz',
-            '382', '.382', '0.382'
+            '382 flipzone', '382 fz', '382+fz', '382 + fz', '382+flip zone', '.382 fz',
+            '382', '.382', '0.382',
+            'three eighty two flip zone', 'three eighty two fz'
         ]
     },
     '50_flip_zone': {
-        'display': '.50 + Flip Zone',
+        'display': '50 + Flip Zone',
         'aliases': [
             '50 flip zone', '50 + flip zone', '0.50 flip zone', '.50 flip zone',
-            '50 flipzone', '50 fz', '50+fz', '50+flip zone', '.50 fz',
-            '50', '.50', '0.50', '.5', '0.5'
+            '50 flipzone', '50 fz', '50+fz', '50 + fz', '50+flip zone', '.50 fz',
+            '50', '.50', '0.50', '.5', '0.5',
+            '0.5 flip zone', '.5 flip zone', '0.5 flipzone', '.5 flipzone',
+            '0.5 fz', '.5 fz',
+            'half flip zone', 'half flipzone', 'half fz'
         ]
     },
     '618_flip_zone': {
-        'display': '.618 + Flip Zone',
+        'display': '618 + Flip Zone',
         'aliases': [
             '618 flip zone', '618 + flip zone', '0.618 flip zone', '.618 flip zone',
-            '618 flipzone', '618 fz', '618+fz', '618+flip zone', '.618 fz',
-            '618', '.618', '0.618'
+            '618 flipzone', '618 fz', '618+fz', '618 + fz', '618+flip zone', '.618 fz',
+            '618', '.618', '0.618',
+            'six eighteen flip zone', 'six eighteen fz'
         ]
     },
     '786_flip_zone': {
-        'display': '.786 + Flip Zone',
+        'display': '786 + Flip Zone',
         'aliases': [
             '786 flip zone', '786 + flip zone', '0.786 flip zone', '.786 flip zone',
-            '786 flipzone', '786 fz', '786+fz', '786+flip zone', '.786 fz',
-            '786', '.786', '0.786'
+            '786 flipzone', '786 fz', '786+fz', '786 + fz', '786+flip zone', '.786 fz',
+            '786', '.786', '0.786',
+            'seven eighty six flip zone', 'seven eighty six fz'
         ]
     },
     'under_fib_flip_zone': {
@@ -180,25 +186,49 @@ def canonicalize_setup(user_input: str) -> tuple:
             if normalized == normalized_alias:
                 return (canonical_key, setup_data['display'])
     
-    # Fallback: Check if input contains a numeric fib level + flip zone indicator
-    fib_patterns = {
+    # ══════════════════════════════════════════════
+    # FUZZY FALLBACK RULES
+    # ══════════════════════════════════════════════
+    
+    flip_indicators = ['flip zone', 'flip', 'fz', 'zone']
+    has_flip = any(ind in normalized for ind in flip_indicators)
+    
+    # 382 + Flip Zone fallback
+    # If input contains ("382" OR ".382" OR "0.382") AND ("flip zone" OR "flipzone" OR "fz")
+    if any(x in normalized for x in ['382', '0382']) and has_flip:
+        return ('382_flip_zone', SETUP_DEFINITIONS['382_flip_zone']['display'])
+    
+    # 50 + Flip Zone fallback (special handling for .5 variants and "half")
+    # If input contains ("50" OR ".5" OR "0.5" OR ".50" OR "0.50") AND ("flip zone" OR "flipzone" OR "fz" OR "half")
+    fifty_indicators = ['50', '05', 'half']  # After normalization, .5 becomes 5, .50 becomes 50
+    has_fifty = any(x in normalized for x in fifty_indicators)
+    has_half = 'half' in normalized
+    if (has_fifty or has_half) and (has_flip or has_half):
+        return ('50_flip_zone', SETUP_DEFINITIONS['50_flip_zone']['display'])
+    
+    # 618 + Flip Zone fallback
+    if any(x in normalized for x in ['618', '0618']) and has_flip:
+        return ('618_flip_zone', SETUP_DEFINITIONS['618_flip_zone']['display'])
+    
+    # 786 + Flip Zone fallback
+    if any(x in normalized for x in ['786', '0786']) and has_flip:
+        return ('786_flip_zone', SETUP_DEFINITIONS['786_flip_zone']['display'])
+    
+    # Under-Fib Flip Zone fallback
+    if 'under' in normalized and ('fib' in normalized or 'flip' in normalized):
+        return ('under_fib_flip_zone', SETUP_DEFINITIONS['under_fib_flip_zone']['display'])
+    
+    # Final fallback: standalone numbers (if user just types "382", "618", etc.)
+    standalone_map = {
         '382': '382_flip_zone',
         '50': '50_flip_zone',
         '618': '618_flip_zone',
         '786': '786_flip_zone',
     }
     
-    flip_indicators = ['flip zone', 'flip', 'fz', 'zone']
-    has_flip = any(ind in normalized for ind in flip_indicators)
-    
-    for fib_num, canonical_key in fib_patterns.items():
-        if fib_num in normalized:
-            if has_flip or len(normalized.replace(fib_num, '').strip()) == 0:
-                return (canonical_key, SETUP_DEFINITIONS[canonical_key]['display'])
-    
-    # Check for under-fib
-    if 'under' in normalized and ('fib' in normalized or 'flip' in normalized):
-        return ('under_fib_flip_zone', SETUP_DEFINITIONS['under_fib_flip_zone']['display'])
+    for num, canonical_key in standalone_map.items():
+        if num in normalized and len(normalized.replace(num, '').strip()) == 0:
+            return (canonical_key, SETUP_DEFINITIONS[canonical_key]['display'])
     
     # Not recognized
     return (None, None)
