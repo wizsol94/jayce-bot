@@ -122,11 +122,25 @@ SETUP_DEFINITIONS = {
     'under_fib_flip_zone': {
         'display': 'Under-Fib Flip Zone',
         'aliases': [
+            # Standard variations
             'under fib flip zone', 'under-fib flip zone', 'underfib flip zone',
             'under fib flipzone', 'under-fib flipzone', 'underfib flipzone',
             'under fib fz', 'under-fib fz', 'underfib fz',
+            'under fib fzone', 'under-fib fzone', 'underfib fzone',
+            'under fib flip', 'under-fib flip', 'underfib flip',
+            'under fib zone', 'under-fib zone', 'underfib zone',
+            # Reclaim variations
+            'under fib fz reclaim', 'under-fib fz reclaim', 'underfib fz reclaim',
+            'under fib reclaim', 'under-fib reclaim', 'underfib reclaim',
+            'under fib flip zone reclaim', 'under-fib flip zone reclaim',
+            # Standalone
             'under fib', 'under-fib', 'underfib',
-            'under fib zone', 'under-fib zone', 'underfib zone'
+            # Below fib variations
+            'below fib flip zone', 'below fib flipzone', 'below fib fz',
+            'below fib zone', 'below fib reclaim', 'below fib',
+            # Under the fib variations
+            'under the fib flip zone', 'under the fib flipzone', 'under the fib fz',
+            'under the fib zone', 'under the fib reclaim', 'under the fib'
         ]
     },
 }
@@ -137,7 +151,7 @@ def normalize_setup_text(text: str) -> str:
     1. Convert to lowercase
     2. Remove punctuation and symbols (+ - _ / , . :) but keep digits
     3. Collapse extra whitespace
-    4. Normalize synonyms (flipzone -> flip zone, fz -> flip zone)
+    4. Normalize synonyms (flipzone -> flip zone, fz -> flip zone, underfib -> under fib)
     """
     if not text:
         return ""
@@ -154,11 +168,27 @@ def normalize_setup_text(text: str) -> str:
     # Collapse whitespace
     text = ' '.join(text.split())
     
-    # Normalize synonyms
+    # ══════════════════════════════════════════════
+    # SYNONYM NORMALIZATION
+    # ══════════════════════════════════════════════
+    
+    # Flip zone synonyms
     text = text.replace('flipzone', 'flip zone')
-    text = text.replace(' fz', ' flip zone')
+    text = text.replace('fzone', 'flip zone')
+    text = text.replace(' fz ', ' flip zone ')
+    text = text.replace(' fz', ' flip zone') if text.endswith(' fz') else text
     if text.endswith('fz'):
         text = text[:-2] + 'flip zone'
+    if text.startswith('fz '):
+        text = 'flip zone ' + text[3:]
+    
+    # Under-fib synonyms
+    text = text.replace('underfib', 'under fib')
+    text = text.replace('below fib', 'under fib')
+    text = text.replace('under the fib', 'under fib')
+    
+    # Final whitespace cleanup
+    text = ' '.join(text.split())
     
     return text.strip()
 
@@ -214,9 +244,20 @@ def canonicalize_setup(user_input: str) -> tuple:
     if any(x in normalized for x in ['786', '0786']) and has_flip:
         return ('786_flip_zone', SETUP_DEFINITIONS['786_flip_zone']['display'])
     
-    # Under-Fib Flip Zone fallback
-    if 'under' in normalized and ('fib' in normalized or 'flip' in normalized):
-        return ('under_fib_flip_zone', SETUP_DEFINITIONS['under_fib_flip_zone']['display'])
+    # ══════════════════════════════════════════════
+    # Under-Fib Flip Zone fallback (ENHANCED)
+    # If input contains ("under" OR "below") AND "fib"
+    # AND contains ("flip zone" OR "flipzone" OR "fz" OR "reclaim" OR "reclaiming")
+    # ══════════════════════════════════════════════
+    has_under = 'under' in normalized or 'below' in normalized
+    has_fib = 'fib' in normalized
+    under_fib_indicators = ['flip zone', 'flip', 'fz', 'zone', 'reclaim', 'reclaiming']
+    has_under_fib_indicator = any(ind in normalized for ind in under_fib_indicators)
+    
+    if has_under and has_fib:
+        # If has any indicator OR just "under fib" standalone
+        if has_under_fib_indicator or normalized in ['under fib', 'below fib']:
+            return ('under_fib_flip_zone', SETUP_DEFINITIONS['under_fib_flip_zone']['display'])
     
     # Final fallback: standalone numbers (if user just types "382", "618", etc.)
     standalone_map = {
