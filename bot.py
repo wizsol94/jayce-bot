@@ -729,14 +729,106 @@ def build_memory_response(memory_data: dict, username: str = None) -> str:
     return "\n".join(lines)
 
 
-def get_similar_memories(setup_type: str, limit: int = 1) -> list:
-    """Get similar past setups from memory."""
+def get_similar_memories(setup_type: str, limit: int = 3) -> list:
+    """
+    Get similar past setups from memory.
+    
+    Matches by:
+    1. canonical_key (most reliable)
+    2. setup_type display name (fallback)
+    
+    Returns up to `limit` most recent matches.
+    """
     memories = load_memories()
     
-    similar = [m for m in memories if m.get('setup_type') == setup_type]
+    # First, try to get canonical key for the setup_type
+    canonical_key, _ = canonicalize_setup(setup_type)
     
-    # Return most recent ones (default limit=1 for Deep Vision)
+    similar = []
+    for m in memories:
+        # Match by canonical_key first (most reliable)
+        if canonical_key and m.get('canonical_key') == canonical_key:
+            similar.append(m)
+        # Fallback: match by display name
+        elif m.get('setup_type') == setup_type:
+            similar.append(m)
+    
+    # Return most recent ones
     return similar[-limit:] if similar else []
+
+
+def get_similar_memories_with_images(setup_type: str, limit: int = 3) -> list:
+    """
+    Get similar past setups that have image_file_id attached.
+    
+    Returns list of memories with charts.
+    """
+    all_similar = get_similar_memories(setup_type, limit=limit * 2)  # Get more to filter
+    
+    # Filter to only those with images
+    with_images = [m for m in all_similar if m.get('image_file_id')]
+    
+    return with_images[-limit:] if with_images else []
+
+
+async def send_similar_charts(update: Update, context, setup_type: str, max_charts: int = 2):
+    """
+    Send similar chart images after analysis.
+    
+    Called after Deep Vision analysis to show relevant prior setups.
+    """
+    similar = get_similar_memories_with_images(setup_type, limit=max_charts)
+    
+    if not similar:
+        return  # No similar charts with images found
+    
+    # Build intro message
+    count = len(similar)
+    setup_display = get_setup_display_name(similar[0].get('canonical_key', '')) or setup_type
+    
+    intro = f"📸 **Similar {setup_display} Charts** ({count} found)\n"
+    await update.message.reply_text(intro, parse_mode='Markdown')
+    
+    # Send each chart with context
+    for i, memory in enumerate(similar, 1):
+        image_file_id = memory.get('image_file_id')
+        outcome = memory.get('outcome', 'N/A')
+        conditions = memory.get('conditions', 'N/A')
+        timestamp = memory.get('timestamp', '')
+        
+        # Format date if available
+        date_str = ""
+        if timestamp:
+            try:
+                from datetime import datetime
+                dt = datetime.fromisoformat(timestamp)
+                date_str = dt.strftime("%b %d")
+            except:
+                date_str = ""
+        
+        # Caption for the chart
+        caption = (
+            f"**#{i}** — {setup_display}\n"
+            f"• Outcome: {outcome}\n"
+            f"• Conditions: {conditions}"
+        )
+        if date_str:
+            caption += f"\n• Saved: {date_str}"
+        
+        try:
+            await context.bot.send_photo(
+                chat_id=update.effective_chat.id,
+                photo=image_file_id,
+                caption=caption,
+                parse_mode='Markdown'
+            )
+        except Exception as e:
+            logger.error(f"Failed to send similar chart: {e}")
+            # Fallback to text if image fails
+            await update.message.reply_text(
+                f"_Chart #{i} unavailable_ — {outcome}",
+                parse_mode='Markdown'
+            )
 
 
 def build_similar_pattern_note(setup_type: str) -> str:
@@ -1792,14 +1884,69 @@ async def memory_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response_lines.append(f"   • Outcome: {m.get('outcome', 'N/A')}")
         response_lines.append(f"   • Conditions: {m.get('conditions', 'N/A')}")
         response_lines.append(f"   • Resolution: {m.get('resolution', 'N/A')}")
+        has_image = "📸" if m.get('image_file_id') else ""
+        if has_image:
+            response_lines.append(f"   • {has_image} Chart saved")
         response_lines.append("")
     
     response_lines.append(f"_Total stored: {len(load_memories())}_")
+    response_lines.append(f"\n_Use `/similar [setup]` to see saved charts_")
     
     await update.message.reply_text(
         "\n".join(response_lines),
         parse_mode='Markdown'
     )
+
+
+async def similar_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle /similar command — show saved chart images for a setup type.
+    
+    Usage:
+        /similar 618       — Show saved .618 Flip Zone charts
+        /similar under-fib — Show saved Under-Fib charts
+        /similar           — Show help
+    """
+    if not context.args:
+        await update.message.reply_text(
+            "📸 **Show Similar Charts**\n\n"
+            "Usage: `/similar [setup]`\n\n"
+            "Examples:\n"
+            "`/similar 618` — .618 Flip Zone charts\n"
+            "`/similar 786` — .786 Flip Zone charts\n"
+            "`/similar under-fib` — Under-Fib charts\n"
+            "`/similar 50` — .50 Flip Zone charts\n"
+            "`/similar 382` — .382 Flip Zone charts",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Get setup type from args
+    setup_input = " ".join(context.args)
+    canonical_key, display_name = canonicalize_setup(setup_input)
+    
+    if not canonical_key:
+        await update.message.reply_text(
+            f"❓ Couldn't recognize setup: `{setup_input}`\n\n"
+            "Try: `618`, `786`, `under-fib`, `50`, `382`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Get similar memories with images
+    similar = get_similar_memories_with_images(display_name, limit=5)
+    
+    if not similar:
+        await update.message.reply_text(
+            f"📸 **{display_name}**\n\n"
+            f"No saved charts found for this setup.\n\n"
+            f"_Save charts with `/save {setup_input}` when posting an image._",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Send charts
+    await send_similar_charts(update, context, display_name, max_charts=5)
 
 
 async def vision_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2057,6 +2204,17 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
             response = build_deep_analysis_response(vision_result, user_plan, username)
         
         await update.message.reply_text(response, parse_mode='Markdown')
+        
+        # ══════════════════════════════════════════════
+        # STEP 4: SEND SIMILAR CHART IMAGES (if any)
+        # Shows actual chart images from memory for visual reference
+        # ══════════════════════════════════════════════
+        if wiz_setup_type and wiz_setup_type not in ['Unknown', 'Unclear', '']:
+            try:
+                await send_similar_charts(update, context, wiz_setup_type, max_charts=2)
+            except Exception as e:
+                logger.error(f"Failed to send similar charts: {e}")
+                # Don't fail the whole analysis if similar charts fail
         
     except Exception as e:
         await thinking_msg.delete()
@@ -2765,9 +2923,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "`/deep [plan]` — Deep Vision analysis\n"
         "`/valid` — Quick validity check\n"
         "`/violent` — Violent Mode assessment\n\n"
-        "**Save Commands:**\n"
-        "`/save [setup]` — Save setup (no analysis)\n"
-        "`/memory` — View saved setups\n\n"
+        "**Save & Recall:**\n"
+        "`/save [setup]` — Save setup with chart 📸\n"
+        "`/memory` — View saved setups\n"
+        "`/similar [setup]` — Show saved chart images\n\n"
         "**Reference Commands:**\n"
         "`/rules [setup]` — Entry rules for a setup\n"
         "`/explain [setup]` — Setup guide\n"
@@ -3198,8 +3357,9 @@ def main():
     application.add_handler(CommandHandler("setups", setups_command))
     application.add_handler(CommandHandler("help", help_command))
     
-    # Save command (save setup WITHOUT analysis)
+    # Save & Memory commands
     application.add_handler(CommandHandler("save", save_command))
+    application.add_handler(CommandHandler("similar", similar_command))
 
     # Photo handler
     application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
