@@ -74,6 +74,144 @@ VIOLENT_ELIGIBLE = {
 
 
 # ══════════════════════════════════════════════
+# SETUP CANONICALIZER — Normalize all setup names
+# ══════════════════════════════════════════════
+# Ensures "618 flip zone", "618 + flip zone", "0.618 flipzone" all resolve to same setup
+
+# Canonical setup definitions
+# Format: canonical_key -> (display_name, [aliases])
+SETUP_DEFINITIONS = {
+    '382_flip_zone': {
+        'display': '.382 + Flip Zone',
+        'aliases': [
+            '382 flip zone', '382 + flip zone', '0.382 flip zone', '.382 flip zone',
+            '382 flipzone', '382 fz', '382+fz', '382+flip zone', '.382 fz',
+            '382', '.382', '0.382'
+        ]
+    },
+    '50_flip_zone': {
+        'display': '.50 + Flip Zone',
+        'aliases': [
+            '50 flip zone', '50 + flip zone', '0.50 flip zone', '.50 flip zone',
+            '50 flipzone', '50 fz', '50+fz', '50+flip zone', '.50 fz',
+            '50', '.50', '0.50', '.5', '0.5'
+        ]
+    },
+    '618_flip_zone': {
+        'display': '.618 + Flip Zone',
+        'aliases': [
+            '618 flip zone', '618 + flip zone', '0.618 flip zone', '.618 flip zone',
+            '618 flipzone', '618 fz', '618+fz', '618+flip zone', '.618 fz',
+            '618', '.618', '0.618'
+        ]
+    },
+    '786_flip_zone': {
+        'display': '.786 + Flip Zone',
+        'aliases': [
+            '786 flip zone', '786 + flip zone', '0.786 flip zone', '.786 flip zone',
+            '786 flipzone', '786 fz', '786+fz', '786+flip zone', '.786 fz',
+            '786', '.786', '0.786'
+        ]
+    },
+    'under_fib_flip_zone': {
+        'display': 'Under-Fib Flip Zone',
+        'aliases': [
+            'under fib flip zone', 'under-fib flip zone', 'underfib flip zone',
+            'under fib flipzone', 'under-fib flipzone', 'underfib flipzone',
+            'under fib fz', 'under-fib fz', 'underfib fz',
+            'under fib', 'under-fib', 'underfib',
+            'under fib zone', 'under-fib zone', 'underfib zone'
+        ]
+    },
+}
+
+def normalize_setup_text(text: str) -> str:
+    """
+    Step 1-4 of normalization:
+    1. Convert to lowercase
+    2. Remove punctuation and symbols (+ - _ / , . :) but keep digits
+    3. Collapse extra whitespace
+    4. Normalize synonyms (flipzone -> flip zone, fz -> flip zone)
+    """
+    if not text:
+        return ""
+    
+    # Lowercase
+    text = text.lower()
+    
+    # Replace common separators with spaces
+    text = re.sub(r'[+\-_/,.:]+', ' ', text)
+    
+    # Remove other punctuation but keep digits and letters
+    text = re.sub(r'[^\w\s]', '', text)
+    
+    # Collapse whitespace
+    text = ' '.join(text.split())
+    
+    # Normalize synonyms
+    text = text.replace('flipzone', 'flip zone')
+    text = text.replace(' fz', ' flip zone')
+    if text.endswith('fz'):
+        text = text[:-2] + 'flip zone'
+    
+    return text.strip()
+
+
+def canonicalize_setup(user_input: str) -> tuple:
+    """
+    Main canonicalizer function.
+    
+    Returns: (canonical_key, display_name) or (None, None) if not recognized
+    
+    Usage:
+        key, display = canonicalize_setup("618 + flip zone")
+        # Returns: ('618_flip_zone', '.618 + Flip Zone')
+    """
+    if not user_input:
+        return (None, None)
+    
+    # Normalize the input
+    normalized = normalize_setup_text(user_input)
+    
+    # Try to match against all aliases
+    for canonical_key, setup_data in SETUP_DEFINITIONS.items():
+        for alias in setup_data['aliases']:
+            normalized_alias = normalize_setup_text(alias)
+            if normalized == normalized_alias:
+                return (canonical_key, setup_data['display'])
+    
+    # Fallback: Check if input contains a numeric fib level + flip zone indicator
+    fib_patterns = {
+        '382': '382_flip_zone',
+        '50': '50_flip_zone',
+        '618': '618_flip_zone',
+        '786': '786_flip_zone',
+    }
+    
+    flip_indicators = ['flip zone', 'flip', 'fz', 'zone']
+    has_flip = any(ind in normalized for ind in flip_indicators)
+    
+    for fib_num, canonical_key in fib_patterns.items():
+        if fib_num in normalized:
+            if has_flip or len(normalized.replace(fib_num, '').strip()) == 0:
+                return (canonical_key, SETUP_DEFINITIONS[canonical_key]['display'])
+    
+    # Check for under-fib
+    if 'under' in normalized and ('fib' in normalized or 'flip' in normalized):
+        return ('under_fib_flip_zone', SETUP_DEFINITIONS['under_fib_flip_zone']['display'])
+    
+    # Not recognized
+    return (None, None)
+
+
+def get_setup_display_name(canonical_key: str) -> str:
+    """Get the clean display name for a canonical key."""
+    if canonical_key in SETUP_DEFINITIONS:
+        return SETUP_DEFINITIONS[canonical_key]['display']
+    return canonical_key  # Fallback to key if not found
+
+
+# ══════════════════════════════════════════════
 # BACKUP SYSTEM — Zero Data Loss Protection
 # ══════════════════════════════════════════════
 # Rolling backups with max 5 snapshots
@@ -397,111 +535,42 @@ def store_memory(memory_data: dict) -> tuple[bool, str]:
 def parse_memory_from_text(user_text: str) -> dict:
     """
     Parse memory data from user's description of a past outcome.
-    Extracts setup type, outcome, conditions, etc.
+    Uses the SETUP_CANONICALIZER for consistent setup name detection.
     
     IMPORTANT:
-    - Do NOT infer setup names from chart text alone
+    - Uses canonicalizer for ALL setup name detection
     - If user explicitly says "lock this in as [SETUP NAME]", use that setup name
-    - Only mark as Unknown if setup name is not explicitly stated
+    - Only mark as Unknown if setup name is not recognized
     """
     text_lower = user_text.lower()
     
     # ══════════════════════════════════════════════
-    # EXPLICIT SETUP NAME DETECTION (highest priority)
-    # Pattern: "lock this in as [setup name]" or "save as [setup name]"
+    # SETUP NAME DETECTION using CANONICALIZER
     # ══════════════════════════════════════════════
-    import re
     
-    # Define recognized Wiz Theory setup patterns
-    # Order matters — more specific patterns first
-    setup_patterns = {
-        # Under-fib variations (most common issue)
-        'under-fib flip zone': "Under-Fib Flip Zone",
-        'underfib flip zone': "Under-Fib Flip Zone",
-        'under fib flip zone': "Under-Fib Flip Zone",
-        'under-fib flipzone': "Under-Fib Flip Zone",
-        'underfib flipzone': "Under-Fib Flip Zone",
-        'under fib flipzone': "Under-Fib Flip Zone",
-        'under-fib fz': "Under-Fib Flip Zone",
-        'underfib fz': "Under-Fib Flip Zone",
-        'under fib fz': "Under-Fib Flip Zone",
-        'under-fib': "Under-Fib Flip Zone",
-        'underfib': "Under-Fib Flip Zone",
-        'under fib': "Under-Fib Flip Zone",  # Added standalone
-        # .786 variations
-        '.786 flip zone': ".786 Flip Zone",
-        '786 flip zone': ".786 Flip Zone",
-        '.786 flipzone': ".786 Flip Zone",
-        '786 flipzone': ".786 Flip Zone",
-        '.786 fz': ".786 Flip Zone",
-        '786 fz': ".786 Flip Zone",
-        '.786': ".786 Flip Zone",
-        '786': ".786 Flip Zone",
-        # .618 variations
-        '.618 flip zone': ".618 Flip Zone",
-        '618 flip zone': ".618 Flip Zone",
-        '.618 flipzone': ".618 Flip Zone",
-        '618 flipzone': ".618 Flip Zone",
-        '.618 fz': ".618 Flip Zone",
-        '618 fz': ".618 Flip Zone",
-        '.618': ".618 Flip Zone",
-        '618': ".618 Flip Zone",
-        # .50 variations
-        '.50 flip zone': ".50 Flip Zone",
-        '50 flip zone': ".50 Flip Zone",
-        '.50 flipzone': ".50 Flip Zone",
-        '50 flipzone': ".50 Flip Zone",
-        '.50 fz': ".50 Flip Zone",
-        '50 fz': ".50 Flip Zone",
-        '.50': ".50 Flip Zone",
-        # .382 variations
-        '.382 flip zone': ".382 Flip Zone",
-        '382 flip zone': ".382 Flip Zone",
-        '.382 flipzone': ".382 Flip Zone",
-        '382 flipzone': ".382 Flip Zone",
-        '.382 fz': ".382 Flip Zone",
-        '382 fz': ".382 Flip Zone",
-        '.382': ".382 Flip Zone",
-        '382': ".382 Flip Zone",
-    }
+    # First try to extract explicit setup name from patterns like "as [setup]"
+    explicit_patterns = [
+        r'(?:lock\s*(?:this\s*)?in|save|remember|store|log)\s*(?:this\s*)?(?:setup\s*)?(?:as\s+)?(.+?)(?:\s*[.,]|$)',
+    ]
     
     setup_type = "Unknown"
-    
-    # Check for explicit "lock this in as" or "save as" patterns FIRST
-    explicit_patterns = [
-        r'lock\s*(?:this\s*)?in\s*as\s+(.+?)(?:\s*[.,]|$)',
-        r'save\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
-        r'remember\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
-        r'store\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
-        r'log\s*(?:this\s*)?as\s+(.+?)(?:\s*[.,]|$)',
-    ]
+    canonical_key = None
     
     for pattern in explicit_patterns:
         match = re.search(pattern, text_lower)
         if match:
-            explicit_setup = match.group(1).strip()
-            # Try to match to a recognized setup - check longer patterns first
-            # Sort by length descending to match most specific first
-            sorted_patterns = sorted(setup_patterns.items(), key=lambda x: len(x[0]), reverse=True)
-            for key, value in sorted_patterns:
-                if key in explicit_setup:
-                    setup_type = value
-                    break
-            # If still unknown but user explicitly named something, use it
-            if setup_type == "Unknown" and explicit_setup:
-                # Capitalize first letter of each word for display
-                setup_type = explicit_setup.title()
+            extracted = match.group(1).strip()
+            # Use canonicalizer
+            canonical_key, display_name = canonicalize_setup(extracted)
+            if canonical_key:
+                setup_type = display_name
             break
     
-    # If no explicit "as [setup]" pattern found, do a direct scan of the full text
-    # for setup keywords (useful when pattern matching fails)
+    # If no explicit pattern matched, scan the full text
     if setup_type == "Unknown":
-        # Sort by length descending to match most specific first
-        sorted_patterns = sorted(setup_patterns.items(), key=lambda x: len(x[0]), reverse=True)
-        for key, value in sorted_patterns:
-            if key in text_lower:
-                setup_type = value
-                break
+        canonical_key, display_name = canonicalize_setup(user_text)
+        if canonical_key:
+            setup_type = display_name
     
     # Detect outcome
     outcome = "Completed successfully"
@@ -549,6 +618,7 @@ def parse_memory_from_text(user_text: str) -> dict:
     
     return {
         'setup_type': setup_type,
+        'canonical_key': canonical_key,  # For consistent storage/recall
         'outcome': outcome,
         'outcome_pct': outcome_pct,
         'conditions': conditions_str,
@@ -2596,6 +2666,85 @@ async def setups_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def save_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle /save command — Save setup WITHOUT analysis
+    
+    Usage:
+        /save 618 flip zone
+        /save under-fib
+        /save .786
+        
+    When used with a photo, saves the chart as a setup reference.
+    Does NOT run any analysis.
+    """
+    chat_id = update.effective_chat.id
+    
+    # Get setup name from args
+    setup_input = " ".join(context.args) if context.args else ""
+    
+    # Get username
+    username = None
+    if update.effective_user:
+        username = update.effective_user.first_name or update.effective_user.username
+    
+    # Check if replying to a photo or if there's a recent image
+    image_file_id = None
+    if update.message.reply_to_message and update.message.reply_to_message.photo:
+        image_file_id = update.message.reply_to_message.photo[-1].file_id
+    elif chat_id in user_images and user_images[chat_id]:
+        image_file_id = user_images[chat_id]
+    
+    # Canonicalize the setup name
+    canonical_key, display_name = canonicalize_setup(setup_input)
+    
+    if not canonical_key:
+        await update.message.reply_text(
+            "🔒 **Save Setup**\n\n"
+            "Please specify a setup type:\n\n"
+            "`/save 618 flip zone`\n"
+            "`/save under-fib`\n"
+            "`/save .786`\n"
+            "`/save 50 fz`\n\n"
+            "_Attach a chart or reply to one for best results._",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Build memory data
+    memory_data = {
+        'setup_type': display_name,
+        'canonical_key': canonical_key,
+        'outcome': 'Saved for reference',
+        'outcome_pct': 0,
+        'conditions': 'reference save',
+        'resolution': 'normal',
+        'user_text': setup_input,
+        'timestamp': datetime.now().isoformat(),
+    }
+    
+    if image_file_id:
+        memory_data['image_file_id'] = image_file_id
+    
+    # Store the memory
+    success, msg = store_memory(memory_data)
+    
+    if success:
+        image_note = "📸 _Chart attached_" if image_file_id else "📝 _No chart attached_"
+        await update.message.reply_text(
+            f"🔒 **Setup locked**\n\n"
+            f"**{display_name}** saved to WizTheory memory\n"
+            f"{image_note}\n\n"
+            f"🧙‍♂️ _Use `/memory` to recall saved setups._",
+            parse_mode='Markdown'
+        )
+    else:
+        await update.message.reply_text(
+            f"⚠️ Couldn't save: {msg}",
+            parse_mode='Markdown'
+        )
+
+
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /help command"""
     # Check if owner for showing owner commands
@@ -2611,11 +2760,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(
         "🧙‍♂️ **JAYCE BOT — Wiz Theory Analysis**\n\n"
-        "**Commands:**\n"
-        "`/jayce [plan]` — Full chart evaluation\n"
+        "**Analysis Commands:**\n"
+        "`/jayce [plan]` — Chart evaluation\n"
         "`/deep [plan]` — Deep Vision analysis\n"
         "`/valid` — Quick validity check\n"
-        "`/violent` — Violent Mode assessment\n"
+        "`/violent` — Violent Mode assessment\n\n"
+        "**Save Commands:**\n"
+        "`/save [setup]` — Save setup (no analysis)\n"
+        "`/memory` — View saved setups\n\n"
+        "**Reference Commands:**\n"
         "`/rules [setup]` — Entry rules for a setup\n"
         "`/explain [setup]` — Setup guide\n"
         "`/setups` — List all setups\n"
@@ -2630,12 +2783,17 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Store uploaded photos for later analysis.
+    Handle uploaded photos with proper intent detection.
     
-    TRIGGER RULES (locked):
-    - Jayce only analyzes when EXPLICITLY invoked
-    - If chart posted without invocation → Jayce remains SILENT
-    - MEMORY SAVES take priority over analysis
+    INTENT PRIORITY (highest to lowest):
+    1. SAVE — /save, "save setup", "lock setup" → Save ONLY, no analysis
+    2. DEEP ANALYSIS — /deep → Deep Vision
+    3. LITE ANALYSIS — /jayce, "analyze", "scan" → Lite Vision
+    4. SILENT — No trigger → Store image, no response
+    
+    WAKE RULES:
+    - Bot only responds when valid command OR "Jayce" is mentioned
+    - Save commands override ALL analysis
     """
     chat_id = update.effective_chat.id
     image_file_id = update.message.photo[-1].file_id
@@ -2643,53 +2801,97 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     caption = update.message.caption if update.message.caption else ""
     caption_lower = caption.lower()
+    
+    # Get username for responses
+    username = None
+    if update.effective_user:
+        username = update.effective_user.first_name or update.effective_user.username
 
     # ══════════════════════════════════════════════
-    # MEMORY MODE — Check FIRST (highest priority)
-    # Memory saves do NOT require /deep
+    # INTENT 1: SAVE MODE (highest priority)
+    # Save triggers override ALL analysis
     # ══════════════════════════════════════════════
-    memory_triggers = [
-        "lock this in", "lock it in", "lock in",
-        "save this", "save as", "remember this",
-        "remember as", "store this", "log this"
+    save_triggers = [
+        '/save', '/save_setup', '/savesetup',
+        'save setup', 'save this setup', 'save the setup',
+        'lock setup', 'lock this setup', 'lock the setup',
+        'jayce save', 'jayce lock',
+        'lock this in', 'lock it in', 'lock in as',
+        'save this as', 'save as', 'remember this as',
+        'store this', 'log this'
     ]
     
-    if any(trigger in caption_lower for trigger in memory_triggers):
-        # Get username
-        username = None
-        if update.effective_user:
-            username = update.effective_user.first_name or update.effective_user.username
+    is_save_intent = any(trigger in caption_lower for trigger in save_triggers)
+    
+    if is_save_intent:
+        # Extract setup name using canonicalizer
+        canonical_key, display_name = canonicalize_setup(caption)
         
-        # Parse memory from user text
-        memory_data = parse_memory_from_text(caption)
-        
-        # Store the memory
-        success, msg = store_memory(memory_data)
-        
-        if success:
-            # Build human, collaborative, Wiz-native response
-            response = build_memory_response(memory_data, username)
-            await update.message.reply_text(response, parse_mode='Markdown')
+        if canonical_key:
+            # Save to memory with canonical key
+            memory_data = {
+                'setup_type': display_name,
+                'canonical_key': canonical_key,
+                'outcome': 'Saved for reference',
+                'outcome_pct': 0,
+                'conditions': 'reference save',
+                'resolution': 'normal',
+                'user_text': caption,
+                'timestamp': datetime.now().isoformat(),
+                'image_file_id': image_file_id  # Store image reference
+            }
+            
+            success, msg = store_memory(memory_data)
+            
+            if success:
+                await update.message.reply_text(
+                    f"🔒 **Setup locked**\n\n"
+                    f"**{display_name}** saved to WizTheory memory\n\n"
+                    f"🧙‍♂️ _Use `/memory` to recall saved setups._",
+                    parse_mode='Markdown'
+                )
+            else:
+                await update.message.reply_text(
+                    f"⚠️ Couldn't save: {msg}",
+                    parse_mode='Markdown'
+                )
         else:
+            # Setup name not recognized — ask for clarification
             await update.message.reply_text(
-                "🧠 **Memory**\n\n"
-                f"⚠️ Couldn't lock that in: {msg}\n\n"
-                "Try again — keep it simple. 🔮",
+                "🔒 **Save Setup**\n\n"
+                "I couldn't identify the setup type.\n\n"
+                "Please specify, e.g.:\n"
+                "`/save 618 flip zone`\n"
+                "`/save under-fib`\n"
+                "`/save .786`",
                 parse_mode='Markdown'
             )
-        return  # Exit early — don't run analysis
-
-    explicit_triggers = [
+        return  # Exit — do NOT run analysis
+    
+    # ══════════════════════════════════════════════
+    # INTENT 2 & 3: ANALYSIS MODE
+    # Only if NOT a save intent
+    # ══════════════════════════════════════════════
+    
+    # Check for explicit analysis triggers
+    analysis_triggers = [
         '/jayce', '/analyze', '/valid', '/violent', '/deep',
-        'jayce', 'yo jayce', 'hey jayce', '@jayce',
-        'jayce analyze', 'jayce check', 'jayce look'
+        'jayce analyze', 'jayce check', 'jayce look', 'jayce scan',
+        'analyze this', 'scan this', 'check this'
     ]
-
-    is_invoked = any(trigger in caption_lower for trigger in explicit_triggers)
-
-    if is_invoked:
+    
+    # Wake triggers (Jayce must be mentioned for non-command analysis)
+    wake_triggers = [
+        'jayce', 'yo jayce', 'hey jayce', '@jayce'
+    ]
+    
+    is_analysis_intent = any(trigger in caption_lower for trigger in analysis_triggers)
+    is_wake = any(trigger in caption_lower for trigger in wake_triggers)
+    
+    # Only analyze if explicitly requested
+    if is_analysis_intent or (is_wake and not is_save_intent):
         # Check for deep request
-        if '/deep' in caption_lower or 'jayce deep' in caption_lower:
+        if '/deep' in caption_lower or 'jayce deep' in caption_lower or 'deep vision' in caption_lower:
             if vision_state['deep_enabled']:
                 await run_deep_analysis(update, context, image_file_id, caption)
             else:
@@ -2698,53 +2900,101 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     parse_mode='Markdown'
                 )
         else:
+            # Lite analysis
             await analyze_chart(update, context, image_file_id, caption)
     else:
-        # Chart posted without invoking Jayce — remain SILENT
+        # No trigger — remain SILENT (image stored for later use)
         pass
 
 
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle natural language triggers."""
+    """
+    Handle natural language triggers.
+    
+    INTENT PRIORITY (highest to lowest):
+    1. SAVE — "save setup", "lock setup", "jayce save" → Save ONLY
+    2. ANALYSIS — "analyze", "scan", "deep" → Run analysis
+    3. INTRO — "who is jayce" → Show intro
+    4. SILENT — No trigger → No response
+    
+    WAKE RULES:
+    - Bot only responds when valid command OR "Jayce" is mentioned
+    """
     text = update.message.text.lower()
     full_text = update.message.text
     chat_id = update.effective_chat.id
 
     # ══════════════════════════════════════════════
-    # MEMORY MODE — Check FIRST (highest priority)
-    # Simple memory saves should NOT require /deep
+    # INTENT 1: SAVE MODE (highest priority)
+    # Save triggers override ALL analysis
     # ══════════════════════════════════════════════
-    memory_triggers = [
-        "lock this in", "lock it in", "lock in",
-        "save this", "save as", "remember this",
-        "remember as", "store this", "log this"
+    save_triggers = [
+        'save setup', 'save this setup', 'save the setup',
+        'lock setup', 'lock this setup', 'lock the setup',
+        'jayce save', 'jayce lock',
+        'lock this in', 'lock it in', 'lock in as',
+        'save this as', 'save as', 'remember this as',
+        'store this', 'log this'
     ]
     
-    if any(trigger in text for trigger in memory_triggers):
+    is_save_intent = any(trigger in text for trigger in save_triggers)
+    
+    if is_save_intent:
         # Get username
         username = None
         if update.effective_user:
             username = update.effective_user.first_name or update.effective_user.username
         
-        # Parse memory from user text
-        memory_data = parse_memory_from_text(full_text)
+        # Get image if available
+        image_file_id = user_images.get(chat_id)
         
-        # Store the memory
-        success, msg = store_memory(memory_data)
+        # Use canonicalizer
+        canonical_key, display_name = canonicalize_setup(full_text)
         
-        if success:
-            # Build human, collaborative, Wiz-native response
-            response = build_memory_response(memory_data, username)
-            await update.message.reply_text(response, parse_mode='Markdown')
+        if canonical_key:
+            memory_data = {
+                'setup_type': display_name,
+                'canonical_key': canonical_key,
+                'outcome': 'Saved for reference',
+                'outcome_pct': 0,
+                'conditions': 'reference save',
+                'resolution': 'normal',
+                'user_text': full_text,
+                'timestamp': datetime.now().isoformat(),
+            }
+            if image_file_id:
+                memory_data['image_file_id'] = image_file_id
+            
+            success, msg = store_memory(memory_data)
+            
+            if success:
+                image_note = "📸 _Chart attached_" if image_file_id else ""
+                await update.message.reply_text(
+                    f"🔒 **Setup locked**\n\n"
+                    f"**{display_name}** saved to WizTheory memory\n"
+                    f"{image_note}\n\n"
+                    f"🧙‍♂️ _Use `/memory` to recall saved setups._",
+                    parse_mode='Markdown'
+                )
+            else:
+                await update.message.reply_text(
+                    f"⚠️ Couldn't save: {msg}",
+                    parse_mode='Markdown'
+                )
         else:
             await update.message.reply_text(
-                "🧠 **Memory**\n\n"
-                f"⚠️ Couldn't lock that in: {msg}\n\n"
-                "Try again — keep it simple. 🔮",
+                "🔒 **Save Setup**\n\n"
+                "I couldn't identify the setup type.\n\n"
+                "Please specify, e.g.:\n"
+                "`jayce save 618 flip zone`\n"
+                "`jayce lock under-fib`",
                 parse_mode='Markdown'
             )
-        return
+        return  # Exit — do NOT run analysis
 
+    # ══════════════════════════════════════════════
+    # INTRO CHECK
+    # ══════════════════════════════════════════════
     intro_triggers = [
         'introduce yourself', 'introduce urself',
         'who are you', 'who is jayce', 'what can you do'
@@ -2754,19 +3004,43 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         await intro_command(update, context)
         return
 
-    jayce_explicit_triggers = [
-        'jayce', 'hey jayce', 'yo jayce', '@jayce',
-        'jayce analyze', 'jayce check', 'jayce look',
-        'jayce what you think', 'jayce thoughts'
+    # ══════════════════════════════════════════════
+    # WAKE CHECK — Must mention Jayce for analysis
+    # ══════════════════════════════════════════════
+    wake_triggers = [
+        'jayce', 'hey jayce', 'yo jayce', '@jayce'
     ]
 
-    jayce_invoked = any(trigger in text for trigger in jayce_explicit_triggers)
+    jayce_invoked = any(trigger in text for trigger in wake_triggers)
 
     if not jayce_invoked:
+        return  # Silent — Jayce not mentioned
+
+    # ══════════════════════════════════════════════
+    # INTENT 2: ANALYSIS MODE
+    # Only if Jayce invoked AND analysis requested
+    # ══════════════════════════════════════════════
+    analysis_triggers = [
+        'analyze', 'scan', 'check', 'look', 'deep',
+        'what you think', 'thoughts', 'valid'
+    ]
+    
+    is_analysis_intent = any(trigger in text for trigger in analysis_triggers)
+    
+    if not is_analysis_intent:
+        # Jayce mentioned but no clear action — show help
+        await update.message.reply_text(
+            "🧙‍♂️ Hey! What do you need?\n\n"
+            "`jayce analyze` — Chart analysis\n"
+            "`jayce deep` — Deep Vision\n"
+            "`jayce save [setup]` — Save setup\n"
+            "`/help` — All commands",
+            parse_mode='Markdown'
+        )
         return
 
     # Check for deep request
-    if 'jayce deep' in text or 'deep' in text.split():
+    if 'deep' in text:
         if chat_id in user_images and user_images[chat_id]:
             if vision_state['deep_enabled']:
                 await run_deep_analysis(update, context, user_images[chat_id], full_text)
@@ -2782,6 +3056,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
         return
 
+    # Lite analysis
     if chat_id in user_images and user_images[chat_id]:
         await analyze_chart(update, context, user_images[chat_id], full_text)
     else:
@@ -2922,6 +3197,9 @@ def main():
     application.add_handler(CommandHandler("explain", explain_command))
     application.add_handler(CommandHandler("setups", setups_command))
     application.add_handler(CommandHandler("help", help_command))
+    
+    # Save command (save setup WITHOUT analysis)
+    application.add_handler(CommandHandler("save", save_command))
 
     # Photo handler
     application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
