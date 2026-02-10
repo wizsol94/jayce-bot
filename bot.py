@@ -3481,7 +3481,6 @@ def main():
     application.add_handler(CommandHandler("rules", rules_command))
     application.add_handler(CommandHandler("explain", explain_command))
     application.add_handler(CommandHandler("setups", setups_command))
-    application.add_handler(CommandHandler("help", help_command))
     
     # Save & Memory commands
     application.add_handler(CommandHandler("save", save_command))
