@@ -32,8 +32,8 @@ if not BOT_TOKEN:
 # These flags control whether vision features are enabled
 # Only the owner can toggle these via /vision and /deep commands
 vision_state = {
-    'lite_enabled': True,   # Lite Vision on by default (when API key present)
-    'deep_enabled': False,  # Deep Vision off by default (opt-in only)
+    'lite_enabled': True,   # Lite Vision on by default
+    'deep_enabled': True,   # Deep Vision ON 24/7 (owner can pause with /deep off)
 }
 
 # Store last uploaded image per chat (chat_id -> file_id)
