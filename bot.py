@@ -32,9 +32,30 @@ if not BOT_TOKEN:
 # These flags control whether vision features are enabled
 # Only the owner can toggle these via /vision and /deep commands
 vision_state = {
-    'lite_enabled': True,   # Lite Vision on by default
+    'lite_enabled': False,  # Lite Vision DISABLED during training mode setup
     'deep_enabled': True,   # Deep Vision ON 24/7 (owner can pause with /deep off)
 }
+
+# ══════════════════════════════════════════════
+# TRAINING MODE GUARD
+# ══════════════════════════════════════════════
+# When training mode is active for a chat, ALL other handlers are blocked
+# This prevents /train from triggering analysis, scans, intro, etc.
+
+TRAINING_QUIET_MODE = True  # Default: training responses are minimal
+training_active = {}  # chat_id -> bool (True if training in progress)
+
+def is_training_active(chat_id: int) -> bool:
+    """Check if training mode is active for this chat."""
+    return training_active.get(chat_id, False)
+
+def set_training_mode(chat_id: int, active: bool):
+    """Set training mode for a chat."""
+    training_active[chat_id] = active
+    if active:
+        logger.info(f"[TRAINING] Training mode ACTIVE for chat {chat_id}")
+    else:
+        logger.info(f"[TRAINING] Training mode ENDED for chat {chat_id}")
 
 # Store last uploaded image per chat (chat_id -> file_id)
 user_images = defaultdict(str)
@@ -2554,216 +2575,232 @@ async def train_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Handle /train command — add structured training chart.
     OWNER ONLY.
     
+    TRAINING MODE GUARD:
+    - Sets training_active=True to block ALL other handlers
+    - Only outputs minimal confirmation
+    - Other handlers (photo, text) will see training mode and exit early
+    
     Usage: /train [setup] [token] [timeframe] [outcome%] [notes...]
     Example: /train 618 SOL 15M 45 clean reclaim divergence
     
     Must be used as reply to a chart image or with recent image in chat.
     """
     user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
     
-    if not is_owner(user_id):
-        await update.message.reply_text(
-            "⛔ Training commands are restricted to the owner.",
-            parse_mode='Markdown'
-        )
-        return
-    
-    if len(context.args) < 4:
-        await update.message.reply_text(
-            "🎓 **Train Chart**\n\n"
-            "Usage: `/train [setup] [token] [timeframe] [outcome%] [notes...]`\n\n"
-            "Example:\n"
-            "`/train 618 SOL 15M 45 clean reclaim divergence`\n\n"
-            "**Required fields:**\n"
-            "• setup — 382, 50, 618, 786, under-fib\n"
-            "• token — SOL, BTC, ETH, etc.\n"
-            "• timeframe — 5M, 15M, 1H, 4H, etc.\n"
-            "• outcome% — percentage gained\n\n"
-            "_Reply to a chart image or have one recently uploaded._",
-            parse_mode='Markdown'
-        )
-        return
-    
-    # Parse arguments
-    setup_input = context.args[0]
-    token = context.args[1].upper()
-    timeframe = context.args[2].upper()
+    # ══════════════════════════════════════════════
+    # ACTIVATE TRAINING MODE — Block all other handlers
+    # ══════════════════════════════════════════════
+    set_training_mode(chat_id, True)
+    logger.info(f"[TRAINING] === ENTER train_command === chat_id={chat_id}")
     
     try:
-        outcome_pct = int(context.args[3].replace('%', '').replace('+', ''))
-    except ValueError:
-        await update.message.reply_text(
-            "❌ Invalid outcome percentage. Use a number like `45` or `+45%`",
-            parse_mode='Markdown'
-        )
-        return
-    
-    notes = " ".join(context.args[4:]) if len(context.args) > 4 else ""
-    
-    # Get setup
-    canonical_key, display_name = canonicalize_setup(setup_input)
-    
-    if not canonical_key:
-        await update.message.reply_text(
-            f"❓ Couldn't recognize setup: `{setup_input}`\n\n"
-            "Use: `382`, `50`, `618`, `786`, `under-fib`",
-            parse_mode='Markdown'
-        )
-        return
-    
-    # Get image
-    chat_id = update.effective_chat.id
-    image_file_id = None
-    
-    if update.message.reply_to_message and update.message.reply_to_message.photo:
-        image_file_id = update.message.reply_to_message.photo[-1].file_id
-    elif chat_id in user_images and user_images[chat_id]:
-        image_file_id = user_images[chat_id]
-    
-    if not image_file_id:
-        await update.message.reply_text(
-            "❌ No chart image found.\n\n"
-            "Reply to a chart image or upload one first.",
-            parse_mode='Markdown'
-        )
-        return
-    
-    # Generate chart ID
-    chart_id = generate_chart_id(canonical_key, token, timeframe)
-    
-    # Build training data
-    chart_data = {
-        'chart_id': chart_id,
-        'setup_name': display_name,
-        'canonical_key': canonical_key,
-        'token': token,
-        'timeframe': timeframe,
-        'date': datetime.now().strftime('%Y-%m-%d'),
-        'fib_depth': display_name.split()[0] if display_name else '',
-        'structure_state': 'Trained',  # Can be updated with more detail
-        'rsi_behavior': '',  # Can be updated
-        'whale_conviction': False,  # Default, can be updated
-        'violent_mode': False,  # Default, can be updated
-        'outcome_percentage': outcome_pct,
-        'expansion_time_minutes': 0,  # Can be updated
-        'screenshot_fingerprint_id': image_file_id,
-        'notes': notes,
-    }
-    
-    # Check for duplicates first
-    is_dup, similar, score = check_duplicate(chart_data, threshold=0.85)
-    
-    if is_dup:
-        similar_id = similar.get('chart_id', 'Unknown')
-        await update.message.reply_text(
-            f"⚠️ **Possible Duplicate Detected**\n\n"
-            f"Similarity: {int(score * 100)}%\n"
-            f"Similar to: `{similar_id}`\n\n"
-            f"Options:\n"
-            f"A) `/train_force` — Reinforce pattern\n"
-            f"B) Skip this chart\n"
-            f"C) `/train_variation` — Mark as variation",
-            parse_mode='Markdown'
-        )
+        if not is_owner(user_id):
+            await update.message.reply_text("⛔ Owner only.", parse_mode='Markdown')
+            return
         
-        # Store pending training for force/variation commands
-        context.user_data['pending_training'] = chart_data
-        return
-    
-    # Store training
-    success, msg = store_training_chart(chart_data)
-    
-    if success:
-        stats = get_training_stats()
-        setup_count = stats.get(display_name, 0)
+        if len(context.args) < 4:
+            await update.message.reply_text(
+                "🎓 `/train [setup] [token] [timeframe] [outcome%] [notes]`\n"
+                "Example: `/train 618 SOL 15M 45 clean reclaim`",
+                parse_mode='Markdown'
+            )
+            return
         
-        await update.message.reply_text(
-            f"✅ **Training Chart Stored**\n\n"
-            f"**ID:** `{chart_id}`\n"
-            f"**Setup:** {display_name}\n"
-            f"**Token:** {token}\n"
-            f"**Timeframe:** {timeframe}\n"
-            f"**Outcome:** +{outcome_pct}%\n"
-            f"**Notes:** {notes or 'None'}\n\n"
-            f"_Progress: {display_name} — {setup_count}/5_",
-            parse_mode='Markdown'
-        )
-    else:
-        await update.message.reply_text(
-            f"❌ Failed to store training: {msg}",
-            parse_mode='Markdown'
-        )
+        # Parse arguments
+        setup_input = context.args[0]
+        token = context.args[1].upper()
+        timeframe = context.args[2].upper()
+        
+        try:
+            outcome_pct = int(context.args[3].replace('%', '').replace('+', ''))
+        except ValueError:
+            await update.message.reply_text("❌ Invalid outcome%", parse_mode='Markdown')
+            return
+        
+        notes = " ".join(context.args[4:]) if len(context.args) > 4 else ""
+        
+        # Get setup
+        canonical_key, display_name = canonicalize_setup(setup_input)
+        
+        if not canonical_key:
+            await update.message.reply_text(
+                f"❓ Unknown setup: `{setup_input}`",
+                parse_mode='Markdown'
+            )
+            return
+        
+        # Get image
+        image_file_id = None
+        
+        if update.message.reply_to_message and update.message.reply_to_message.photo:
+            image_file_id = update.message.reply_to_message.photo[-1].file_id
+        elif chat_id in user_images and user_images[chat_id]:
+            image_file_id = user_images[chat_id]
+        
+        if not image_file_id:
+            await update.message.reply_text("❌ No chart. Reply to image or upload first.", parse_mode='Markdown')
+            return
+        
+        # Generate chart ID
+        chart_id = generate_chart_id(canonical_key, token, timeframe)
+        logger.info(f"[TRAINING] Generated chart_id: {chart_id}")
+        
+        # Build training data
+        chart_data = {
+            'chart_id': chart_id,
+            'setup_name': display_name,
+            'canonical_key': canonical_key,
+            'token': token,
+            'timeframe': timeframe,
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'fib_depth': display_name.split()[0] if display_name else '',
+            'structure_state': 'Trained',
+            'rsi_behavior': '',
+            'whale_conviction': False,
+            'violent_mode': False,
+            'outcome_percentage': outcome_pct,
+            'expansion_time_minutes': 0,
+            'screenshot_fingerprint_id': image_file_id,
+            'notes': notes,
+        }
+        
+        # Check for duplicates first
+        is_dup, similar, score = check_duplicate(chart_data, threshold=0.85)
+        
+        if is_dup:
+            similar_id = similar.get('chart_id', 'Unknown')
+            await update.message.reply_text(
+                f"⚠️ **Duplicate** ({int(score * 100)}%)\n"
+                f"Similar: `{similar_id}`\n\n"
+                f"A) `/train_force`\n"
+                f"B) Skip\n"
+                f"C) `/train_variation`",
+                parse_mode='Markdown'
+            )
+            context.user_data['pending_training'] = chart_data
+            logger.info(f"[TRAINING] Duplicate detected — awaiting user choice")
+            return
+        
+        # Store training
+        success, msg = store_training_chart(chart_data)
+        logger.info(f"[TRAINING] Store result: success={success}, msg={msg}")
+        
+        if success:
+            # QUIET MODE — minimal output
+            if TRAINING_QUIET_MODE:
+                await update.message.reply_text(
+                    f"✅ **Saved**\n"
+                    f"`{chart_id}`\n"
+                    f"{display_name} | {token} | {timeframe} | +{outcome_pct}%",
+                    parse_mode='Markdown'
+                )
+            else:
+                stats = get_training_stats()
+                setup_count = stats.get(display_name, 0)
+                await update.message.reply_text(
+                    f"✅ **Training Chart Stored**\n\n"
+                    f"**ID:** `{chart_id}`\n"
+                    f"**Setup:** {display_name}\n"
+                    f"**Token:** {token}\n"
+                    f"**Timeframe:** {timeframe}\n"
+                    f"**Outcome:** +{outcome_pct}%\n"
+                    f"**Notes:** {notes or 'None'}\n\n"
+                    f"_Progress: {display_name} — {setup_count}/5_",
+                    parse_mode='Markdown'
+                )
+        else:
+            await update.message.reply_text(f"❌ Failed: {msg}", parse_mode='Markdown')
+            
+    finally:
+        # ══════════════════════════════════════════════
+        # DEACTIVATE TRAINING MODE — Allow other handlers again
+        # ══════════════════════════════════════════════
+        set_training_mode(chat_id, False)
+        logger.info(f"[TRAINING] === EXIT train_command === chat_id={chat_id}")
 
 
 async def train_force_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Force store a training chart despite duplicate warning."""
     user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
     
     if not is_owner(user_id):
         return
     
-    pending = context.user_data.get('pending_training')
+    # Activate training mode
+    set_training_mode(chat_id, True)
+    logger.info(f"[TRAINING] === ENTER train_force_command ===")
     
-    if not pending:
-        await update.message.reply_text(
-            "❌ No pending training to force.",
-            parse_mode='Markdown'
-        )
-        return
-    
-    # Mark as reinforcement
-    pending['notes'] = f"[REINFORCEMENT] {pending.get('notes', '')}"
-    
-    success, msg = store_training_chart(pending)
-    
-    if success:
-        await update.message.reply_text(
-            f"✅ **Training Reinforced**\n\n"
-            f"**ID:** `{pending['chart_id']}`\n"
-            f"Pattern reinforced in dataset.",
-            parse_mode='Markdown'
-        )
-    else:
-        await update.message.reply_text(f"❌ Failed: {msg}", parse_mode='Markdown')
-    
-    # Clear pending
-    context.user_data.pop('pending_training', None)
+    try:
+        pending = context.user_data.get('pending_training')
+        
+        if not pending:
+            await update.message.reply_text("❌ No pending training.", parse_mode='Markdown')
+            return
+        
+        # Mark as reinforcement
+        pending['notes'] = f"[REINFORCEMENT] {pending.get('notes', '')}"
+        
+        success, msg = store_training_chart(pending)
+        logger.info(f"[TRAINING] Force store: success={success}")
+        
+        if success:
+            await update.message.reply_text(
+                f"✅ **Reinforced**\n`{pending['chart_id']}`",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(f"❌ {msg}", parse_mode='Markdown')
+        
+        # Clear pending
+        context.user_data.pop('pending_training', None)
+        
+    finally:
+        set_training_mode(chat_id, False)
+        logger.info(f"[TRAINING] === EXIT train_force_command ===")
 
 
 async def train_variation_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Store a training chart as a variation case."""
     user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
     
     if not is_owner(user_id):
         return
     
-    pending = context.user_data.get('pending_training')
+    # Activate training mode
+    set_training_mode(chat_id, True)
+    logger.info(f"[TRAINING] === ENTER train_variation_command ===")
     
-    if not pending:
-        await update.message.reply_text(
-            "❌ No pending training to mark as variation.",
-            parse_mode='Markdown'
-        )
-        return
-    
-    # Mark as variation
-    pending['chart_id'] = pending['chart_id'].replace('-', '-VAR-', 1)
-    pending['notes'] = f"[VARIATION] {pending.get('notes', '')}"
-    
-    success, msg = store_training_chart(pending)
-    
-    if success:
-        await update.message.reply_text(
-            f"✅ **Variation Stored**\n\n"
-            f"**ID:** `{pending['chart_id']}`\n"
-            f"Marked as variation case.",
-            parse_mode='Markdown'
-        )
-    else:
-        await update.message.reply_text(f"❌ Failed: {msg}", parse_mode='Markdown')
-    
-    # Clear pending
-    context.user_data.pop('pending_training', None)
+    try:
+        pending = context.user_data.get('pending_training')
+        
+        if not pending:
+            await update.message.reply_text("❌ No pending training.", parse_mode='Markdown')
+            return
+        
+        # Mark as variation
+        pending['chart_id'] = pending['chart_id'].replace('-', '-VAR-', 1)
+        pending['notes'] = f"[VARIATION] {pending.get('notes', '')}"
+        
+        success, msg = store_training_chart(pending)
+        logger.info(f"[TRAINING] Variation store: success={success}")
+        
+        if success:
+            await update.message.reply_text(
+                f"✅ **Variation**\n`{pending['chart_id']}`",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(f"❌ {msg}", parse_mode='Markdown')
+        
+        # Clear pending
+        context.user_data.pop('pending_training', None)
+        
+    finally:
+        set_training_mode(chat_id, False)
+        logger.info(f"[TRAINING] === EXIT train_variation_command ===")
 
 
 async def vision_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3762,6 +3799,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Handle uploaded photos with proper intent detection.
     
     INTENT PRIORITY (highest to lowest):
+    0. TRAINING MODE — If active, store image and EXIT (no other processing)
     1. SAVE — /save, "save setup", "lock setup" → Save ONLY, no analysis
     2. DEEP ANALYSIS — /deep → Deep Vision
     3. LITE ANALYSIS — /jayce, "analyze", "scan" → Lite Vision
@@ -3770,10 +3808,18 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     WAKE RULES:
     - Bot only responds when valid command OR "Jayce" is mentioned
     - Save commands override ALL analysis
+    - Training mode blocks ALL other handlers
     """
     chat_id = update.effective_chat.id
     image_file_id = update.message.photo[-1].file_id
     user_images[chat_id] = image_file_id
+
+    # ══════════════════════════════════════════════
+    # TRAINING MODE GUARD — Block ALL other processing
+    # ══════════════════════════════════════════════
+    if is_training_active(chat_id):
+        logger.info(f"[TRAINING] Photo received during training mode — stored, no analysis")
+        return  # Store image but do NOTHING else
 
     caption = update.message.caption if update.message.caption else ""
     caption_lower = caption.lower()
@@ -3888,6 +3934,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     Handle natural language triggers.
     
     INTENT PRIORITY (highest to lowest):
+    0. TRAINING MODE — If active, EXIT (no processing)
     1. SAVE — "save setup", "lock setup", "jayce save" → Save ONLY
     2. ANALYSIS — "analyze", "scan", "deep" → Run analysis
     3. INTRO — "who is jayce" → Show intro
@@ -3895,10 +3942,18 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     WAKE RULES:
     - Bot only responds when valid command OR "Jayce" is mentioned
+    - Training mode blocks ALL other handlers
     """
     text = update.message.text.lower()
     full_text = update.message.text
     chat_id = update.effective_chat.id
+
+    # ══════════════════════════════════════════════
+    # TRAINING MODE GUARD — Block ALL other processing
+    # ══════════════════════════════════════════════
+    if is_training_active(chat_id):
+        logger.info(f"[TRAINING] Text message during training mode — ignored")
+        return  # Do NOTHING during training mode
 
     # ══════════════════════════════════════════════
     # INTENT 1: SAVE MODE (highest priority)
