@@ -2477,21 +2477,25 @@ async def training_stats_command(update: Update, context: ContextTypes.DEFAULT_T
     
     stats = get_training_stats()
     
+    # Training goal: 50 per setup, 250 total
+    GOAL_PER_SETUP = 50
+    TOTAL_GOAL = 250
+    
     response_lines = [
         "📊 **Training Stats**",
         "",
-        f"**382 + Flip Zone:** {stats.get('382 + Flip Zone', 0)} / 5",
-        f"**50 + Flip Zone:** {stats.get('50 + Flip Zone', 0)} / 5",
-        f"**618 + Flip Zone:** {stats.get('618 + Flip Zone', 0)} / 5",
-        f"**786 + Flip Zone:** {stats.get('786 + Flip Zone', 0)} / 5",
-        f"**Under-Fib Flip Zone:** {stats.get('Under-Fib Flip Zone', 0)} / 5",
+        f"**382 + Flip Zone:** {stats.get('382 + Flip Zone', 0)} / {GOAL_PER_SETUP}",
+        f"**50 + Flip Zone:** {stats.get('50 + Flip Zone', 0)} / {GOAL_PER_SETUP}",
+        f"**618 + Flip Zone:** {stats.get('618 + Flip Zone', 0)} / {GOAL_PER_SETUP}",
+        f"**786 + Flip Zone:** {stats.get('786 + Flip Zone', 0)} / {GOAL_PER_SETUP}",
+        f"**Under-Fib Flip Zone:** {stats.get('Under-Fib Flip Zone', 0)} / {GOAL_PER_SETUP}",
         "",
-        f"**Total Trained:** {stats.get('total', 0)} / 25",
+        f"**Total Trained:** {stats.get('total', 0)} / {TOTAL_GOAL}",
     ]
     
-    # Progress bar
+    # Progress bar based on 250 total goal
     total = stats.get('total', 0)
-    progress = min(total / 25, 1.0)
+    progress = min(total / TOTAL_GOAL, 1.0)
     filled = int(progress * 10)
     bar = "█" * filled + "░" * (10 - filled)
     response_lines.append(f"\n`[{bar}]` {int(progress * 100)}%")
