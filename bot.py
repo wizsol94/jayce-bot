@@ -540,31 +540,152 @@ def safe_update_state(updates: dict) -> tuple[bool, str]:
 # Lightweight text-based memory for historical setups
 # No images yet — metadata only
 
-MEMORY_FILE = Path("/tmp/jayce_memory.json")
-MAX_MEMORIES = 50  # Rolling limit
+# ══════════════════════════════════════════════
+# PERSISTENT STORAGE — Railway Volume
+# ══════════════════════════════════════════════
+# All data stored in /data (Railway persistent volume)
+# Survives redeploys, restarts, and crashes
+
+import tempfile
+import fcntl
+from contextlib import contextmanager
+
+DATA_DIR = Path("/data")
+MEMORY_FILE = DATA_DIR / "jayce_memory.json"
+TRAINING_FILE = DATA_DIR / "jayce_training_dataset.json"
+MAX_MEMORIES = 50  # Rolling limit for conversational memory
+
+# Ensure data directory exists
+def ensure_data_dir():
+    """Create data directory if it doesn't exist."""
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to create data directory: {e}")
+        # Fallback to /tmp if /data not available (local dev)
+        return False
+
+# Initialize on import
+if not DATA_DIR.exists():
+    if not ensure_data_dir():
+        # Fallback for local development
+        DATA_DIR = Path("/tmp/jayce_data")
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        MEMORY_FILE = DATA_DIR / "jayce_memory.json"
+        TRAINING_FILE = DATA_DIR / "jayce_training_dataset.json"
+        logger.warning(f"Using fallback data directory: {DATA_DIR}")
+
+
+# ══════════════════════════════════════════════
+# ATOMIC FILE OPERATIONS — Prevent Corruption
+# ══════════════════════════════════════════════
+
+@contextmanager
+def file_lock(filepath: Path):
+    """
+    Context manager for file locking.
+    Prevents concurrent writes from corrupting data.
+    """
+    lock_file = filepath.with_suffix('.lock')
+    lock_fd = None
+    try:
+        # Create lock file if needed
+        lock_file.touch(exist_ok=True)
+        lock_fd = open(lock_file, 'w')
+        fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+        yield
+    finally:
+        if lock_fd:
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
+            lock_fd.close()
+
+
+def atomic_write_json(filepath: Path, data: any) -> bool:
+    """
+    Atomic JSON write: write to temp file, then rename.
+    Prevents corruption if bot crashes mid-save.
+    """
+    try:
+        # Write to temp file in same directory
+        temp_fd, temp_path = tempfile.mkstemp(
+            dir=filepath.parent,
+            prefix=f'.{filepath.stem}_',
+            suffix='.tmp'
+        )
+        
+        try:
+            with os.fdopen(temp_fd, 'w') as f:
+                json.dump(data, f, indent=2)
+            
+            # Atomic rename (same filesystem)
+            os.replace(temp_path, filepath)
+            return True
+            
+        except Exception as e:
+            # Clean up temp file on error
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+            raise e
+            
+    except Exception as e:
+        logger.error(f"Atomic write failed for {filepath}: {e}")
+        return False
+
+
+def safe_read_json(filepath: Path, default: any = None) -> any:
+    """
+    Safe JSON read with lock.
+    Returns default if file doesn't exist or is corrupted.
+    """
+    if default is None:
+        default = []
+    
+    try:
+        if not filepath.exists():
+            return default
+        
+        with file_lock(filepath):
+            with open(filepath, 'r') as f:
+                return json.load(f)
+                
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error for {filepath}: {e}")
+        return default
+    except Exception as e:
+        logger.error(f"Failed to read {filepath}: {e}")
+        return default
+
+
+def safe_write_json(filepath: Path, data: any) -> bool:
+    """
+    Safe JSON write with lock + atomic operation.
+    """
+    try:
+        with file_lock(filepath):
+            return atomic_write_json(filepath, data)
+    except Exception as e:
+        logger.error(f"Safe write failed for {filepath}: {e}")
+        return False
+
+
+# ══════════════════════════════════════════════
+# CONVERSATIONAL MEMORY (existing system, now persistent)
+# ══════════════════════════════════════════════
 
 def load_memories() -> list:
     """Load stored setup memories."""
-    try:
-        if MEMORY_FILE.exists():
-            with open(MEMORY_FILE, 'r') as f:
-                return json.load(f)
-        return []
-    except Exception as e:
-        logger.error(f"Failed to load memories: {e}")
-        return []
+    return safe_read_json(MEMORY_FILE, default=[])
 
 
 def save_memories(memories: list) -> bool:
-    """Save memories to file."""
+    """Save memories to file with atomic write."""
     try:
         # Keep only last MAX_MEMORIES
         if len(memories) > MAX_MEMORIES:
             memories = memories[-MAX_MEMORIES:]
         
-        with open(MEMORY_FILE, 'w') as f:
-            json.dump(memories, f, indent=2)
-        return True
+        return safe_write_json(MEMORY_FILE, memories)
     except Exception as e:
         logger.error(f"Failed to save memories: {e}")
         return False
@@ -601,6 +722,191 @@ def store_memory(memory_data: dict) -> tuple[bool, str]:
     except Exception as e:
         logger.error(f"Failed to store memory: {e}")
         return False, str(e)
+
+
+# ══════════════════════════════════════════════
+# STRUCTURED TRAINING SYSTEM — Phase 2
+# ══════════════════════════════════════════════
+# Dataset-driven training with unique chart IDs,
+# structured fields, and duplicate detection.
+
+# Setup code mappings for chart IDs
+SETUP_CODES = {
+    '382_flip_zone': '382FZ',
+    '50_flip_zone': '50FZ',
+    '618_flip_zone': '618FZ',
+    '786_flip_zone': '786FZ',
+    'under_fib_flip_zone': 'UFIB',
+}
+
+def generate_chart_id(setup_key: str, token: str, timeframe: str) -> str:
+    """
+    Generate unique chart ID in format: SETUP-TOKEN-TIMEFRAME-DATE-INDEX
+    Example: 618FZ-SOL-15M-20250222-001
+    """
+    setup_code = SETUP_CODES.get(setup_key, 'UNK')
+    date_str = datetime.now().strftime('%Y%m%d')
+    
+    # Get current index for this setup+date
+    training_data = load_training_data()
+    
+    # Count existing charts for this setup on this date
+    prefix = f"{setup_code}-{token.upper()}-{timeframe.upper()}-{date_str}"
+    existing = [t for t in training_data if t.get('chart_id', '').startswith(prefix)]
+    index = len(existing) + 1
+    
+    return f"{prefix}-{index:03d}"
+
+
+def load_training_data() -> list:
+    """Load structured training dataset."""
+    return safe_read_json(TRAINING_FILE, default=[])
+
+
+def save_training_data(data: list) -> bool:
+    """Save training dataset with atomic write."""
+    return safe_write_json(TRAINING_FILE, data)
+
+
+def calculate_similarity(chart1: dict, chart2: dict) -> float:
+    """
+    Calculate similarity score between two training charts.
+    Returns 0.0 to 1.0 (1.0 = identical)
+    
+    Factors:
+    - Same setup type (40%)
+    - Same token (20%)
+    - Same timeframe (10%)
+    - Similar fib_depth (10%)
+    - Similar RSI behavior (10%)
+    - Same whale conviction (5%)
+    - Same violent mode (5%)
+    """
+    score = 0.0
+    
+    # Setup type (40%)
+    if chart1.get('setup_name') == chart2.get('setup_name'):
+        score += 0.40
+    
+    # Token (20%)
+    if chart1.get('token', '').upper() == chart2.get('token', '').upper():
+        score += 0.20
+    
+    # Timeframe (10%)
+    if chart1.get('timeframe', '').upper() == chart2.get('timeframe', '').upper():
+        score += 0.10
+    
+    # Fib depth (10%)
+    if chart1.get('fib_depth') == chart2.get('fib_depth'):
+        score += 0.10
+    
+    # RSI behavior (10%)
+    if chart1.get('rsi_behavior') == chart2.get('rsi_behavior'):
+        score += 0.10
+    
+    # Whale conviction (5%)
+    if chart1.get('whale_conviction') == chart2.get('whale_conviction'):
+        score += 0.05
+    
+    # Violent mode (5%)
+    if chart1.get('violent_mode') == chart2.get('violent_mode'):
+        score += 0.05
+    
+    return score
+
+
+def check_duplicate(new_chart: dict, threshold: float = 0.85) -> tuple[bool, dict, float]:
+    """
+    Check if new chart is a potential duplicate.
+    
+    Returns: (is_duplicate, most_similar_chart, similarity_score)
+    """
+    training_data = load_training_data()
+    
+    if not training_data:
+        return False, {}, 0.0
+    
+    most_similar = None
+    highest_score = 0.0
+    
+    for existing in training_data:
+        score = calculate_similarity(new_chart, existing)
+        if score > highest_score:
+            highest_score = score
+            most_similar = existing
+    
+    is_duplicate = highest_score >= threshold
+    return is_duplicate, most_similar or {}, highest_score
+
+
+def store_training_chart(chart_data: dict) -> tuple[bool, str]:
+    """
+    Store a training chart in the structured dataset.
+    
+    Required fields:
+    - chart_id: Unique identifier
+    - setup_name: WizTheory setup name
+    - token: Trading pair
+    - timeframe: Chart timeframe
+    - date: Date string
+    - fib_depth: Fib level
+    - structure_state: Structure classification
+    - rsi_behavior: RSI description
+    - whale_conviction: Boolean
+    - violent_mode: Boolean
+    - outcome_percentage: Number
+    - expansion_time_minutes: Number
+    - screenshot_fingerprint_id: Telegram file_id
+    - notes: Additional notes
+    """
+    try:
+        training_data = load_training_data()
+        
+        # Add timestamp
+        chart_data['trained_at'] = datetime.now().isoformat()
+        
+        # Append
+        training_data.append(chart_data)
+        
+        # Save
+        if save_training_data(training_data):
+            return True, f"Training chart {chart_data.get('chart_id', 'unknown')} stored"
+        else:
+            return False, "Failed to save training data"
+            
+    except Exception as e:
+        logger.error(f"Failed to store training chart: {e}")
+        return False, str(e)
+
+
+def get_training_stats() -> dict:
+    """Get training statistics per setup."""
+    training_data = load_training_data()
+    
+    stats = {
+        '382 + Flip Zone': 0,
+        '50 + Flip Zone': 0,
+        '618 + Flip Zone': 0,
+        '786 + Flip Zone': 0,
+        'Under-Fib Flip Zone': 0,
+        'Unknown': 0,
+        'total': len(training_data)
+    }
+    
+    for chart in training_data:
+        setup = chart.get('setup_name', 'Unknown')
+        if setup in stats:
+            stats[setup] += 1
+        else:
+            stats['Unknown'] += 1
+    
+    return stats
+
+
+def get_training_log(limit: int = 10) -> list:
+    """Get recent training entries."""
+    training_data = load_training_data()
+    return training_data[-limit:] if training_data else []
 
 
 def parse_memory_from_text(user_text: str) -> dict:
@@ -2075,6 +2381,391 @@ async def similar_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_similar_charts(update, context, display_name, max_charts=5)
 
 
+# ══════════════════════════════════════════════
+# TRAINING COMMANDS — Phase 2 Structured Training
+# ══════════════════════════════════════════════
+
+async def training_log_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle /training_log command — show recent training entries.
+    OWNER ONLY.
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text(
+            "⛔ Training commands are restricted to the owner.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Get limit from args (default 10)
+    limit = 10
+    if context.args:
+        try:
+            limit = int(context.args[0])
+            limit = min(limit, 50)  # Cap at 50
+        except ValueError:
+            pass
+    
+    log = get_training_log(limit=limit)
+    
+    if not log:
+        await update.message.reply_text(
+            "📋 **Training Log**\n\n"
+            "No training data yet.\n\n"
+            "_Use `/train` to add training charts._",
+            parse_mode='Markdown'
+        )
+        return
+    
+    response_lines = [f"📋 **Training Log** (last {len(log)})", ""]
+    
+    for i, entry in enumerate(reversed(log), 1):
+        chart_id = entry.get('chart_id', 'Unknown')
+        setup = entry.get('setup_name', 'Unknown')
+        token = entry.get('token', '?')
+        outcome = entry.get('outcome_percentage', '?')
+        
+        response_lines.append(f"**{i}.** `{chart_id}`")
+        response_lines.append(f"   {setup} | {token} | +{outcome}%")
+        response_lines.append("")
+    
+    stats = get_training_stats()
+    response_lines.append(f"_Total trained: {stats['total']}_")
+    
+    await update.message.reply_text(
+        "\n".join(response_lines),
+        parse_mode='Markdown'
+    )
+
+
+async def training_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle /training_stats command — show count per setup.
+    OWNER ONLY.
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text(
+            "⛔ Training commands are restricted to the owner.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    stats = get_training_stats()
+    
+    response_lines = [
+        "📊 **Training Stats**",
+        "",
+        f"**382 + Flip Zone:** {stats.get('382 + Flip Zone', 0)} / 5",
+        f"**50 + Flip Zone:** {stats.get('50 + Flip Zone', 0)} / 5",
+        f"**618 + Flip Zone:** {stats.get('618 + Flip Zone', 0)} / 5",
+        f"**786 + Flip Zone:** {stats.get('786 + Flip Zone', 0)} / 5",
+        f"**Under-Fib Flip Zone:** {stats.get('Under-Fib Flip Zone', 0)} / 5",
+        "",
+        f"**Total Trained:** {stats.get('total', 0)} / 25",
+    ]
+    
+    # Progress bar
+    total = stats.get('total', 0)
+    progress = min(total / 25, 1.0)
+    filled = int(progress * 10)
+    bar = "█" * filled + "░" * (10 - filled)
+    response_lines.append(f"\n`[{bar}]` {int(progress * 100)}%")
+    
+    await update.message.reply_text(
+        "\n".join(response_lines),
+        parse_mode='Markdown'
+    )
+
+
+async def check_duplicate_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle /check_duplicate command — manual similarity scan.
+    OWNER ONLY.
+    
+    Usage: /check_duplicate [setup] [token] [timeframe]
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text(
+            "⛔ Training commands are restricted to the owner.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    if len(context.args) < 3:
+        await update.message.reply_text(
+            "🔍 **Check Duplicate**\n\n"
+            "Usage: `/check_duplicate [setup] [token] [timeframe]`\n\n"
+            "Example:\n"
+            "`/check_duplicate 618 SOL 15M`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    setup_input = context.args[0]
+    token = context.args[1].upper()
+    timeframe = context.args[2].upper()
+    
+    canonical_key, display_name = canonicalize_setup(setup_input)
+    
+    if not canonical_key:
+        await update.message.reply_text(
+            f"❓ Couldn't recognize setup: `{setup_input}`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Build test chart for comparison
+    test_chart = {
+        'setup_name': display_name,
+        'token': token,
+        'timeframe': timeframe,
+    }
+    
+    is_dup, similar, score = check_duplicate(test_chart, threshold=0.85)
+    
+    if is_dup:
+        similar_id = similar.get('chart_id', 'Unknown')
+        await update.message.reply_text(
+            f"⚠️ **Possible Duplicate Detected**\n\n"
+            f"Similarity: {int(score * 100)}%\n"
+            f"Similar to: `{similar_id}`\n\n"
+            f"Setup: {similar.get('setup_name')}\n"
+            f"Token: {similar.get('token')}\n"
+            f"Timeframe: {similar.get('timeframe')}",
+            parse_mode='Markdown'
+        )
+    else:
+        await update.message.reply_text(
+            f"✅ **No Duplicate Found**\n\n"
+            f"Highest similarity: {int(score * 100)}%\n"
+            f"Safe to train as new chart.",
+            parse_mode='Markdown'
+        )
+
+
+async def train_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle /train command — add structured training chart.
+    OWNER ONLY.
+    
+    Usage: /train [setup] [token] [timeframe] [outcome%] [notes...]
+    Example: /train 618 SOL 15M 45 clean reclaim divergence
+    
+    Must be used as reply to a chart image or with recent image in chat.
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text(
+            "⛔ Training commands are restricted to the owner.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    if len(context.args) < 4:
+        await update.message.reply_text(
+            "🎓 **Train Chart**\n\n"
+            "Usage: `/train [setup] [token] [timeframe] [outcome%] [notes...]`\n\n"
+            "Example:\n"
+            "`/train 618 SOL 15M 45 clean reclaim divergence`\n\n"
+            "**Required fields:**\n"
+            "• setup — 382, 50, 618, 786, under-fib\n"
+            "• token — SOL, BTC, ETH, etc.\n"
+            "• timeframe — 5M, 15M, 1H, 4H, etc.\n"
+            "• outcome% — percentage gained\n\n"
+            "_Reply to a chart image or have one recently uploaded._",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Parse arguments
+    setup_input = context.args[0]
+    token = context.args[1].upper()
+    timeframe = context.args[2].upper()
+    
+    try:
+        outcome_pct = int(context.args[3].replace('%', '').replace('+', ''))
+    except ValueError:
+        await update.message.reply_text(
+            "❌ Invalid outcome percentage. Use a number like `45` or `+45%`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    notes = " ".join(context.args[4:]) if len(context.args) > 4 else ""
+    
+    # Get setup
+    canonical_key, display_name = canonicalize_setup(setup_input)
+    
+    if not canonical_key:
+        await update.message.reply_text(
+            f"❓ Couldn't recognize setup: `{setup_input}`\n\n"
+            "Use: `382`, `50`, `618`, `786`, `under-fib`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Get image
+    chat_id = update.effective_chat.id
+    image_file_id = None
+    
+    if update.message.reply_to_message and update.message.reply_to_message.photo:
+        image_file_id = update.message.reply_to_message.photo[-1].file_id
+    elif chat_id in user_images and user_images[chat_id]:
+        image_file_id = user_images[chat_id]
+    
+    if not image_file_id:
+        await update.message.reply_text(
+            "❌ No chart image found.\n\n"
+            "Reply to a chart image or upload one first.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Generate chart ID
+    chart_id = generate_chart_id(canonical_key, token, timeframe)
+    
+    # Build training data
+    chart_data = {
+        'chart_id': chart_id,
+        'setup_name': display_name,
+        'canonical_key': canonical_key,
+        'token': token,
+        'timeframe': timeframe,
+        'date': datetime.now().strftime('%Y-%m-%d'),
+        'fib_depth': display_name.split()[0] if display_name else '',
+        'structure_state': 'Trained',  # Can be updated with more detail
+        'rsi_behavior': '',  # Can be updated
+        'whale_conviction': False,  # Default, can be updated
+        'violent_mode': False,  # Default, can be updated
+        'outcome_percentage': outcome_pct,
+        'expansion_time_minutes': 0,  # Can be updated
+        'screenshot_fingerprint_id': image_file_id,
+        'notes': notes,
+    }
+    
+    # Check for duplicates first
+    is_dup, similar, score = check_duplicate(chart_data, threshold=0.85)
+    
+    if is_dup:
+        similar_id = similar.get('chart_id', 'Unknown')
+        await update.message.reply_text(
+            f"⚠️ **Possible Duplicate Detected**\n\n"
+            f"Similarity: {int(score * 100)}%\n"
+            f"Similar to: `{similar_id}`\n\n"
+            f"Options:\n"
+            f"A) `/train_force` — Reinforce pattern\n"
+            f"B) Skip this chart\n"
+            f"C) `/train_variation` — Mark as variation",
+            parse_mode='Markdown'
+        )
+        
+        # Store pending training for force/variation commands
+        context.user_data['pending_training'] = chart_data
+        return
+    
+    # Store training
+    success, msg = store_training_chart(chart_data)
+    
+    if success:
+        stats = get_training_stats()
+        setup_count = stats.get(display_name, 0)
+        
+        await update.message.reply_text(
+            f"✅ **Training Chart Stored**\n\n"
+            f"**ID:** `{chart_id}`\n"
+            f"**Setup:** {display_name}\n"
+            f"**Token:** {token}\n"
+            f"**Timeframe:** {timeframe}\n"
+            f"**Outcome:** +{outcome_pct}%\n"
+            f"**Notes:** {notes or 'None'}\n\n"
+            f"_Progress: {display_name} — {setup_count}/5_",
+            parse_mode='Markdown'
+        )
+    else:
+        await update.message.reply_text(
+            f"❌ Failed to store training: {msg}",
+            parse_mode='Markdown'
+        )
+
+
+async def train_force_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Force store a training chart despite duplicate warning."""
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        return
+    
+    pending = context.user_data.get('pending_training')
+    
+    if not pending:
+        await update.message.reply_text(
+            "❌ No pending training to force.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Mark as reinforcement
+    pending['notes'] = f"[REINFORCEMENT] {pending.get('notes', '')}"
+    
+    success, msg = store_training_chart(pending)
+    
+    if success:
+        await update.message.reply_text(
+            f"✅ **Training Reinforced**\n\n"
+            f"**ID:** `{pending['chart_id']}`\n"
+            f"Pattern reinforced in dataset.",
+            parse_mode='Markdown'
+        )
+    else:
+        await update.message.reply_text(f"❌ Failed: {msg}", parse_mode='Markdown')
+    
+    # Clear pending
+    context.user_data.pop('pending_training', None)
+
+
+async def train_variation_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Store a training chart as a variation case."""
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        return
+    
+    pending = context.user_data.get('pending_training')
+    
+    if not pending:
+        await update.message.reply_text(
+            "❌ No pending training to mark as variation.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Mark as variation
+    pending['chart_id'] = pending['chart_id'].replace('-', '-VAR-', 1)
+    pending['notes'] = f"[VARIATION] {pending.get('notes', '')}"
+    
+    success, msg = store_training_chart(pending)
+    
+    if success:
+        await update.message.reply_text(
+            f"✅ **Variation Stored**\n\n"
+            f"**ID:** `{pending['chart_id']}`\n"
+            f"Marked as variation case.",
+            parse_mode='Markdown'
+        )
+    else:
+        await update.message.reply_text(f"❌ Failed: {msg}", parse_mode='Markdown')
+    
+    # Clear pending
+    context.user_data.pop('pending_training', None)
+
+
 async def vision_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /vision on|off command — OWNER ONLY"""
     user_id = update.effective_user.id
@@ -3485,6 +4176,14 @@ def main():
     # Save & Memory commands
     application.add_handler(CommandHandler("save", save_command))
     application.add_handler(CommandHandler("similar", similar_command))
+    
+    # Training commands (Owner only)
+    application.add_handler(CommandHandler("train", train_command))
+    application.add_handler(CommandHandler("train_force", train_force_command))
+    application.add_handler(CommandHandler("train_variation", train_variation_command))
+    application.add_handler(CommandHandler("training_log", training_log_command))
+    application.add_handler(CommandHandler("training_stats", training_stats_command))
+    application.add_handler(CommandHandler("check_duplicate", check_duplicate_command))
 
     # Photo handler
     application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
@@ -3500,7 +4199,11 @@ def main():
     else:
         logger.warning(f"Startup backup failed: {result}")
 
-    logger.info("Starting Jayce Bot with Vision + Memory...")
+    # Log data directory location
+    logger.info(f"Data directory: {DATA_DIR}")
+    logger.info(f"Training file: {TRAINING_FILE}")
+
+    logger.info("Starting Jayce Bot with Vision + Memory + Training...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
