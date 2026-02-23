@@ -2068,5 +2068,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGdGmcDG7XfHC0r6223YQqopAKLgxEAAJJDGsbHBvhRIGMcRrbJVhEAQADAgADdwADOgQ",
     "notes": "viral meme clean structure",
     "trained_at": "2026-02-23T08:14:58.417381"
+  },
+  {
+    "chart_id": "618FZ-SKYLINE-5M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "SKYLINE",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 140,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGd2mcDIyTgrqQky3Y3CkMvoq61rpxAAJKDGsbHBvhRLjvWBpWvarHAQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T08:15:39.201195"
   }
 ]
