@@ -1528,5 +1528,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGE2mcBOHd_Q0_v4iSqga1yRhXcSuRAAIrDGsbHBvhRNfR_FUzE06jAQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T07:42:47.290587"
+  },
+  {
+    "chart_id": "618FZ-ANNABELLE-5M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "ANNABELLE",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGGGmcBp9OtW5ayK84p31d3lw9Wv5YAAIsDGsbHBvhRHFA4chR2BrgAQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE",
+    "trained_at": "2026-02-23T07:50:44.820241"
   }
 ]
