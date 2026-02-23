@@ -448,5 +448,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFOGmb9WrEhaYYEUR48BC1fX0EMzqtAALsC2sbHBvhRNvSoDgkTA_vAQADAgADdwADOgQ",
     "notes": "WHALE CONVICTION",
     "trained_at": "2026-02-23T06:37:28.491036"
+  },
+  {
+    "chart_id": "382FZ-TISM-5M-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "TISM",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 40,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFPWmb9bhLWnKmiPCJezLjblg8uAREAALtC2sbHBvhRCnVTYTdU82oAQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE",
+    "trained_at": "2026-02-23T06:39:14.261920"
   }
 ]
