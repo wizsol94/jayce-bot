@@ -3760,5 +3760,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHrmmcc4kwHjT5y8sBsGavZ0TjYFE2AAK-DGsbHBvhROIXG6-3eoexAQADAgADdwADOgQ",
     "notes": "whale conviction rsi divergence",
     "trained_at": "2026-02-23T15:35:10.570377"
+  },
+  {
+    "chart_id": "UFIB-GPC-15M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "GPC",
+    "timeframe": "15M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 65,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHsWmcc9LvrXq3jGc6RvJX0Ou4FRNRAAK_DGsbHBvhRCO48ru1qWJ4AQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T15:36:06.728879"
   }
 ]
