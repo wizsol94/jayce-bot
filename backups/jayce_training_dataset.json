@@ -2862,24 +2862,6 @@
     "trained_at": "2026-02-23T14:44:34.893989"
   },
   {
-    "chart_id": "786FZ-WHITE-5M-20260223-001",
-    "setup_name": "786 + Flip Zone",
-    "canonical_key": "786_flip_zone",
-    "token": "WHITE",
-    "timeframe": "5M",
-    "date": "2026-02-23",
-    "fib_depth": "786",
-    "structure_state": "Trained",
-    "rsi_behavior": "",
-    "whale_conviction": false,
-    "violent_mode": false,
-    "outcome_percentage": 80,
-    "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHDGmcZ96lK9D6XWZ_Leui4r46vo_xAAKJDGsbHBvhRMzleAGEOsE8AQADAgADdwADOgQ",
-    "notes": "clean structure",
-    "trained_at": "2026-02-23T14:45:10.808095"
-  },
-  {
     "chart_id": "786FZ-WOD-1M-20260223-001",
     "setup_name": "786 + Flip Zone",
     "canonical_key": "786_flip_zone",
@@ -3058,5 +3040,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHLGmcak403HzTS13Xq4fAxW-P13svAAKTDGsbHBvhRKyupMwxkFpRAQADAgADdwADOgQ",
     "notes": "rsi divergence clean structure",
     "trained_at": "2026-02-23T14:55:39.948832"
+  },
+  {
+    "chart_id": "786FZ-WHITE-5M-20260223-002",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "WHITE",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 220,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHL2mcaoxbexRQEyHnWKQUtayHww6IAAKUDGsbHBvhRD_nhRwSP2eNAQADAgADdwADOgQ",
+    "notes": "[OVERRIDE] clean structure ct trending",
+    "trained_at": "2026-02-23T14:56:49.576119"
   }
 ]
