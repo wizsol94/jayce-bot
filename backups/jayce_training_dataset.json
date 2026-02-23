@@ -2536,5 +2536,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGy2mcEV9m_WyD5_lVfJBheOZ3KKInAAJkDGsbHBvhRMi7ki7YvA2DAQADAgADdwADOgQ",
     "notes": "whale conviction",
     "trained_at": "2026-02-23T08:36:02.198665"
+  },
+  {
+    "chart_id": "618FZ-SNAI-30M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "SNAI",
+    "timeframe": "30M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 40,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGzmmcEXsc7fcJ84YqrU7l4ut0bnP8AAJlDGsbHBvhRF5KQCbMPBHrAQADAgADdwADOgQ",
+    "notes": "clean chart",
+    "trained_at": "2026-02-23T08:36:31.790438"
   }
 ]
