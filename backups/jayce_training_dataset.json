@@ -664,5 +664,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFaGmb-Cz42zh5h3ooxgFYZp3hjqMlAAL4C2sbHBvhRGb1KNrX3OzOAQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T06:48:59.303059"
+  },
+  {
+    "chart_id": "382FZ-PWEASE-1M-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "PWEASE",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFbWmb-GLZodjLh_AlgzZz8bVVzZsoAAL5C2sbHBvhRPha62uhZoS3AQADAgADdwADOgQ",
+    "notes": "WHALE CONVICTION",
+    "trained_at": "2026-02-23T06:49:49.703716"
   }
 ]
