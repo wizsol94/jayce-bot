@@ -900,6 +900,33 @@ def store_training_chart(chart_data: dict) -> tuple[bool, str]:
         return False, str(e)
 
 
+def delete_training_chart(chart_id: str) -> tuple[bool, str]:
+    """
+    Delete a training chart by its chart_id.
+    
+    Returns: (success, message)
+    """
+    try:
+        training_data = load_training_data()
+        
+        # Find and remove the chart
+        original_count = len(training_data)
+        training_data = [t for t in training_data if t.get('chart_id') != chart_id]
+        
+        if len(training_data) == original_count:
+            return False, f"Chart {chart_id} not found"
+        
+        # Save
+        if save_training_data(training_data):
+            return True, f"Chart {chart_id} deleted"
+        else:
+            return False, "Failed to save after deletion"
+            
+    except Exception as e:
+        logger.error(f"Failed to delete training chart: {e}")
+        return False, str(e)
+
+
 def get_training_stats() -> dict:
     """Get training statistics per setup."""
     training_data = load_training_data()
@@ -2677,12 +2704,14 @@ async def train_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(
                 f"⚠️ **Duplicate** ({int(score * 100)}%)\n"
                 f"Similar: `{similar_id}`\n\n"
-                f"A) `/train_force`\n"
+                f"A) `/train_force` — Keep both\n"
                 f"B) Skip\n"
-                f"C) `/train_variation`",
+                f"C) `/train_variation` — Mark as variation\n"
+                f"D) `/train_override` — Replace old with new",
                 parse_mode='Markdown'
             )
             context.user_data['pending_training'] = chart_data
+            context.user_data['similar_chart_id'] = similar_id  # Store for override
             logger.info(f"[TRAINING] Duplicate detected — awaiting user choice")
             return
         
@@ -2805,6 +2834,60 @@ async def train_variation_command(update: Update, context: ContextTypes.DEFAULT_
     finally:
         set_training_mode(chat_id, False)
         logger.info(f"[TRAINING] === EXIT train_variation_command ===")
+
+
+async def train_override_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Override/replace an existing training chart with the new one.
+    Deletes the old duplicate and saves the new chart in its place.
+    """
+    user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
+    
+    if not is_owner(user_id):
+        return
+    
+    # Activate training mode
+    set_training_mode(chat_id, True)
+    logger.info(f"[TRAINING] === ENTER train_override_command ===")
+    
+    try:
+        pending = context.user_data.get('pending_training')
+        similar_chart_id = context.user_data.get('similar_chart_id')
+        
+        if not pending:
+            await update.message.reply_text("❌ No pending training.", parse_mode='Markdown')
+            return
+        
+        # Delete the old chart
+        if similar_chart_id:
+            delete_success, delete_msg = delete_training_chart(similar_chart_id)
+            logger.info(f"[TRAINING] Delete old chart: {delete_msg}")
+        
+        # Mark as override
+        pending['notes'] = f"[OVERRIDE] {pending.get('notes', '')}"
+        
+        # Save the new chart
+        success, msg = store_training_chart(pending)
+        logger.info(f"[TRAINING] Override store: success={success}")
+        
+        if success:
+            await update.message.reply_text(
+                f"✅ **Replaced**\n"
+                f"Old: `{similar_chart_id}`\n"
+                f"New: `{pending['chart_id']}`",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(f"❌ {msg}", parse_mode='Markdown')
+        
+        # Clear pending
+        context.user_data.pop('pending_training', None)
+        context.user_data.pop('similar_chart_id', None)
+        
+    finally:
+        set_training_mode(chat_id, False)
+        logger.info(f"[TRAINING] === EXIT train_override_command ===")
 
 
 async def vision_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4240,6 +4323,7 @@ def main():
     application.add_handler(CommandHandler("train", train_command))
     application.add_handler(CommandHandler("train_force", train_force_command))
     application.add_handler(CommandHandler("train_variation", train_variation_command))
+    application.add_handler(CommandHandler("train_override", train_override_command))
     application.add_handler(CommandHandler("training_log", training_log_command))
     application.add_handler(CommandHandler("training_stats", training_stats_command))
     application.add_handler(CommandHandler("check_duplicate", check_duplicate_command))
