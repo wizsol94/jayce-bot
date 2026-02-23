@@ -2428,5 +2428,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGt2mcEFhvwOU_-A_Qs9Mq_6z_AAEmZAACXgxrGxwb4UTj7qIiDRcI5QEAAwIAA3cAAzoE",
     "notes": "clean structure",
     "trained_at": "2026-02-23T08:31:42.700640"
+  },
+  {
+    "chart_id": "618FZ-SAHUR-1M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "SAHUR",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 70,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGummcEH8o1Yd5xZ_V-CuWPjlZHrYOAAJfDGsbHBvhRPzUaXbydMhMAQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T08:32:15.101988"
   }
 ]
