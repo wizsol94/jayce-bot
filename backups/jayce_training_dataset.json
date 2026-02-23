@@ -1474,5 +1474,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGCGmcBCpGeAKF6gABH8F_Fk1tMXkt7wACKAxrGxwb4UTM-ftjMU4zfgEAAwIAA3cAAzoE",
     "notes": "BULLISH STRUCTURE",
     "trained_at": "2026-02-23T07:39:47.573300"
+  },
+  {
+    "chart_id": "50FZ-FLIGHT7-1M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "FLIGHT7",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 170,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGDWmcBIbmtf8oAzpNdOp_7uBe0EbRAAIpDGsbHBvhRNEttP7xkEv9AQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE",
+    "trained_at": "2026-02-23T07:41:35.244725"
   }
 ]
