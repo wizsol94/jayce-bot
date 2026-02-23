@@ -304,5 +304,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFGWmb85oh0n7sKltlzw14jxcrnr-aAALkC2sbHBvhRDXpWWiVggWgAQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T06:29:22.495215"
+  },
+  {
+    "chart_id": "382FZ-BEARISTA-5M-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "BEARISTA",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFHGmb88rp-DgB4cYINzujwZfVxlsDAALlC2sbHBvhRBXbRxxUydQOAQADAgADdwADOgQ",
+    "notes": "WHALE CONVICTION",
+    "trained_at": "2026-02-23T06:30:05.943870"
   }
 ]
