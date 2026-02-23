@@ -376,5 +376,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFJ2mb9HNzHgVCqKJYpgKHr_dDRpweAALoC2sbHBvhRCct_DRypku6AQADAgADdwADOgQ",
     "notes": "RSI DIVERGENCE",
     "trained_at": "2026-02-23T06:32:52.766462"
+  },
+  {
+    "chart_id": "382FZ-STANCIL-1M-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "STANCIL",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 40,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFKmmb9KL-e5R2bep0p5ZLEB2p6n4MAALpC2sbHBvhRM8pWgefsmJDAQADAgADdwADOgQ",
+    "notes": "WHALE CONVICTION",
+    "trained_at": "2026-02-23T06:34:24.526173"
   }
 ]
