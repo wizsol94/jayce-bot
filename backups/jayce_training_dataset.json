@@ -1870,5 +1870,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGUGmcCho6vyDeElgaxAeaKNMBhTXzAAI-DGsbHBvhRFzOwQWNEEAPAQADAgADdwADOgQ",
     "notes": "rsi divergence",
     "trained_at": "2026-02-23T08:05:02.601379"
+  },
+  {
+    "chart_id": "618FZ-ROME-15M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "ROME",
+    "timeframe": "15M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGU2mcCjfNDxJ-0jgUqTRNc9OYzjdqAAI_DGsbHBvhRF-dLOhx6wl-AQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T08:05:58.126148"
   }
 ]
