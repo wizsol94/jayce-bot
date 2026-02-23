@@ -2392,5 +2392,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGsWmcEASC79av4zYNxH7oMuoEAcjeAAJcDGsbHBvhRD23bw9aslQMAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T08:30:22.931958"
+  },
+  {
+    "chart_id": "618FZ-GORK-5M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "GORK",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGtGmcEDvofdk7LOTwqCU6-Il-Fc4DAAJdDGsbHBvhRA4DaR2Oiop5AQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T08:31:09.443164"
   }
 ]
