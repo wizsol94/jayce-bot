@@ -1186,5 +1186,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFzmmcAAE8T2pI1nBtZw26cniLG7AMLAACFwxrGxwb4UTRvbTDoNI8vwEAAwIAA3cAAzoE",
     "notes": "CLEAN STRUCTURE HIGH VOLUME",
     "trained_at": "2026-02-23T07:23:21.443000"
+  },
+  {
+    "chart_id": "50FZ-PEACE-1M-20260223-002",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "PEACE",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIF1GmcAAF9PgNtApWHUMZgCm0XDq_HoAACGAxrGxwb4UR8RPymyuQCfQEAAwIAA3cAAzoE",
+    "notes": "[REINFORCEMENT] BEAUTIFUL STRUCTURE",
+    "trained_at": "2026-02-23T07:24:58.744096"
   }
 ]
