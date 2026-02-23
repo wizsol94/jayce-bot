@@ -3454,5 +3454,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHeWmccM3uZ1EFV0n7gH4Z34GOseXyAAKtDGsbHBvhRDcKXPJGLgABRAEAAwIAA3cAAzoE",
     "notes": "clean structure",
     "trained_at": "2026-02-23T15:23:18.713915"
+  },
+  {
+    "chart_id": "UFIB-WILSON-15M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "WILSON",
+    "timeframe": "15M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 70,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHfGmccOuSnWYsospcjhKpCjSHS4CUAAKuDGsbHBvhROTZviDwbzaWAQADAgADdwADOgQ",
+    "notes": "wick entry clean structure",
+    "trained_at": "2026-02-23T15:23:41.572772"
   }
 ]
