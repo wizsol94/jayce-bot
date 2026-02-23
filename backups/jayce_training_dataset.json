@@ -1690,5 +1690,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGMGmcCAQ_5rGEFXwqBZNR5Vq7b4NcAAI0DGsbHBvhRO9KbTKOhyMXAQADAgADdwADOgQ",
     "notes": "whale conviction",
     "trained_at": "2026-02-23T07:56:09.866404"
+  },
+  {
+    "chart_id": "618FZ-GROYPER-1M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "GROYPER",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 85,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGM2mcCDu4uAkHBeS8hSEBf0_OKq2VAAI1DGsbHBvhRFuu3Q4D22plAQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T07:57:03.472302"
   }
 ]
