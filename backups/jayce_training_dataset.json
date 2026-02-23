@@ -2842,5 +2842,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHBmmcZ5xkzHVvbCIt-KBaTEOZl0WyAAKHDGsbHBvhRKLKqeiY41KuAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T14:43:56.044826"
+  },
+  {
+    "chart_id": "786FZ-THEBES-1M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "THEBES",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHCWmcZ7JNDOXeMP3DIq8Fgqg0XhmXAAKIDGsbHBvhRPlVFGwRHtXrAQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T14:44:34.893989"
   }
 ]
