@@ -865,6 +865,196 @@ def check_duplicate(new_chart: dict, threshold: float = 0.85) -> tuple[bool, dic
     return is_duplicate, most_similar or {}, highest_score
 
 
+# ══════════════════════════════════════════════
+# PHASE 3: PATTERN MATCHING ENGINE
+# ══════════════════════════════════════════════
+# Compares new charts against trained winners
+# Provides data-backed confidence and similar chart references
+
+def get_pattern_matches(setup_name: str, timeframe: str = None, token: str = None) -> dict:
+    """
+    Find matching patterns from training data for a given setup.
+    
+    Returns: {
+        'total_matches': int,
+        'total_trained': int,
+        'match_percentage': float,
+        'avg_outcome': float,
+        'best_match': dict,
+        'best_match_score': float,
+        'matches': list of (chart, score) tuples
+    }
+    """
+    training_data = load_training_data()
+    
+    if not training_data:
+        return {
+            'total_matches': 0,
+            'total_trained': 0,
+            'match_percentage': 0,
+            'avg_outcome': 0,
+            'best_match': None,
+            'best_match_score': 0,
+            'matches': []
+        }
+    
+    # Filter by setup type first
+    setup_charts = [t for t in training_data if t.get('setup_name') == setup_name]
+    
+    if not setup_charts:
+        return {
+            'total_matches': 0,
+            'total_trained': len(training_data),
+            'match_percentage': 0,
+            'avg_outcome': 0,
+            'best_match': None,
+            'best_match_score': 0,
+            'matches': []
+        }
+    
+    # Build comparison chart from analysis
+    comparison_chart = {
+        'setup_name': setup_name,
+        'timeframe': timeframe.upper() if timeframe else '',
+        'token': token.upper() if token else '',
+    }
+    
+    # Score each trained chart
+    matches = []
+    for chart in setup_charts:
+        score = 0.0
+        
+        # Setup match (base score since already filtered)
+        score += 0.40
+        
+        # Timeframe match
+        if timeframe and chart.get('timeframe', '').upper() == timeframe.upper():
+            score += 0.25
+        
+        # Token match (bonus, not required)
+        if token and chart.get('token', '').upper() == token.upper():
+            score += 0.15
+        
+        # Has outcome data (quality indicator)
+        if chart.get('outcome_percentage', 0) > 0:
+            score += 0.10
+        
+        # Has notes (more detailed training)
+        if chart.get('notes', ''):
+            score += 0.10
+        
+        matches.append((chart, score))
+    
+    # Sort by score descending
+    matches.sort(key=lambda x: x[1], reverse=True)
+    
+    # Calculate stats
+    total_matches = len([m for m in matches if m[1] >= 0.50])
+    outcomes = [m[0].get('outcome_percentage', 0) for m in matches if m[0].get('outcome_percentage', 0) > 0]
+    avg_outcome = sum(outcomes) / len(outcomes) if outcomes else 0
+    
+    best_match = matches[0][0] if matches else None
+    best_match_score = matches[0][1] if matches else 0
+    
+    return {
+        'total_matches': total_matches,
+        'total_trained': len(setup_charts),
+        'match_percentage': (total_matches / len(setup_charts) * 100) if setup_charts else 0,
+        'avg_outcome': avg_outcome,
+        'best_match': best_match,
+        'best_match_score': best_match_score,
+        'matches': matches[:5]  # Top 5 matches
+    }
+
+
+def get_confidence_level(match_percentage: float) -> tuple[str, str]:
+    """
+    Get confidence level and emoji based on match percentage.
+    
+    Returns: (confidence_text, emoji)
+    """
+    if match_percentage >= 80:
+        return "High confidence — looks like your winners", "✅"
+    elif match_percentage >= 60:
+        return "Moderate match — some differences from your winners", "🟡"
+    elif match_percentage >= 40:
+        return "Low match — doesn't closely resemble trained setups", "⚠️"
+    else:
+        return "Weak match — limited training data for comparison", "❓"
+
+
+def build_pattern_match_text(pattern_data: dict) -> str:
+    """
+    Build the pattern match text for Deep Vision response.
+    """
+    if not pattern_data or pattern_data['total_trained'] == 0:
+        return ""
+    
+    total_matches = pattern_data['total_matches']
+    total_trained = pattern_data['total_trained']
+    avg_outcome = pattern_data['avg_outcome']
+    best_match = pattern_data['best_match']
+    
+    # Calculate match percentage
+    match_pct = (total_matches / total_trained * 100) if total_trained > 0 else 0
+    confidence_text, emoji = get_confidence_level(match_pct)
+    
+    lines = [
+        "🧠 **Pattern Match:**",
+        f"• Matches {total_matches} / {total_trained} trained setups",
+        f"• Similarity: {int(match_pct)}%",
+    ]
+    
+    if avg_outcome > 0:
+        lines.append(f"• Similar winners averaged: +{int(avg_outcome)}%")
+    
+    if best_match:
+        chart_id = best_match.get('chart_id', 'Unknown')
+        outcome = best_match.get('outcome_percentage', 0)
+        lines.append(f"• Most similar: `{chart_id}` (+{outcome}%)")
+    
+    lines.append(f"\n{emoji} _{confidence_text}_")
+    
+    return "\n".join(lines)
+
+
+async def send_best_match_chart(update: Update, context: ContextTypes.DEFAULT_TYPE, best_match: dict):
+    """
+    Send the best matching chart image from training data.
+    """
+    if not best_match:
+        return
+    
+    image_file_id = best_match.get('screenshot_fingerprint_id')
+    
+    if not image_file_id:
+        return
+    
+    try:
+        chart_id = best_match.get('chart_id', 'Unknown')
+        setup = best_match.get('setup_name', 'Unknown')
+        outcome = best_match.get('outcome_percentage', 0)
+        token = best_match.get('token', '?')
+        timeframe = best_match.get('timeframe', '?')
+        
+        caption = (
+            f"📸 **Most Similar Winner**\n\n"
+            f"`{chart_id}`\n"
+            f"{setup} | {token} | {timeframe} | +{outcome}%"
+        )
+        
+        await context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=image_file_id,
+            caption=caption,
+            parse_mode='Markdown'
+        )
+        logger.info(f"[PATTERN MATCH] Sent best match chart: {chart_id}")
+        
+    except Exception as e:
+        logger.error(f"[PATTERN MATCH] Failed to send best match chart: {e}")
+
+
 def store_training_chart(chart_data: dict) -> tuple[bool, str]:
     """
     Store a training chart in the structured dataset.
@@ -2281,9 +2471,17 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
         response_parts.append(f"\n• Not visible on chart")
     
     # ══════════════════════════════════════════════
-    # SIMILAR PATTERN
+    # PATTERN MATCH (Phase 3 — Training Data Comparison)
     # ══════════════════════════════════════════════
-    if similar_pattern:
+    pattern_match_text = vision.get('pattern_match_text', '')
+    if pattern_match_text:
+        response_parts.append(f"\n\n{pattern_match_text}")
+    
+    # ══════════════════════════════════════════════
+    # SIMILAR PATTERN (from memory — legacy)
+    # ══════════════════════════════════════════════
+    # Only show if no pattern match from training data
+    if similar_pattern and not pattern_match_text:
         response_parts.append(f"\n\n🧠 **Similar Pattern:**\n_{similar_pattern}_")
     
     # ══════════════════════════════════════════════
@@ -3411,6 +3609,24 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
                 vision_result['similar_pattern_note'] = similar_note
         
         # ══════════════════════════════════════════════
+        # STEP 2.6: PATTERN MATCHING ENGINE (Phase 3)
+        # Compare against trained winners for data-backed confidence
+        # ══════════════════════════════════════════════
+        pattern_match_data = None
+        if wiz_setup_type and wiz_setup_type not in ['Unknown', 'Unclear', '']:
+            timeframe = vision_result.get('timeframe', '')
+            token = vision_result.get('pair_detected', '')
+            
+            # Get pattern matches from training data
+            pattern_match_data = get_pattern_matches(wiz_setup_type, timeframe, token)
+            
+            # Build pattern match text
+            if pattern_match_data and pattern_match_data['total_trained'] > 0:
+                pattern_match_text = build_pattern_match_text(pattern_match_data)
+                vision_result['pattern_match_text'] = pattern_match_text
+                vision_result['pattern_match_data'] = pattern_match_data
+        
+        # ══════════════════════════════════════════════
         # STEP 3: BUILD RESPONSE BASED ON INTENT MODE
         # ══════════════════════════════════════════════
         
@@ -3424,15 +3640,14 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         await update.message.reply_text(response, parse_mode='Markdown')
         
         # ══════════════════════════════════════════════
-        # STEP 4: SEND SIMILAR CHART IMAGES (if any)
-        # Shows actual chart images from memory for visual reference
+        # STEP 4: SEND BEST MATCH CHART IMAGE (Phase 3)
+        # Shows the most similar winning chart from training
         # ══════════════════════════════════════════════
-        if wiz_setup_type and wiz_setup_type not in ['Unknown', 'Unclear', '']:
+        if pattern_match_data and pattern_match_data.get('best_match'):
             try:
-                await send_similar_charts(update, context, wiz_setup_type, max_charts=2)
+                await send_best_match_chart(update, context, pattern_match_data['best_match'])
             except Exception as e:
-                logger.error(f"Failed to send similar charts: {e}")
-                # Don't fail the whole analysis if similar charts fail
+                logger.error(f"Failed to send best match chart: {e}")
         
     except Exception as e:
         await thinking_msg.delete()
@@ -3619,9 +3834,17 @@ def build_deep_analysis_response(vision: dict, user_plan: str, username: str = N
             response_parts.append(f"\n_This adjusts expansion expectations, not the thesis. Secure more conservatively if structure holds._")
     
     # ══════════════════════════════════════════════
-    # SIMILAR PATTERN (from memory)
+    # PATTERN MATCH (Phase 3 — Training Data Comparison)
     # ══════════════════════════════════════════════
-    if similar_pattern:
+    pattern_match_text = vision.get('pattern_match_text', '')
+    if pattern_match_text:
+        response_parts.append(f"\n\n{pattern_match_text}")
+    
+    # ══════════════════════════════════════════════
+    # SIMILAR PATTERN (from memory — legacy)
+    # ══════════════════════════════════════════════
+    # Only show if no pattern match from training data
+    if similar_pattern and not pattern_match_text:
         response_parts.append(f"\n\n🧠 **Similar Pattern:**\n_{similar_pattern}_")
     
     # ══════════════════════════════════════════════
