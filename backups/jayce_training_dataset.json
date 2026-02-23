@@ -1816,5 +1816,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGR2mcCXVOSNaTG4CYlhVLsUN4AYomAAI7DGsbHBvhREbTlebjZHTsAQADAgADdwADOgQ",
     "notes": "whale conviction",
     "trained_at": "2026-02-23T08:02:54.599075"
+  },
+  {
+    "chart_id": "618FZ-PAYPER-1M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "PAYPER",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGSmmcCcwj7p93LjXcZ5bLC6mPZ6AvAAI8DGsbHBvhRAZ7eVD5XsiHAQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T08:03:57.528285"
   }
 ]
