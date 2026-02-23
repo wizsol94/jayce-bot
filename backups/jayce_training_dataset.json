@@ -340,5 +340,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFH2mb8_9-q0bFm0yIHAnrOSCm-BTIAALmC2sbHBvhRP39nprTpVT_AQADAgADdwADOgQ",
     "notes": "WHALE CONVICTION RSI DIVERGENCE",
     "trained_at": "2026-02-23T06:30:54.588835"
+  },
+  {
+    "chart_id": "382FZ-JOE-1M-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "JOE",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFImmb9CYiMFttqZOV7thYUIOz_eBbAALnC2sbHBvhRNUHox_pO5TFAQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE",
+    "trained_at": "2026-02-23T06:31:55.411435"
   }
 ]
