@@ -772,5 +772,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFfmmb-4F2p9mneuQP60_w-ZaqU1kHAAL_C2sbHBvhROSQI3-YOJbzAQADAgADdwADOgQ",
     "notes": "FUNNY NARRATIVE CLEAN STRUCTURE",
     "trained_at": "2026-02-23T07:03:08.752068"
+  },
+  {
+    "chart_id": "50FZ-BERTCOIN-1M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "BERTCOIN",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 120,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFgWmb-7UmFD3Vxw2w60b2cYr5yCsDAAMMaxscG-FERlgCUnZQ2V4BAAMCAAN3AAM6BA",
+    "notes": "CLEAN STRUCTURE",
+    "trained_at": "2026-02-23T07:03:45.897459"
   }
 ]
