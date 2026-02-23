@@ -3202,5 +3202,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHTWmcbUdONZsYWO5nh15T9t1nCLZjAAKeDGsbHBvhRI-boDGRxxmeAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T15:08:07.731817"
+  },
+  {
+    "chart_id": "786FZ-UNKNOWN-5M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "UNKNOWN",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 160,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHUGmcbXdqlJYabHmoBw2kpey3liIeAAKfDGsbHBvhRNkUjCNlkIiNAQADAgADdwADOgQ",
+    "notes": "clean structure whale conviction",
+    "trained_at": "2026-02-23T15:09:18.809312"
   }
 ]
