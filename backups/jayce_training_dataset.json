@@ -682,5 +682,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFbWmb-GLZodjLh_AlgzZz8bVVzZsoAAL5C2sbHBvhRPha62uhZoS3AQADAgADdwADOgQ",
     "notes": "WHALE CONVICTION",
     "trained_at": "2026-02-23T06:49:49.703716"
+  },
+  {
+    "chart_id": "382FZ-PKIN-5M-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "PKIN",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 150,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFcGmb-Jid8_aWQ8LmwJyjfszzswmeAAL6C2sbHBvhRPrmv45_Gkt2AQADAgADdwADOgQ",
+    "notes": "WHALE CONVICTION",
+    "trained_at": "2026-02-23T06:50:23.774418"
   }
 ]
