@@ -4628,6 +4628,41 @@ def main():
     logger.info(f"Data directory: {DATA_DIR}")
     logger.info(f"Training file: {TRAINING_FILE}")
 
+    # ══════════════════════════════════════════════
+    # AUTO-RESTORE TRAINING DATA ON STARTUP
+    # ══════════════════════════════════════════════
+    # If local training data is empty, auto-restore from GitHub
+    # This ensures data survives deploys without manual intervention
+    
+    async def auto_restore_training(app):
+        """Auto-restore training data from GitHub if local is empty."""
+        logger.info("[STARTUP] Checking training data...")
+        
+        local_data = load_training_data()
+        
+        if local_data:
+            logger.info(f"[STARTUP] Local training data found: {len(local_data)} charts ✅")
+            # Backup to GitHub to keep it synced
+            await backup_to_github(local_data)
+        else:
+            logger.info("[STARTUP] Local training data EMPTY — attempting auto-restore from GitHub...")
+            
+            if GITHUB_TOKEN:
+                success, msg, data = await restore_from_github()
+                
+                if success and data:
+                    if save_training_data(data):
+                        logger.info(f"[STARTUP] ✅ Auto-restored {len(data)} charts from GitHub!")
+                    else:
+                        logger.error("[STARTUP] ❌ Failed to save restored data locally")
+                else:
+                    logger.warning(f"[STARTUP] No GitHub backup found or restore failed: {msg}")
+            else:
+                logger.warning("[STARTUP] GITHUB_TOKEN not set — cannot auto-restore")
+    
+    # Register the startup callback
+    application.post_init = auto_restore_training
+
     logger.info("Starting Jayce Bot with Vision + Memory + Training...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
