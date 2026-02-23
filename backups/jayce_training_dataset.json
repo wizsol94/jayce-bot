@@ -484,5 +484,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFRGmb9hqt1mHKDj-EJ-C7JikHHGNsAALuC2sbHBvhRDU583NPSsI0AQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE CT TRENDING",
     "trained_at": "2026-02-23T06:40:16.715496"
+  },
+  {
+    "chart_id": "382FZ-COLLAT-4H-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "COLLAT",
+    "timeframe": "4H",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 65,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFR2mb9nD20b6LulxCICLj27T7XPpNAALvC2sbHBvhRCXo6CDwMSRMAQADAgADdwADOgQ",
+    "notes": "WHALE CONVICTION",
+    "trained_at": "2026-02-23T06:41:15.657298"
   }
 ]
