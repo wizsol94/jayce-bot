@@ -22,6 +22,11 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 OWNER_USER_ID = os.getenv('OWNER_USER_ID')  # Your Telegram user ID
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # For auto-backup to GitHub
+
+# GitHub backup config
+GITHUB_REPO = "wizsol94/jayce-bot"
+GITHUB_BACKUP_PATH = "backups/jayce_training_dataset.json"
 
 if not BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN environment variable not set")
@@ -955,6 +960,125 @@ def get_training_log(limit: int = 10) -> list:
     """Get recent training entries."""
     training_data = load_training_data()
     return training_data[-limit:] if training_data else []
+
+
+# ══════════════════════════════════════════════
+# GITHUB AUTO-BACKUP SYSTEM
+# ══════════════════════════════════════════════
+# Automatically backs up training data to GitHub after every train
+# This ensures data survives Railway redeploys, volume wipes, etc.
+
+async def backup_to_github(training_data: list) -> tuple[bool, str]:
+    """
+    Backup training data to GitHub repository.
+    
+    Returns: (success, message)
+    """
+    if not GITHUB_TOKEN:
+        logger.warning("[BACKUP] GITHUB_TOKEN not set — skipping GitHub backup")
+        return False, "GITHUB_TOKEN not configured"
+    
+    try:
+        # Prepare the content
+        content = json.dumps(training_data, indent=2)
+        content_base64 = base64.b64encode(content.encode()).decode()
+        
+        # GitHub API URL
+        api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_BACKUP_PATH}"
+        
+        headers = {
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json",
+            "Content-Type": "application/json"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            # First, try to get the current file to get its SHA (needed for updates)
+            get_response = await client.get(api_url, headers=headers)
+            
+            sha = None
+            if get_response.status_code == 200:
+                sha = get_response.json().get('sha')
+            
+            # Prepare the request body
+            body = {
+                "message": f"Auto-backup training data ({len(training_data)} charts)",
+                "content": content_base64,
+                "branch": "main"
+            }
+            
+            if sha:
+                body["sha"] = sha  # Required for updating existing file
+            
+            # Push to GitHub
+            put_response = await client.put(api_url, headers=headers, json=body)
+            
+            if put_response.status_code in [200, 201]:
+                logger.info(f"[BACKUP] GitHub backup successful — {len(training_data)} charts")
+                return True, f"Backed up {len(training_data)} charts to GitHub"
+            else:
+                error_msg = put_response.json().get('message', 'Unknown error')
+                logger.error(f"[BACKUP] GitHub backup failed: {error_msg}")
+                return False, f"GitHub error: {error_msg}"
+                
+    except Exception as e:
+        logger.error(f"[BACKUP] GitHub backup exception: {e}")
+        return False, str(e)
+
+
+async def restore_from_github() -> tuple[bool, str, list]:
+    """
+    Restore training data from GitHub backup.
+    
+    Returns: (success, message, data)
+    """
+    if not GITHUB_TOKEN:
+        return False, "GITHUB_TOKEN not configured", []
+    
+    try:
+        api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_BACKUP_PATH}"
+        
+        headers = {
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(api_url, headers=headers)
+            
+            if response.status_code == 200:
+                content_base64 = response.json().get('content', '')
+                content = base64.b64decode(content_base64).decode()
+                data = json.loads(content)
+                logger.info(f"[BACKUP] Restored {len(data)} charts from GitHub")
+                return True, f"Restored {len(data)} charts from GitHub", data
+            elif response.status_code == 404:
+                return False, "No backup found on GitHub", []
+            else:
+                error_msg = response.json().get('message', 'Unknown error')
+                return False, f"GitHub error: {error_msg}", []
+                
+    except Exception as e:
+        logger.error(f"[BACKUP] GitHub restore exception: {e}")
+        return False, str(e), []
+
+
+def store_training_chart_with_backup(chart_data: dict) -> tuple[bool, str]:
+    """
+    Store a training chart AND trigger GitHub backup.
+    This is the main function to use for training.
+    
+    Returns: (success, message)
+    """
+    # First store locally
+    success, msg = store_training_chart(chart_data)
+    
+    if success:
+        # Schedule GitHub backup (non-blocking)
+        training_data = load_training_data()
+        asyncio.create_task(backup_to_github(training_data))
+    
+    return success, msg
 
 
 def parse_memory_from_text(user_text: str) -> dict:
@@ -2601,6 +2725,139 @@ async def check_duplicate_command(update: Update, context: ContextTypes.DEFAULT_
         )
 
 
+async def training_export_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Export training data as a downloadable JSON file.
+    OWNER ONLY.
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text("⛔ Owner only.", parse_mode='Markdown')
+        return
+    
+    training_data = load_training_data()
+    
+    if not training_data:
+        await update.message.reply_text(
+            "📤 **Export**\n\nNo training data to export.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Create JSON file
+    json_content = json.dumps(training_data, indent=2)
+    
+    # Send as document
+    from io import BytesIO
+    file_buffer = BytesIO(json_content.encode())
+    file_buffer.name = f"jayce_training_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    
+    await update.message.reply_document(
+        document=file_buffer,
+        caption=f"📤 **Training Export**\n\n{len(training_data)} charts exported.\n\n_Keep this file safe!_",
+        parse_mode='Markdown'
+    )
+
+
+async def training_restore_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Restore training data from GitHub backup.
+    OWNER ONLY.
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text("⛔ Owner only.", parse_mode='Markdown')
+        return
+    
+    await update.message.reply_text("🔄 Restoring from GitHub backup...", parse_mode='Markdown')
+    
+    success, msg, data = await restore_from_github()
+    
+    if success and data:
+        # Save to local storage
+        if save_training_data(data):
+            await update.message.reply_text(
+                f"✅ **Restored!**\n\n"
+                f"{len(data)} charts restored from GitHub.\n\n"
+                f"Run `/training_stats` to verify.",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text(
+                f"❌ Failed to save restored data locally.",
+                parse_mode='Markdown'
+            )
+    else:
+        await update.message.reply_text(
+            f"❌ **Restore Failed**\n\n{msg}",
+            parse_mode='Markdown'
+        )
+
+
+async def training_import_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Import training data from a JSON file.
+    OWNER ONLY.
+    
+    Reply to a JSON file with /training_import
+    """
+    user_id = update.effective_user.id
+    
+    if not is_owner(user_id):
+        await update.message.reply_text("⛔ Owner only.", parse_mode='Markdown')
+        return
+    
+    # Check if replying to a document
+    if not update.message.reply_to_message or not update.message.reply_to_message.document:
+        await update.message.reply_text(
+            "📥 **Import Training Data**\n\n"
+            "Reply to a JSON backup file with `/training_import`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    doc = update.message.reply_to_message.document
+    
+    if not doc.file_name.endswith('.json'):
+        await update.message.reply_text("❌ Please reply to a `.json` file.", parse_mode='Markdown')
+        return
+    
+    await update.message.reply_text("📥 Importing...", parse_mode='Markdown')
+    
+    try:
+        # Download the file
+        file = await context.bot.get_file(doc.file_id)
+        file_bytes = await file.download_as_bytearray()
+        
+        # Parse JSON
+        data = json.loads(file_bytes.decode())
+        
+        if not isinstance(data, list):
+            await update.message.reply_text("❌ Invalid format. Expected a list of charts.", parse_mode='Markdown')
+            return
+        
+        # Save to local storage
+        if save_training_data(data):
+            # Also backup to GitHub
+            asyncio.create_task(backup_to_github(data))
+            
+            await update.message.reply_text(
+                f"✅ **Imported!**\n\n"
+                f"{len(data)} charts imported.\n\n"
+                f"Run `/training_stats` to verify.",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.message.reply_text("❌ Failed to save imported data.", parse_mode='Markdown')
+            
+    except json.JSONDecodeError:
+        await update.message.reply_text("❌ Invalid JSON file.", parse_mode='Markdown')
+    except Exception as e:
+        await update.message.reply_text(f"❌ Import failed: {e}", parse_mode='Markdown')
+
+
 async def train_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Handle /train command — add structured training chart.
@@ -2715,9 +2972,14 @@ async def train_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.info(f"[TRAINING] Duplicate detected — awaiting user choice")
             return
         
-        # Store training
+        # Store training WITH AUTO-BACKUP TO GITHUB
         success, msg = store_training_chart(chart_data)
         logger.info(f"[TRAINING] Store result: success={success}, msg={msg}")
+        
+        # Trigger GitHub backup (non-blocking)
+        if success:
+            training_data = load_training_data()
+            asyncio.create_task(backup_to_github(training_data))
         
         if success:
             # QUIET MODE — minimal output
@@ -2778,6 +3040,11 @@ async def train_force_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         success, msg = store_training_chart(pending)
         logger.info(f"[TRAINING] Force store: success={success}")
         
+        # Trigger GitHub backup
+        if success:
+            training_data = load_training_data()
+            asyncio.create_task(backup_to_github(training_data))
+        
         if success:
             await update.message.reply_text(
                 f"✅ **Reinforced**\n`{pending['chart_id']}`",
@@ -2819,6 +3086,11 @@ async def train_variation_command(update: Update, context: ContextTypes.DEFAULT_
         
         success, msg = store_training_chart(pending)
         logger.info(f"[TRAINING] Variation store: success={success}")
+        
+        # Trigger GitHub backup
+        if success:
+            training_data = load_training_data()
+            asyncio.create_task(backup_to_github(training_data))
         
         if success:
             await update.message.reply_text(
@@ -2870,6 +3142,11 @@ async def train_override_command(update: Update, context: ContextTypes.DEFAULT_T
         # Save the new chart
         success, msg = store_training_chart(pending)
         logger.info(f"[TRAINING] Override store: success={success}")
+        
+        # Trigger GitHub backup
+        if success:
+            training_data = load_training_data()
+            asyncio.create_task(backup_to_github(training_data))
         
         if success:
             await update.message.reply_text(
@@ -4327,6 +4604,11 @@ def main():
     application.add_handler(CommandHandler("training_log", training_log_command))
     application.add_handler(CommandHandler("training_stats", training_stats_command))
     application.add_handler(CommandHandler("check_duplicate", check_duplicate_command))
+    
+    # Training backup commands (Owner only)
+    application.add_handler(CommandHandler("training_export", training_export_command))
+    application.add_handler(CommandHandler("training_import", training_import_command))
+    application.add_handler(CommandHandler("training_restore", training_restore_command))
 
     # Photo handler
     application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
