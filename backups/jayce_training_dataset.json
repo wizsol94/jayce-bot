@@ -718,5 +718,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFc2mb-L938zl6qDYrDzNsZ9SKKQWBAAL7C2sbHBvhREjBnhcxloydAQADAgADdwADOgQ",
     "notes": "WHALE CONVICTION",
     "trained_at": "2026-02-23T06:51:01.452147"
+  },
+  {
+    "chart_id": "50FZ-ADDDAQ-5-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "ADDDAQ",
+    "timeframe": "5",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFeGmb-wb5xd_dMswRHszkaF67m3-FAAL9C2sbHBvhRAa6BazIx54IAQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE FUNNY NARRATIVE",
+    "trained_at": "2026-02-23T07:01:11.092006"
   }
 ]
