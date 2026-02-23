@@ -2824,5 +2824,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHA2mcZ3TABNMfUq_0JUJDkQhqHo_jAAKGDGsbHBvhRItOpILIZLF-AQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T14:43:23.617679"
+  },
+  {
+    "chart_id": "786FZ-RIOTCHU-1M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "RIOTCHU",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 130,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHBmmcZ5xkzHVvbCIt-KBaTEOZl0WyAAKHDGsbHBvhRKLKqeiY41KuAQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T14:43:56.044826"
   }
 ]
