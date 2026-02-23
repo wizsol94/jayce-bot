@@ -1006,5 +1006,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFrWmb_sM_6fqIazoohMmKyD-Hxhv5AAIMDGsbHBvhRBKzlly57ElcAQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T07:16:36.081164"
+  },
+  {
+    "chart_id": "50FZ-RYAN-1M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "RYAN",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 75,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFsGmb_t1Gh5r6lwABSpH_Co5-suyM5QACDQxrGxwb4UT_Yv9GcwLTUwEAAwIAA3cAAzoE",
+    "notes": "WHALE CONVICTION RSI DIVERGENCE",
+    "trained_at": "2026-02-23T07:17:17.128788"
   }
 ]
