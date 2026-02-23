@@ -2896,5 +2896,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHD2mcaAHoSWpNefU9RAJTuPbRR8saAAKKDGsbHBvhROrOpov6M2_SAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T14:45:47.022153"
+  },
+  {
+    "chart_id": "786FZ-MAXXING-1H-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "MAXXING",
+    "timeframe": "1H",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 300,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHFGmcaLdSNOyAuB7LWdUy0WbBybQVAAKLDGsbHBvhRO9lQhW5pHB5AQADAgADdwADOgQ",
+    "notes": "whale conviction clean structure",
+    "trained_at": "2026-02-23T14:48:52.131301"
   }
 ]
