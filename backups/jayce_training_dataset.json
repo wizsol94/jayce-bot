@@ -1672,5 +1672,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGLWmcB-ITq9TpTMaIjwr583kYCkDnAAIzDGsbHBvhRIHCtihKZBcAAQEAAwIAA3cAAzoE",
     "notes": "clean structure",
     "trained_at": "2026-02-23T07:55:35.267363"
+  },
+  {
+    "chart_id": "618FZ-GOR-5M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "GOR",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 160,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGMGmcCAQ_5rGEFXwqBZNR5Vq7b4NcAAI0DGsbHBvhRO9KbTKOhyMXAQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T07:56:09.866404"
   }
 ]
