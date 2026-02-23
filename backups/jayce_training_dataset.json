@@ -2734,5 +2734,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG9GmcZo_pqLnhsoRCByIqLTLCUCC7AAKBDGsbHBvhRPjmYyhEAbDBAQADAgADdwADOgQ",
     "notes": "clean structure fresh zone funny narrative",
     "trained_at": "2026-02-23T14:39:51.876520"
+  },
+  {
+    "chart_id": "786FZ-FLYCOON-1M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "FLYCOON",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG92mcZsCizOSF7ZqUSQkFCR1UJcf8AAKCDGsbHBvhRPhu3ri8vbzJAQADAgADdwADOgQ",
+    "notes": "whale conviction clean structure",
+    "trained_at": "2026-02-23T14:40:20.477593"
   }
 ]
