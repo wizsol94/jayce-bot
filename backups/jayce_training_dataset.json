@@ -2788,5 +2788,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG_WmcZwNkqWP6dT2dbWLqe8FTlk6pAAKEDGsbHBvhRHlZFVV4I9T_AQADAgADdwADOgQ",
     "notes": "rsi divergence clean structure",
     "trained_at": "2026-02-23T14:41:38.519228"
+  },
+  {
+    "chart_id": "786FZ-LINGLANG-15M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "LINGLANG",
+    "timeframe": "15M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 400,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHAAFpnGcwUSiOsr-DcaMUqTmrG5JNigAChQxrGxwb4UR52s4X2NI7OQEAAwIAA3cAAzoE",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T14:42:14.930043"
   }
 ]
