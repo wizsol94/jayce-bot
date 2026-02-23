@@ -232,5 +232,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFB2mb8gIn60fWA_Gr0LpiPI2Nh6HJAALgC2sbHBvhRGOKuBFCoy-5AQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T06:22:41.260648"
+  },
+  {
+    "chart_id": "382FZ-MEET-5M-20260223-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "MEET",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 75,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFDGmb8lY8RaRXxyJscbRGRELyZWreAALhC2sbHBvhRG9D-SauEaNbAQADAgADdwADOgQ",
+    "notes": "RSI DIVERGENCE",
+    "trained_at": "2026-02-23T06:24:12.059344"
   }
 ]
