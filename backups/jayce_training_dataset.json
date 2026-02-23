@@ -1078,5 +1078,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFuWmb_011PuuOxFNzCRbBLXaaGAwDAAIQDGsbHBvhRGqJjeV_F_cRAQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T07:19:05.811279"
+  },
+  {
+    "chart_id": "50FZ-ZESTY-5M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "ZESTY",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 250,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFvGmb_3ewPBSn2d5ouhMfvnr82i-XAAIRDGsbHBvhRIbHNxEhmcu3AQADAgADdwADOgQ",
+    "notes": "WHALE CONVCITION",
+    "trained_at": "2026-02-23T07:19:40.882242"
   }
 ]
