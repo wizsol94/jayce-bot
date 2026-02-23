@@ -2104,5 +2104,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGemmcDSne_aGB_YgmgQqB5xEbOimHAAJLDGsbHBvhRMWCqiWGhQs6AQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T08:18:27.469494"
+  },
+  {
+    "chart_id": "618FZ-KING-1M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "KING",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 70,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGfWmcDWvOx13S-DTjFAhutrMD0qQQAAJMDGsbHBvhRN0vPTyyvP20AQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T08:19:09.340776"
   }
 ]
