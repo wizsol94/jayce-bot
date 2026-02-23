@@ -916,5 +916,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFnmmb_eL9a-vIgEPSPO7wsIKytWE8AAIHDGsbHBvhRLuT_aA2sBMeAQADAgADdwADOgQ",
     "notes": "WHALE CONVICTION",
     "trained_at": "2026-02-23T07:12:53.267352"
+  },
+  {
+    "chart_id": "50FZ-MIFFY-5M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "MIFFY",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 150,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFoWmb_f3qkQTfM2_a8MUUo6CM5MvpAAIIDGsbHBvhRE2tJ7fvODXDAQADAgADdwADOgQ",
+    "notes": "BEAUTIFUL STRUCTURE",
+    "trained_at": "2026-02-23T07:13:56.804519"
   }
 ]
