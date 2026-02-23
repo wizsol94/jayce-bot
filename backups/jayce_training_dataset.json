@@ -1834,5 +1834,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGSmmcCcwj7p93LjXcZ5bLC6mPZ6AvAAI8DGsbHBvhRAZ7eVD5XsiHAQADAgADdwADOgQ",
     "notes": "whale conviction",
     "trained_at": "2026-02-23T08:03:57.528285"
+  },
+  {
+    "chart_id": "618FZ-PWEASE-5M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "PWEASE",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 250,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGTWmcCfVlpRyoHfRVCBE2XxKjODyfAAI9DGsbHBvhRF-pQz-NxXAgAQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T08:04:30.354872"
   }
 ]
