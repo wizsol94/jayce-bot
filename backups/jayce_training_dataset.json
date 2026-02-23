@@ -1546,5 +1546,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGGGmcBp9OtW5ayK84p31d3lw9Wv5YAAIsDGsbHBvhRHFA4chR2BrgAQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T07:50:44.820241"
+  },
+  {
+    "chart_id": "618FZ-AURAFARM-4H-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "AURAFARM",
+    "timeframe": "4H",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGG2mcBuQScAJjORGvOX-770ab6GJAAAItDGsbHBvhRLDWMYveeu3zAQADAgADdwADOgQ",
+    "notes": "wick entry",
+    "trained_at": "2026-02-23T07:51:44.855581"
   }
 ]
