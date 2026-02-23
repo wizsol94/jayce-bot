@@ -3598,5 +3598,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHk2mccdz-dv7yC9OHHwqvX1VpRRMAA7UMaxscG-FEF7iAf4kOYQMBAAMCAAN3AAM6BA",
     "notes": "clean structure",
     "trained_at": "2026-02-23T15:27:41.759920"
+  },
+  {
+    "chart_id": "UFIB-TRAX-1M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "TRAX",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 485,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHlmmccfUIONH15z5P2OQAAd2_eOzoHgACtgxrGxwb4UTN_qgs89A8jgEAAwIAA3cAAzoE",
+    "notes": "rsi divergence viral meme",
+    "trained_at": "2026-02-23T15:28:18.518102"
   }
 ]
