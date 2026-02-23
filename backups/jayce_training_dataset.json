@@ -1852,5 +1852,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGTWmcCfVlpRyoHfRVCBE2XxKjODyfAAI9DGsbHBvhRF-pQz-NxXAgAQADAgADdwADOgQ",
     "notes": "whale conviction",
     "trained_at": "2026-02-23T08:04:30.354872"
+  },
+  {
+    "chart_id": "618FZ-RACHA-5M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "RACHA",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 150,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGUGmcCho6vyDeElgaxAeaKNMBhTXzAAI-DGsbHBvhRFzOwQWNEEAPAQADAgADdwADOgQ",
+    "notes": "rsi divergence",
+    "trained_at": "2026-02-23T08:05:02.601379"
   }
 ]
