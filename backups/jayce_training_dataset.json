@@ -2680,5 +2680,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG62mcZhNOG_DR0WoSIMPCw4wLYhmZAAJ-DGsbHBvhRGTCXFbLb9hbAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T14:37:28.095561"
+  },
+  {
+    "chart_id": "786FZ-BTC-1M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "BTC",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG7mmcZjmmaT69xNwqKofcC9KjIScsAAJ_DGsbHBvhRJ345mmeiPZvAQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T14:38:14.261480"
   }
 ]
