@@ -2644,5 +2644,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG42mcZa3shHEU-Q1zcbm2gVck0TC_AAJ7DGsbHBvhRNzEEkurL6mhAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T14:35:56.793547"
+  },
+  {
+    "chart_id": "786FZ-ASSDAQ-5M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "ASSDAQ",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG6GmcZdrlR6o9zlryIe7S5PM1f5okAAJ8DGsbHBvhRIINMb-h9sSBAQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T14:36:53.228001"
   }
 ]
