@@ -862,5 +862,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFlWmb_VXGwv-eYF7bdYqKFZ-POE43AAIEDGsbHBvhRFJgnyPYqH56AQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-23T07:10:43.939628"
+  },
+  {
+    "chart_id": "50FZ-CYCLE-30M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "CYCLE",
+    "timeframe": "30M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 55,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFmGmb_X02z43n2U6aHrrGXfPWIov0AAIFDGsbHBvhRElbtpgdkfC3AQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE HIGH CAP",
+    "trained_at": "2026-02-23T07:11:38.051218"
   }
 ]
