@@ -2518,5 +2518,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGyGmcER1Ev0UhA5Afaw0FRLTHMPyXAAJjDGsbHBvhROIhm7yf5AVBAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T08:35:23.342268"
+  },
+  {
+    "chart_id": "618FZ-AVA-4H-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "AVA",
+    "timeframe": "4H",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGy2mcEV9m_WyD5_lVfJBheOZ3KKInAAJkDGsbHBvhRMi7ki7YvA2DAQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T08:36:02.198665"
   }
 ]
