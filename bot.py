@@ -1058,11 +1058,11 @@ def build_outcome_prediction_text(prediction_data: dict, detected_conditions: di
     lines.append(f"• **All setups:** +{int(overall_avg)}% avg ({total_trades} trades)")
     
     # Condition breakdowns (only show ones with data)
+    # NOTE: high_volume removed per user request
     condition_display = {
         'whale_conviction': 'With whale conviction',
         'clean_structure': 'With clean structure',
         'divergence': 'With divergence',
-        'high_volume': 'With high volume',
         'violent': 'With violent expansion'
     }
     
