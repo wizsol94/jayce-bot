@@ -3274,5 +3274,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHWWmcbwlX6hLusPhVZAp1pB2RhkKdAAKiDGsbHBvhRAPbzAhMAl9KAQADAgADdwADOgQ",
     "notes": "whale conviction clean structure",
     "trained_at": "2026-02-23T15:15:47.751929"
+  },
+  {
+    "chart_id": "UFIB-FISH-15M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "FISH",
+    "timeframe": "15M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 140,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHXGmcb3J38b7MZvhEwex0j1RL8zIxAAKjDGsbHBvhRJAOf00X8ZgBAQADAgADdwADOgQ",
+    "notes": "whale conviction clean structure",
+    "trained_at": "2026-02-23T15:17:49.267239"
   }
 ]
