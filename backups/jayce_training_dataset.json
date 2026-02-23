@@ -3346,5 +3346,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHZWmcb-kBGb3xNdrIFTmAHoKZr5gcAAKmDGsbHBvhRLk-YugU17Y1AQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T15:19:21.883230"
+  },
+  {
+    "chart_id": "UFIB-AGARTHA-15M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "AGARTHA",
+    "timeframe": "15M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 225,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHaGmcb__hjlpwntiOML8yy6jwIUJjAAKnDGsbHBvhRBnoGQcV2vu5AQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T15:19:48.353657"
   }
 ]
