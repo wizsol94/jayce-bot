@@ -1600,5 +1600,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGIWmcB1RZ3McaTvZYqkCk3Dp5Xe50AAIvDGsbHBvhRB4pTEfq-1vEAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T07:53:17.471399"
+  },
+  {
+    "chart_id": "618FZ-BUTTHOLE-30M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "BUTTHOLE",
+    "timeframe": "30M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGJGmcB3yiszkVqrobrw8Q7lj7576UAAIwDGsbHBvhRKiwFat0ctj1AQADAgADdwADOgQ",
+    "notes": "whale conviction",
+    "trained_at": "2026-02-23T07:54:07.721010"
   }
 ]
