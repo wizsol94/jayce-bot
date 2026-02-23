@@ -826,5 +826,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFh2mb_Bce9dusboq4bcweo0iGmMbzAAICDGsbHBvhRMCo9dQAAbmCMwEAAwIAA3cAAzoE",
     "notes": "WHALE CONVICTION",
     "trained_at": "2026-02-23T07:05:36.750789"
+  },
+  {
+    "chart_id": "50FZ-BREWSKI-5M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "BREWSKI",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 150,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFjGmb_GOR-Qlnu_UWtwf186kksMD0AAIDDGsbHBvhRGOpg36Sv-mcAQADAgADdwADOgQ",
+    "notes": "FUNNY NARRATIVE CLEAN STRUCTURE",
+    "trained_at": "2026-02-23T07:06:55.627643"
   }
 ]
