@@ -2878,5 +2878,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHDGmcZ96lK9D6XWZ_Leui4r46vo_xAAKJDGsbHBvhRMzleAGEOsE8AQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T14:45:10.808095"
+  },
+  {
+    "chart_id": "786FZ-WOD-1M-20260223-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "WOD",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHD2mcaAHoSWpNefU9RAJTuPbRR8saAAKKDGsbHBvhROrOpov6M2_SAQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T14:45:47.022153"
   }
 ]
