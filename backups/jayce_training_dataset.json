@@ -1348,5 +1348,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIF7mmcAkjyG5rLwY96IOa_M9iPPLgwAAIgDGsbHBvhRI_JWgltWz91AQADAgADdwADOgQ",
     "notes": "FUNNY MEME HIGH VOLUME",
     "trained_at": "2026-02-23T07:31:49.031199"
+  },
+  {
+    "chart_id": "50FZ-MILKERS-5M-20260223-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "MILKERS",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 130,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIF8WmcAosfBatmQ3_9P6zEWZj23B0dAAIhDGsbHBvhRBlHMHznP0a9AQADAgADdwADOgQ",
+    "notes": "RSI DIVERGENCE",
+    "trained_at": "2026-02-23T07:32:58.410400"
   }
 ]
