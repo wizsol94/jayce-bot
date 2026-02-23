@@ -871,6 +871,232 @@ def check_duplicate(new_chart: dict, threshold: float = 0.85) -> tuple[bool, dic
 # Compares new charts against trained winners
 # Provides data-backed confidence and similar chart references
 
+# ══════════════════════════════════════════════
+# PHASE 4: CONDITION DETECTION
+# ══════════════════════════════════════════════
+# Auto-detects conditions from training notes and chart analysis
+
+CONDITION_KEYWORDS = {
+    'whale_conviction': [
+        'whale conviction', 'whale', 'whale hold', 'whale holding',
+        'top holder', 'ansem', 'big holder', 'conviction hold'
+    ],
+    'clean_structure': [
+        'clean structure', 'clean chart', 'clean', 'beautiful structure',
+        'great structure', 'super clean', 'textbook'
+    ],
+    'divergence': [
+        'divergence', 'div', 'rsi divergence', 'bullish divergence',
+        'hidden divergence', 'divergence present'
+    ],
+    'high_volume': [
+        'high volume', 'volume', 'big volume', 'strong volume',
+        'volume spike'
+    ],
+    'violent': [
+        'violent', 'violent expansion', 'violent move', 'explosive'
+    ]
+}
+
+
+def detect_conditions_from_text(text: str) -> dict:
+    """
+    Detect trading conditions from text (notes or chart labels).
+    
+    Returns: {
+        'whale_conviction': bool,
+        'clean_structure': bool,
+        'divergence': bool,
+        'high_volume': bool,
+        'violent': bool
+    }
+    """
+    text_lower = text.lower() if text else ''
+    
+    conditions = {}
+    for condition, keywords in CONDITION_KEYWORDS.items():
+        conditions[condition] = any(kw in text_lower for kw in keywords)
+    
+    return conditions
+
+
+def get_chart_conditions(chart: dict) -> dict:
+    """
+    Get conditions from a training chart (from notes field).
+    """
+    notes = chart.get('notes', '')
+    return detect_conditions_from_text(notes)
+
+
+def get_outcome_prediction(setup_name: str, detected_conditions: dict = None) -> dict:
+    """
+    Phase 4: Generate outcome predictions based on training data and conditions.
+    
+    Returns: {
+        'setup_name': str,
+        'total_trades': int,
+        'overall_avg': float,
+        'overall_best': float,
+        'overall_range': (min, max),
+        'condition_breakdowns': {
+            'whale_conviction': {'avg': float, 'count': int, 'best': float},
+            'clean_structure': {'avg': float, 'count': int, 'best': float},
+            ...
+        },
+        'combined_conditions': {'avg': float, 'count': int, 'best': float},
+        'detected_conditions': list of condition names present
+    }
+    """
+    training_data = load_training_data()
+    
+    if not training_data:
+        return None
+    
+    # Filter by setup type
+    setup_charts = [t for t in training_data if t.get('setup_name') == setup_name]
+    
+    if not setup_charts:
+        return None
+    
+    # Get outcomes
+    outcomes = [c.get('outcome_percentage', 0) for c in setup_charts if c.get('outcome_percentage', 0) > 0]
+    
+    if not outcomes:
+        return None
+    
+    # Overall stats
+    overall_avg = sum(outcomes) / len(outcomes)
+    overall_best = max(outcomes)
+    overall_min = min(outcomes)
+    overall_max = max(outcomes)
+    
+    # Condition breakdowns
+    condition_breakdowns = {}
+    
+    for condition in CONDITION_KEYWORDS.keys():
+        # Find charts with this condition
+        charts_with_condition = []
+        for chart in setup_charts:
+            chart_conditions = get_chart_conditions(chart)
+            if chart_conditions.get(condition, False):
+                outcome = chart.get('outcome_percentage', 0)
+                if outcome > 0:
+                    charts_with_condition.append(outcome)
+        
+        if charts_with_condition:
+            condition_breakdowns[condition] = {
+                'avg': sum(charts_with_condition) / len(charts_with_condition),
+                'count': len(charts_with_condition),
+                'best': max(charts_with_condition)
+            }
+    
+    # Combined conditions (if detected_conditions provided)
+    combined_stats = None
+    detected_list = []
+    
+    if detected_conditions:
+        # Get list of detected conditions
+        detected_list = [k for k, v in detected_conditions.items() if v]
+        
+        if detected_list:
+            # Find charts matching ALL detected conditions
+            matching_charts = []
+            for chart in setup_charts:
+                chart_conditions = get_chart_conditions(chart)
+                
+                # Check if chart has ALL detected conditions
+                has_all = all(chart_conditions.get(cond, False) for cond in detected_list)
+                
+                if has_all:
+                    outcome = chart.get('outcome_percentage', 0)
+                    if outcome > 0:
+                        matching_charts.append(outcome)
+            
+            if matching_charts:
+                combined_stats = {
+                    'avg': sum(matching_charts) / len(matching_charts),
+                    'count': len(matching_charts),
+                    'best': max(matching_charts),
+                    'min': min(matching_charts)
+                }
+    
+    return {
+        'setup_name': setup_name,
+        'total_trades': len(setup_charts),
+        'overall_avg': overall_avg,
+        'overall_best': overall_best,
+        'overall_range': (overall_min, overall_max),
+        'condition_breakdowns': condition_breakdowns,
+        'combined_conditions': combined_stats,
+        'detected_conditions': detected_list
+    }
+
+
+def build_outcome_prediction_text(prediction_data: dict, detected_conditions: dict = None) -> str:
+    """
+    Build the outcome prediction text for Deep Vision response.
+    """
+    if not prediction_data:
+        return ""
+    
+    setup_name = prediction_data.get('setup_name', 'Unknown')
+    total_trades = prediction_data.get('total_trades', 0)
+    overall_avg = prediction_data.get('overall_avg', 0)
+    overall_best = prediction_data.get('overall_best', 0)
+    overall_range = prediction_data.get('overall_range', (0, 0))
+    condition_breakdowns = prediction_data.get('condition_breakdowns', {})
+    combined_stats = prediction_data.get('combined_conditions')
+    detected_list = prediction_data.get('detected_conditions', [])
+    
+    lines = [
+        "📊 **Outcome Prediction:**",
+        f"\nYour {setup_name} history:",
+        ""
+    ]
+    
+    # Overall stats
+    lines.append(f"• **All setups:** +{int(overall_avg)}% avg ({total_trades} trades)")
+    
+    # Condition breakdowns (only show ones with data)
+    condition_display = {
+        'whale_conviction': 'With whale conviction',
+        'clean_structure': 'With clean structure',
+        'divergence': 'With divergence',
+        'high_volume': 'With high volume',
+        'violent': 'With violent expansion'
+    }
+    
+    for condition, display_name in condition_display.items():
+        if condition in condition_breakdowns:
+            stats = condition_breakdowns[condition]
+            lines.append(f"• **{display_name}:** +{int(stats['avg'])}% avg ({stats['count']} trades)")
+    
+    # Combined conditions (if multiple detected)
+    if combined_stats and len(detected_list) > 1:
+        condition_names = [condition_display.get(c, c).replace('With ', '') for c in detected_list]
+        combined_name = " + ".join(condition_names)
+        lines.append(f"• **With BOTH ({combined_name}):** +{int(combined_stats['avg'])}% avg ({combined_stats['count']} trades)")
+    
+    # What THIS setup has
+    if detected_list:
+        lines.append("")
+        condition_tags = []
+        for cond in detected_list:
+            tag = condition_display.get(cond, cond).replace('With ', '')
+            condition_tags.append(f"{tag} ✅")
+        lines.append(f"🎯 **This setup has:** {', '.join(condition_tags)}")
+    
+    # Expected range
+    if combined_stats:
+        lines.append(f"\n**Expected range:** +{int(combined_stats['min'])}% to +{int(combined_stats['best'])}%")
+        lines.append(f"**Best similar outcome:** +{int(combined_stats['best'])}%")
+    elif overall_range[0] > 0:
+        lines.append(f"\n**Expected range:** +{int(overall_range[0])}% to +{int(overall_range[1])}%")
+        lines.append(f"**Best outcome:** +{int(overall_best)}%")
+    
+    return "\n".join(lines)
+
+
 def get_pattern_matches(setup_name: str, timeframe: str = None, token: str = None) -> dict:
     """
     Find matching patterns from training data for a given setup.
@@ -2478,6 +2704,13 @@ def build_planned_setup_response(vision: dict, user_plan: str, username: str = N
         response_parts.append(f"\n\n{pattern_match_text}")
     
     # ══════════════════════════════════════════════
+    # OUTCOME PREDICTION (Phase 4 — Condition-Based)
+    # ══════════════════════════════════════════════
+    outcome_prediction_text = vision.get('outcome_prediction_text', '')
+    if outcome_prediction_text:
+        response_parts.append(f"\n\n{outcome_prediction_text}")
+    
+    # ══════════════════════════════════════════════
     # SIMILAR PATTERN (from memory — legacy)
     # ══════════════════════════════════════════════
     # Only show if no pattern match from training data
@@ -3613,6 +3846,9 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         # Compare against trained winners for data-backed confidence
         # ══════════════════════════════════════════════
         pattern_match_data = None
+        outcome_prediction_data = None
+        detected_conditions = {}
+        
         if wiz_setup_type and wiz_setup_type not in ['Unknown', 'Unclear', '']:
             timeframe = vision_result.get('timeframe', '')
             token = vision_result.get('pair_detected', '')
@@ -3625,6 +3861,35 @@ async def run_deep_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE, 
                 pattern_match_text = build_pattern_match_text(pattern_match_data)
                 vision_result['pattern_match_text'] = pattern_match_text
                 vision_result['pattern_match_data'] = pattern_match_data
+            
+            # ══════════════════════════════════════════════
+            # STEP 2.7: OUTCOME PREDICTION (Phase 4)
+            # Condition-based outcome predictions from YOUR history
+            # ══════════════════════════════════════════════
+            
+            # Detect conditions from user_plan text AND chart analysis
+            detected_conditions = detect_conditions_from_text(user_plan)
+            
+            # Also check vision result for conditions (from chart image)
+            jayce_take = vision_result.get('jayce_take', '')
+            direct_answer = vision_result.get('direct_answer', '')
+            structure_reasoning = vision_result.get('structure_reasoning', '')
+            chart_text = f"{jayce_take} {direct_answer} {structure_reasoning}"
+            chart_conditions = detect_conditions_from_text(chart_text)
+            
+            # Merge conditions (either source can detect)
+            for cond in detected_conditions:
+                if chart_conditions.get(cond, False):
+                    detected_conditions[cond] = True
+            
+            # Get outcome prediction
+            outcome_prediction_data = get_outcome_prediction(wiz_setup_type, detected_conditions)
+            
+            if outcome_prediction_data:
+                outcome_prediction_text = build_outcome_prediction_text(outcome_prediction_data, detected_conditions)
+                vision_result['outcome_prediction_text'] = outcome_prediction_text
+                vision_result['outcome_prediction_data'] = outcome_prediction_data
+                vision_result['detected_conditions'] = detected_conditions
         
         # ══════════════════════════════════════════════
         # STEP 3: BUILD RESPONSE BASED ON INTENT MODE
@@ -3839,6 +4104,13 @@ def build_deep_analysis_response(vision: dict, user_plan: str, username: str = N
     pattern_match_text = vision.get('pattern_match_text', '')
     if pattern_match_text:
         response_parts.append(f"\n\n{pattern_match_text}")
+    
+    # ══════════════════════════════════════════════
+    # OUTCOME PREDICTION (Phase 4 — Condition-Based)
+    # ══════════════════════════════════════════════
+    outcome_prediction_text = vision.get('outcome_prediction_text', '')
+    if outcome_prediction_text:
+        response_parts.append(f"\n\n{outcome_prediction_text}")
     
     # ══════════════════════════════════════════════
     # SIMILAR PATTERN (from memory — legacy)
