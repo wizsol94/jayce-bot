@@ -2140,5 +2140,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGgGmcDYfKZg2rgBCqb1SA-WPL24x9AAJNDGsbHBvhRF2saFiK-ZyLAQADAgADdwADOgQ",
     "notes": "rsi divergence",
     "trained_at": "2026-02-23T08:19:51.302740"
+  },
+  {
+    "chart_id": "618FZ-CALVIN-5M-20260223-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "CALVIN",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 125,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGg2mcDa5qzMEYudg-OY7WOZDA_qcMAAJODGsbHBvhRBUvbsaRQx8HAQADAgADdwADOgQ",
+    "notes": "clean structure high volume",
+    "trained_at": "2026-02-23T08:20:34.146333"
   }
 ]
