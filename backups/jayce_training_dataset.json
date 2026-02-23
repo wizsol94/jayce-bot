@@ -3364,5 +3364,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHaGmcb__hjlpwntiOML8yy6jwIUJjAAKnDGsbHBvhRBnoGQcV2vu5AQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T15:19:48.353657"
+  },
+  {
+    "chart_id": "UFIB-RECRUIT-1M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "RECRUIT",
+    "timeframe": "1M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHa2mccB0JHx4KuygwGCX_vxz8F640AAKoDGsbHBvhRBQuQXTM_oHYAQADAgADdwADOgQ",
+    "notes": "whale convcition clean structure",
+    "trained_at": "2026-02-23T15:20:17.854974"
   }
 ]
