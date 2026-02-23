@@ -3328,5 +3328,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHYmmcb8-00s9pRBdbPjNWzByn705iAAKlDGsbHBvhRL1G74mzwXenAQADAgADdwADOgQ",
     "notes": "clean structure",
     "trained_at": "2026-02-23T15:19:00.251553"
+  },
+  {
+    "chart_id": "UFIB-SACHI-30M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "SACHI",
+    "timeframe": "30M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHZWmcb-kBGb3xNdrIFTmAHoKZr5gcAAKmDGsbHBvhRLk-YugU17Y1AQADAgADdwADOgQ",
+    "notes": "clean structure",
+    "trained_at": "2026-02-23T15:19:21.883230"
   }
 ]
