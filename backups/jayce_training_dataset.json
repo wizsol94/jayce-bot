@@ -3526,5 +3526,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHhWmccUUCK6oVbiKs8akAAV4OQqx0_AACsQxrGxwb4UToIwrFx2gViQEAAwIAA3cAAzoE",
     "notes": "whale conviction",
     "trained_at": "2026-02-23T15:25:35.386656"
+  },
+  {
+    "chart_id": "UFIB-67KID-5M-20260223-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "67KID",
+    "timeframe": "5M",
+    "date": "2026-02-23",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHimmccXolZay0aN7dXcUYaBK01b-pAAKyDGsbHBvhROeJQOCH3enuAQADAgADdwADOgQ",
+    "notes": "clean structure trending",
+    "trained_at": "2026-02-23T15:26:07.440807"
   }
 ]
