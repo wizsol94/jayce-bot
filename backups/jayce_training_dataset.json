@@ -3960,7 +3960,7 @@
     "trained_at": "2026-02-24T07:07:14.592040"
   },
   {
-    "chart_id": "50FZ-MARIOCOIN-5M-20260224-001",
+    "chart_id": "50FZ-MARIOCOIN-5M-20260224-002",
     "setup_name": "50 + Flip Zone",
     "canonical_key": "50_flip_zone",
     "token": "MARIOCOIN",
@@ -3971,10 +3971,10 @@
     "rsi_behavior": "",
     "whale_conviction": false,
     "violent_mode": false,
-    "outcome_percentage": 50,
+    "outcome_percentage": 70,
     "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIH_2md7H6UGNV5FBldSdNCP_tTaKOiAALvC2sb__jwRJLgNkz8AZVsAQADAgADdwADOgQ",
-    "notes": "CLEAN STRUCTURE",
-    "trained_at": "2026-02-24T18:23:29.249218"
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIIBGmeDqmdhS43RxyRuMc80ekGc45CAAIFDGsb__jwRP4TYtiaKc13AQADAgADdwADOgQ",
+    "notes": "[OVERRIDE] CLEAN STRUCTURE BIG IMPULSE MOVE CREATING FLIP ZONE",
+    "trained_at": "2026-02-24T20:50:26.909632"
   }
 ]
