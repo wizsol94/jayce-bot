@@ -3958,5 +3958,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIH8WmdTdTl9sjTuvSXmD4q85ENgChnAAKvC2sbHBvpRMgq6kpX7FUnAQADAgADdwADOgQ",
     "notes": "CLEAN STRUCTURE",
     "trained_at": "2026-02-24T07:07:14.592040"
+  },
+  {
+    "chart_id": "50FZ-MARIOCOIN-5M-20260224-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "MARIOCOIN",
+    "timeframe": "5M",
+    "date": "2026-02-24",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIH_2md7H6UGNV5FBldSdNCP_tTaKOiAALvC2sb__jwRJLgNkz8AZVsAQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE",
+    "trained_at": "2026-02-24T18:23:29.249218"
   }
 ]
