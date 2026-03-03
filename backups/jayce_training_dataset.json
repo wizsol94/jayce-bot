@@ -4120,5 +4120,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIIWGmkqwypq6FklCy_W72LW0ojGcxfAALHC2sbtNAoRZfKVmsAAVDHwQEAAwIAA3cAAzoE",
     "notes": "CLEAN STRUCTURE 1 DAY OLD COIN",
     "trained_at": "2026-03-01T21:11:12.153660"
+  },
+  {
+    "chart_id": "618FZ-/WHAT_IF?-5M-20260303-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "/WHAT_IF?",
+    "timeframe": "5M",
+    "date": "2026-03-03",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 250,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIJqmmmgP6IPvlJg76p5_qy40VAVzfXAAKrC2sb0_cxRZASzWlld-QXAQADAgADdwADOgQ",
+    "notes": "CLEAN STRUCTURE OLDER COIN",
+    "trained_at": "2026-03-03T06:35:39.249028"
   }
 ]
