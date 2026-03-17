@@ -1,0 +1,18 @@
+{
+  "chart_id": "UFIB-WW3-1M-20260223-001",
+  "setup_name": "Under-Fib Flip Zone",
+  "canonical_key": "under_fib_flip_zone",
+  "token": "WW3",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "Under-Fib",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 60,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHhWmccUUCK6oVbiKs8akAAV4OQqx0_AACsQxrGxwb4UToIwrFx2gViQEAAwIAA3cAAzoE",
+  "notes": "whale conviction",
+  "trained_at": "2026-02-23T15:25:35.386656"
+}

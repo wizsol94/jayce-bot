@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-INSURED-1M-20260223-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "INSURED",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 60,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHQmmca3_NMLO9aaRsFIwHVtxdtZvPAAKZDGsbHBvhRFvKAvMCeCzFAQADAgADdwADOgQ",
+  "notes": "whale conviction clean structure",
+  "trained_at": "2026-02-23T15:00:51.711634"
+}

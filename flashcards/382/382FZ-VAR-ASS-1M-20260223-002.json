@@ -1,0 +1,18 @@
+{
+  "chart_id": "382FZ-VAR-ASS-1M-20260223-002",
+  "setup_name": "382 + Flip Zone",
+  "canonical_key": "382_flip_zone",
+  "token": "ASS",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "382",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 120,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFXWmb94U-gfXZ-m_4XbJlb68-k-HXAAL1C2sbHBvhRHmIRD4B9e_5AQADAgADdwADOgQ",
+  "notes": "[VARIATION] CLEAN STRUCTURE",
+  "trained_at": "2026-02-23T06:46:23.480025"
+}

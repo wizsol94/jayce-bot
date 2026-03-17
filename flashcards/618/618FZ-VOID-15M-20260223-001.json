@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-VOID-15M-20260223-001",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "VOID",
+  "timeframe": "15M",
+  "date": "2026-02-23",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 112,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGZWmcC1f82HkDsmYygkeut9xY_v89AAJFDGsbHBvhRESVTJT-QhF7AQADAgADdwADOgQ",
+  "notes": "clean structure",
+  "trained_at": "2026-02-23T08:10:21.971697"
+}

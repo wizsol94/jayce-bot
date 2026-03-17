@@ -1,0 +1,18 @@
+{
+  "chart_id": "50FZ-90S-1M-20260312-001",
+  "setup_name": "50 + Flip Zone",
+  "canonical_key": "50_flip_zone",
+  "token": "90S",
+  "timeframe": "1M",
+  "date": "2026-03-12",
+  "fib_depth": "50",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 115,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIQL2mzD-HLs_SRH0l-K2uXsl0ifngoAALmC2sbWiGYRcj-Z5OKUJnvAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE GOOD MEME",
+  "trained_at": "2026-03-12T19:12:07.879667"
+}

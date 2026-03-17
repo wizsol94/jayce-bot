@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-SHARKING-1M-20260223-001",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "SHARKING",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 75,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGVmmcCm6nxY94s89Y5rzafG2Y80t1AAJADGsbHBvhREPtHLkzcjRuAQADAgADdwADOgQ",
+  "notes": "clean structure",
+  "trained_at": "2026-02-23T08:06:25.754930"
+}

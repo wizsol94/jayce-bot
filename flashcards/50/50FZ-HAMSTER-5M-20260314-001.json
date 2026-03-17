@@ -1,0 +1,18 @@
+{
+  "chart_id": "50FZ-HAMSTER-5M-20260314-001",
+  "setup_name": "50 + Flip Zone",
+  "canonical_key": "50_flip_zone",
+  "token": "HAMSTER",
+  "timeframe": "5M",
+  "date": "2026-03-14",
+  "fib_depth": "50",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 35,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIRdGm1NDIDMSMtPnTuQ_gZ4OFSz2BDAAJiC2sbrmupRYRC5dwlf1q0AQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-03-14T10:11:32.523108"
+}

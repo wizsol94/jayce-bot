@@ -1,0 +1,18 @@
+{
+  "chart_id": "382FZ-DAUMEN-1M-20260223-001",
+  "setup_name": "382 + Flip Zone",
+  "canonical_key": "382_flip_zone",
+  "token": "DAUMEN",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "382",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 65,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFGWmb85oh0n7sKltlzw14jxcrnr-aAALkC2sbHBvhRDXpWWiVggWgAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-02-23T06:29:22.495215"
+}

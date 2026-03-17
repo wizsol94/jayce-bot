@@ -1,0 +1,18 @@
+{
+  "chart_id": "50FZ-SMZAI-5M-20260223-001",
+  "setup_name": "50 + Flip Zone",
+  "canonical_key": "50_flip_zone",
+  "token": "SMZAI",
+  "timeframe": "5M",
+  "date": "2026-02-23",
+  "fib_depth": "50",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 70,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFs2mb_wO9sdWCg-36OZ94VFz4iF5hAAIODGsbHBvhRKGpZJmjnA7MAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-02-23T07:17:47.529703"
+}

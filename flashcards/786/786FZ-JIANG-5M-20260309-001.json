@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-JIANG-5M-20260309-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "JIANG",
+  "timeframe": "5M",
+  "date": "2026-03-09",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 50,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIN02muiNI7TpQjlf--1bYtEVctAwTQAAKrDGsbECF5RY7TIrXqFZwbAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-03-09T08:46:43.450040"
+}

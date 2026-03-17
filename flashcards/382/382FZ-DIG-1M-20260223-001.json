@@ -1,0 +1,18 @@
+{
+  "chart_id": "382FZ-DIG-1M-20260223-001",
+  "setup_name": "382 + Flip Zone",
+  "canonical_key": "382_flip_zone",
+  "token": "DIG",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "382",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 85,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIFMmmb9Qboh-XYx56iarfHIuW1oLz_AALqC2sbHBvhRCRUOROtOV5uAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-02-23T06:35:08.693312"
+}

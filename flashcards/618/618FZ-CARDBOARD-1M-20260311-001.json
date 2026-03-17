@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-CARDBOARD-1M-20260311-001",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "CARDBOARD",
+  "timeframe": "1M",
+  "date": "2026-03-11",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 65,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIO4GmxDzbApmXzw_SowBzdBvXRTLK9AAKWC2sbBnWIRRvAtwq5diOiAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-03-11T06:44:38.812195"
+}

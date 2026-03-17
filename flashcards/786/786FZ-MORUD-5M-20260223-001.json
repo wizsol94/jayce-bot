@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-MORUD-5M-20260223-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "MORUD",
+  "timeframe": "5M",
+  "date": "2026-02-23",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 400,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHSmmcbMcubSPZhXWSQN-ZYqJnv22jAAKdDGsbHBvhRDqDx_GpaAWKAQADAgADdwADOgQ",
+  "notes": "clean structure whale conviction",
+  "trained_at": "2026-02-23T15:06:09.729040"
+}

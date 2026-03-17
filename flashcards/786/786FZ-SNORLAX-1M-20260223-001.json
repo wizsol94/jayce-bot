@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-SNORLAX-1M-20260223-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "SNORLAX",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 20,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHI2mcaYhEejlltAP9RejGdMO_OD2ZAAKQDGsbHBvhROD8GcndVpJmAQADAgADdwADOgQ",
+  "notes": "clean structure trending narrative",
+  "trained_at": "2026-02-23T14:52:12.967432"
+}
