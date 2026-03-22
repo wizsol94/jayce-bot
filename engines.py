@@ -234,11 +234,14 @@ def detect_flip_zones(candles: List[dict], fib_levels: Dict[str, float]) -> List
         if touches >= 2:
             flip_zones.append({
                 'fib_level': fib_name,
-                'price': fib_price,
+                'level': fib_price,  # FIXED: was 'price', validators expect 'level'
+                'price': fib_price,  # Keep for backwards compat
                 'zone_top': fib_price + zone_size,
-                'zone_bot': fib_price - zone_size,
+                'zone_bottom': fib_price - zone_size,  # FIXED: was 'zone_bot'
+                'zone_bot': fib_price - zone_size,  # Keep for backwards compat
                 'touches': touches,
                 'rejections': rejections,
+                'fresh': True,  # Added: validators check this
             })
     
     return flip_zones
@@ -543,6 +546,335 @@ def score_to_grade(score: int) -> str:
 # MAIN ENGINE DETECTION
 # ══════════════════════════════════════════════════════════════════════════════
 
+
+def determine_setup_by_body_acceptance(candles: List[dict], structure: dict) -> dict:
+    """
+    Determine the real tradeable setup type by analyzing where candle BODIES are accepting.
+    
+    KEY RULE: "Setup type = which fib zone the flip zone MOSTLY OCCUPIES"
+    
+    1. Detect flip zone as a RANGE (not single price) where bodies are accepting
+    2. Map that range against fib levels (382 / 50 / 618 / 786)
+    3. Classify by which fib zone contains the majority of acceptance
+    
+    Retrace % is informational only, NOT the classifier.
+    """
+    result = {
+        'recommended_setup': None,
+        'flip_zone_range': None,
+        'fib_overlaps': {},
+        'confidence': 0,
+        'reason': 'No flip zone detected',
+        'debug': []
+    }
+    
+    if not candles or len(candles) < 20:
+        return result
+    
+    # Get swing high/low from structure (wick-based, per master fib rules)
+    swing_high = structure.get('swing_high', 0)
+    swing_low = structure.get('swing_low', 0)
+    fib_range = swing_high - swing_low
+    
+    if fib_range <= 0 or swing_low <= 0:
+        return result
+    
+    # Calculate fib levels (wick-based)
+    fib_levels = {
+        '382': swing_high - (fib_range * 0.382),
+        '50': swing_high - (fib_range * 0.50),
+        '618': swing_high - (fib_range * 0.618),
+        '786': swing_high - (fib_range * 0.786),
+    }
+    
+    # Define fib ZONES (each fib level has a range around it)
+    # These ranges define where each setup "owns" the price action
+    fib_zones = {
+        '382': (swing_high - (fib_range * 0.45), swing_high - (fib_range * 0.30)),  # 30-45%
+        '50': (swing_high - (fib_range * 0.58), swing_high - (fib_range * 0.42)),   # 42-58%
+        '618': (swing_high - (fib_range * 0.70), swing_high - (fib_range * 0.55)),  # 55-70%
+        '786': (swing_high - (fib_range * 0.85), swing_high - (fib_range * 0.70)),  # 70-85%
+    }
+    
+    result['debug'].append(f"Swing: low={swing_low:.8f} high={swing_high:.8f} range={fib_range:.8f}")
+    for fib_name, fib_price in fib_levels.items():
+        zone = fib_zones[fib_name]
+        result['debug'].append(f"Fib {fib_name}: {fib_price:.8f} (zone: {zone[1]:.8f} - {zone[0]:.8f})")
+    
+    # ═══════════════════════════════════════════════════════════════════
+    # STEP 1: Detect Flip Zone as a RANGE where bodies are accepting
+    # ═══════════════════════════════════════════════════════════════════
+    recent = candles[-40:]  # Look at recent retrace candles
+    
+    # Collect all body close prices in the retrace zone
+    body_closes = []
+    body_ranges = []  # (body_low, body_high) for each candle
+    
+    for c in recent:
+        o = float(c.get('open') or c.get('o') or 0)
+        h = float(c.get('high') or c.get('h') or 0)
+        l = float(c.get('low') or c.get('l') or 0)
+        close = float(c.get('close') or c.get('c') or 0)
+        
+        if close <= 0:
+            continue
+        
+        body_low = min(o, close)
+        body_high = max(o, close)
+        
+        # Only include candles that are in the retrace zone (below swing high)
+        if close < swing_high:
+            body_closes.append(close)
+            body_ranges.append((body_low, body_high))
+    
+    if len(body_closes) < 5:
+        result['reason'] = 'Not enough retrace candles'
+        return result
+    
+    # Find the flip zone range: where most body closes are clustering
+    # Use percentiles to find the acceptance band
+    body_closes_sorted = sorted(body_closes)
+    
+    # Flip zone = 25th to 75th percentile of body closes (middle 50%)
+    p25_idx = int(len(body_closes_sorted) * 0.25)
+    p75_idx = int(len(body_closes_sorted) * 0.75)
+    
+    flip_zone_low = body_closes_sorted[p25_idx]
+    flip_zone_high = body_closes_sorted[p75_idx]
+    
+    # Expand slightly to capture the full acceptance band
+    flip_zone_buffer = (flip_zone_high - flip_zone_low) * 0.15
+    flip_zone_low -= flip_zone_buffer
+    flip_zone_high += flip_zone_buffer
+    
+    result['flip_zone_range'] = (flip_zone_low, flip_zone_high)
+    result['debug'].append(f"Flip Zone Range: {flip_zone_low:.8f} - {flip_zone_high:.8f}")
+    
+    # ═══════════════════════════════════════════════════════════════════
+    # STEP 2: Calculate overlap of flip zone with each fib zone
+    # ═══════════════════════════════════════════════════════════════════
+    
+    def calculate_overlap(range1, range2):
+        """Calculate overlap percentage between two ranges."""
+        overlap_low = max(range1[0], range2[0])
+        overlap_high = min(range1[1], range2[1])
+        
+        if overlap_high <= overlap_low:
+            return 0.0  # No overlap
+        
+        overlap_size = overlap_high - overlap_low
+        range1_size = range1[1] - range1[0]
+        
+        if range1_size <= 0:
+            return 0.0
+        
+        return (overlap_size / range1_size) * 100
+    
+    flip_zone = (flip_zone_low, flip_zone_high)
+    
+    for fib_name, fib_zone in fib_zones.items():
+        # fib_zone is (lower_price, upper_price) but we need (low, high) order
+        fib_zone_ordered = (min(fib_zone), max(fib_zone))
+        overlap_pct = calculate_overlap(flip_zone, fib_zone_ordered)
+        
+        result['fib_overlaps'][fib_name] = {
+            'overlap_pct': round(overlap_pct, 1),
+            'fib_zone': fib_zone_ordered,
+            'fib_level': fib_levels[fib_name]
+        }
+        
+        result['debug'].append(f"Overlap with {fib_name}: {overlap_pct:.1f}%")
+    
+    # ═══════════════════════════════════════════════════════════════════
+    # STEP 3: Classify by which fib zone has the MOST overlap
+    # ═══════════════════════════════════════════════════════════════════
+    
+    best_overlap = 0
+    best_setup = None
+    
+    for fib_name, data in result['fib_overlaps'].items():
+        if data['overlap_pct'] > best_overlap:
+            best_overlap = data['overlap_pct']
+            best_setup = fib_name
+    
+    if best_setup and best_overlap >= 20:  # At least 20% overlap required
+        result['recommended_setup'] = best_setup
+        result['confidence'] = min(100, int(best_overlap))
+        result['reason'] = f"Flip zone ({flip_zone_low:.8f} - {flip_zone_high:.8f}) has {best_overlap:.0f}% overlap with {best_setup} zone"
+        
+        # Find runner-up
+        overlaps_sorted = sorted(result['fib_overlaps'].items(), key=lambda x: x[1]['overlap_pct'], reverse=True)
+        if len(overlaps_sorted) > 1 and overlaps_sorted[1][1]['overlap_pct'] > 0:
+            result['runner_up'] = {
+                'zone': overlaps_sorted[1][0],
+                'overlap': overlaps_sorted[1][1]['overlap_pct']
+            }
+    else:
+        result['reason'] = f"No significant fib zone overlap (best: {best_setup} at {best_overlap:.0f}%)"
+    
+    return result
+
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BREAKOUT ELIGIBILITY CHECK
+# Ensures we only run validators on charts that have CONFIRMED breakout + expansion
+# ══════════════════════════════════════════════════════════════════════════════
+
+def check_breakout_eligibility(candles: List[dict], symbol: str) -> dict:
+    """
+    Check if chart has a CONFIRMED breakout that already happened.
+    
+    KEY INSIGHT: We're looking for setups where:
+    1. There WAS a resistance level
+    2. Price BROKE above it (in the past)
+    3. Price EXPANDED beyond the breakout
+    4. Price is NOW retracing back toward flip zone (this is the ENTRY opportunity)
+    
+    We do NOT require current price to be above ATH - that would miss all retrace entries!
+    """
+    logger.info(f"   [BREAKOUT] {symbol}: Checking breakout eligibility ({len(candles) if candles else 0} candles)")
+    
+    result = {
+        'eligible': False,
+        'reason': 'Unknown',
+        'breakout_high': 0,
+        'resistance_level': 0,
+        'expansion_pct': 0,
+        'closes_above': 0
+    }
+    
+    if not candles or len(candles) < 30:
+        result['reason'] = 'Not enough candles'
+        return result
+    
+    # Use last 100 candles for analysis
+    lookback = min(100, len(candles))
+    recent = candles[-lookback:]
+    
+    # ══════════════════════════════════════════════════════════════════════
+    # STEP 1: Find the ATH (highest high in the data)
+    # This is the EXPANSION HIGH - the peak of the impulse move
+    # ══════════════════════════════════════════════════════════════════════
+    ath_price = 0
+    ath_idx = 0
+    
+    for i in range(len(recent)):
+        h = float(recent[i].get('h') or recent[i].get('high') or 0)
+        if h > ath_price:
+            ath_price = h
+            ath_idx = i
+    
+    if ath_price == 0:
+        result['reason'] = 'No ATH found'
+        return result
+    
+    result['breakout_high'] = ath_price
+    
+    # ══════════════════════════════════════════════════════════════════════
+    # STEP 2: Find the resistance that was BROKEN before the ATH
+    # Look for the highest high BEFORE the ATH that was then exceeded
+    # ══════════════════════════════════════════════════════════════════════
+    
+    # Need at least 5 candles before ATH to identify resistance
+    if ath_idx < 5:
+        result['reason'] = 'ATH too early in data - no prior resistance visible'
+        return result
+    
+    # Find highest high before the ATH (this is the resistance that was broken)
+    resistance_high = 0
+    resistance_idx = 0
+    
+    for i in range(0, ath_idx):
+        h = float(recent[i].get('h') or recent[i].get('high') or 0)
+        if h > resistance_high:
+            resistance_high = h
+            resistance_idx = i
+    
+    if resistance_high == 0:
+        result['reason'] = 'No resistance found before ATH'
+        return result
+    
+    result['resistance_level'] = resistance_high
+    
+    # ══════════════════════════════════════════════════════════════════════
+    # STEP 3: Verify the breakout - ATH must be meaningfully above resistance
+    # ══════════════════════════════════════════════════════════════════════
+    
+    expansion_pct = ((ath_price - resistance_high) / resistance_high) * 100 if resistance_high > 0 else 0
+    result['expansion_pct'] = expansion_pct
+    
+    # Require at least 15% expansion beyond the resistance
+    MIN_EXPANSION = 15
+    if expansion_pct < MIN_EXPANSION:
+        result['reason'] = f'Expansion only {expansion_pct:.1f}% above resistance (need {MIN_EXPANSION}%)'
+        logger.info(f"   [BREAKOUT] {symbol}: ❌ {result['reason']}")
+        return result
+    
+    logger.info(f"   [BREAKOUT] {symbol}: ✓ Expanded {expansion_pct:.1f}% above prior resistance")
+    
+    # ══════════════════════════════════════════════════════════════════════
+    # STEP 4: Count candles that closed above the old resistance
+    # This confirms the breakout was real, not just a wick
+    # ══════════════════════════════════════════════════════════════════════
+    
+    breakout_candles = 0
+    
+    for i in range(resistance_idx + 1, len(recent)):
+        o = float(recent[i].get('o') or recent[i].get('open') or 0)
+        c = float(recent[i].get('c') or recent[i].get('close') or 0)
+        body_bottom = min(o, c)
+        
+        # Body closed above resistance zone (within 2%)
+        if body_bottom > resistance_high * 0.98:
+            breakout_candles += 1
+    
+    result['closes_above'] = breakout_candles
+    
+    # Require at least 2 candles with bodies above resistance
+    MIN_BREAKOUT_CLOSES = 2
+    if breakout_candles < MIN_BREAKOUT_CLOSES:
+        result['reason'] = f'Only {breakout_candles} closes above resistance (need {MIN_BREAKOUT_CLOSES})'
+        logger.info(f"   [BREAKOUT] {symbol}: ❌ {result['reason']}")
+        return result
+    
+    logger.info(f"   [BREAKOUT] {symbol}: ✓ {breakout_candles} candles closed above resistance")
+    
+    # ══════════════════════════════════════════════════════════════════════
+    # STEP 5: Check freshness - reject if ATH is too old AND price dumped
+    # ══════════════════════════════════════════════════════════════════════
+    
+    current_price = float(recent[-1].get('c') or recent[-1].get('close') or 0)
+    candles_since_ath = len(recent) - 1 - ath_idx
+    pct_below_ath = ((ath_price - current_price) / ath_price) * 100 if ath_price > 0 else 0
+    
+    # Stale breakout check: ATH is old AND price crashed
+    STALE_AGE = 40  # candles
+    STALE_DUMP = 60  # percent below ATH
+    
+    if candles_since_ath > STALE_AGE and pct_below_ath > STALE_DUMP:
+        result['reason'] = f'Stale breakout: ATH {candles_since_ath} candles ago, price {pct_below_ath:.0f}% below'
+        logger.info(f"   [BREAKOUT] {symbol}: ❌ {result['reason']}")
+        return result
+    
+    # ══════════════════════════════════════════════════════════════════════
+    # BREAKOUT CONFIRMED - Chart is eligible for setup classification
+    # ══════════════════════════════════════════════════════════════════════
+    result['eligible'] = True
+    result['reason'] = f'Breakout confirmed: {expansion_pct:.0f}% expansion, {breakout_candles} closes above'
+    
+    logger.info(f"   [BREAKOUT] {symbol}: ✅ ELIGIBLE for setup classification")
+    logger.info(f"   [BREAKOUT]    Prior resistance: {resistance_high:.10f}")
+    logger.info(f"   [BREAKOUT]    Breakout ATH: {ath_price:.10f}")
+    logger.info(f"   [BREAKOUT]    Expansion: {expansion_pct:.1f}%")
+    logger.info(f"   [BREAKOUT]    Closes above: {breakout_candles}")
+    logger.info(f"   [BREAKOUT]    Current: {pct_below_ath:.1f}% below ATH ({candles_since_ath} candles ago)")
+    
+    return result
+
+
+
 def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
     """
     Run all 5 WizTheory engines on the token.
@@ -580,10 +912,41 @@ def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
     if has_whale:
         logger.info(f"🐋 {symbol}: Whale activity detected")
     
+    # ═══════════════════════════════════════════════════════════════════
+    # PRE-ROUTING: Body Acceptance Analysis
+    # Determines the REAL tradeable setup based on where bodies are accepting
+    # ═══════════════════════════════════════════════════════════════════
+    body_routing = determine_setup_by_body_acceptance(candles, structure)
+    recommended_setup = body_routing.get('recommended_setup')
+    body_retrace = body_routing.get('body_retrace_pct')
+    
+    if recommended_setup:
+        flip_range = body_routing.get('flip_zone_range')
+        flip_str = f"{flip_range[0]:.8f} - {flip_range[1]:.8f}" if flip_range else "N/A"
+        
+        logger.info(f"   [FLIP-ZONE] Wick retrace: {ret_pct:.1f}% (context only)")
+        logger.info(f"   [FLIP-ZONE] Flip zone range: {flip_str}")
+        logger.info(f"   [FLIP-ZONE] ✅ CLASSIFIED AS: {recommended_setup} + Flip Zone")
+        
+        # Show overlap percentages for each fib zone
+        for fib_name, data in body_routing.get('fib_overlaps', {}).items():
+            marker = "→" if fib_name == recommended_setup else " "
+            logger.info(f"   [FLIP-ZONE] {marker} {fib_name}: {data['overlap_pct']:.0f}% overlap")
+        
+        logger.info(f"   [FLIP-ZONE] Reason: {body_routing.get('reason')}")
+    
     # Test each engine
     results = []
     
-    for engine_id, params in ENGINE_PARAMS.items():
+    # If body acceptance strongly recommends a setup, prioritize it
+    engine_order = list(ENGINE_PARAMS.keys())
+    if recommended_setup and recommended_setup in engine_order:
+        # Move recommended setup to front of list
+        engine_order.remove(recommended_setup)
+        engine_order.insert(0, recommended_setup)
+    
+    for engine_id in engine_order:
+        params = ENGINE_PARAMS[engine_id]
         # Skip if on cooldown
         if is_engine_on_cooldown(address, engine_id):
             continue
@@ -597,10 +960,18 @@ def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
         grade_threshold = params['grade_threshold']
         
         # ─────────────────────────────────────────────────
-        # CHECK 1: Retracement range
+        # CHECK 1: Retracement range (with body acceptance override)
         # ─────────────────────────────────────────────────
-        if not (ret_min <= ret_pct <= ret_max):
+        wick_in_range = (ret_min <= ret_pct <= ret_max)
+        body_recommended = (engine_id == recommended_setup and body_routing.get('confidence', 0) >= 50)
+        
+        # Allow through if: wick says yes, OR body acceptance strongly recommends this setup
+        if not wick_in_range and not body_recommended:
             continue
+        
+        # Log when body acceptance overrides wick routing
+        if not wick_in_range and body_recommended:
+            logger.info(f"   [BODY-ROUTE] ✅ OVERRIDE: {engine_id} allowed (wick: {ret_pct:.1f}% out of {ret_min}-{ret_max}%, but body acceptance strong)")
         
         # ─────────────────────────────────────────────────
         # CHECK 2: Impulse minimum

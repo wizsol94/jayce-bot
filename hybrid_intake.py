@@ -76,6 +76,10 @@ def stage2_metadata_filter(tokens: List[Dict], top_n: int = 60) -> List[Metadata
     
     Score tokens based on metadata only. Prioritize THE MOVE.
     Returns top N tokens for candle fetch.
+    
+    DEDUPLICATION: If a token appears multiple times (from different sources),
+    we keep ALL versions for scoring, then deduplicate AFTER scoring to keep
+    the highest-scoring version of each token.
     """
     scored = []
     
@@ -153,8 +157,23 @@ def stage2_metadata_filter(tokens: List[Dict], top_n: int = 60) -> List[Metadata
     # Sort by score descending
     scored.sort(key=lambda x: x.score, reverse=True)
     
+    # DEDUPLICATE: Keep only the highest-scoring version of each token
+    seen_addresses = set()
+    deduped = []
+    deduped_count = 0
+    for result in scored:
+        pair_address = result.token.get('pair_address', '')
+        if pair_address and pair_address not in seen_addresses:
+            seen_addresses.add(pair_address)
+            deduped.append(result)
+        else:
+            deduped_count += 1
+    
+    if deduped_count > 0:
+        logger.debug(f"[HYBRID] Stage 2: Deduped {deduped_count} duplicate tokens")
+    
     # Return top N
-    return scored[:top_n]
+    return deduped[:top_n]
 
 
 def _detect_flip_zone(candles: List[Dict], breakout_level: float) -> Optional[FlipZone]:
@@ -330,91 +349,148 @@ def stage3_mini_structure_check(
     # Current price
     current_price = closes[-1]
     
-    # --- FIND KEY LEVELS ---
-    
-    # Recent high (in last 50% of candles - the expansion high)
-    half_point = len(highs) // 2
-    recent_high = max(highs[half_point:]) if half_point > 0 else max(highs[-50:])
-    recent_high_idx = highs.index(recent_high) if recent_high in highs else len(highs) - 1
-    
-    # Prior high (in first 50% of candles - the resistance that was broken)
-    prior_high = max(highs[:half_point]) if half_point > 10 else max(highs[:20])
-    prior_high_idx = highs.index(prior_high) if prior_high in highs else 0
-    
-    # Overall ATH
-    ath = max(highs)
-    ath_idx = highs.index(ath) if ath in highs else len(highs) - 1
-    
-    # DEBUG: Log ATH position for troubleshooting
-    symbol = token.get('symbol', '???')
-    if symbol in ['PIGEON', 'HAT', 'WAR']:
-        logger.info(f"[DEBUG] {symbol}: ATH_idx={ath_idx}, candle_count={len(highs)}, ath_pct={ath_idx/len(highs)*100:.1f}%, recent_high_idx={recent_high_idx}")
-    
-    # Swing low for impulse calculation
-    swing_low = min(lows)
-    
-    # --- BREAKOUT DETECTION ---
-    # With only ~24h of candle data, we can't reliably detect TRUE ATH.
-    # Instead, detect BREAKOUT ABOVE PRIOR RESISTANCE within our data window.
+    # ═══════════════════════════════════════════════════════════════
+    # STRUCTURAL BREAKOUT DETECTION v2.0
+    # ═══════════════════════════════════════════════════════════════
+    # Structure-based detection (not candle-position dependent)
     #
-    # Valid breakout structure:
-    # 1. Prior resistance exists in FIRST 60% of candles
-    # 2. Recent high BROKE ABOVE that resistance (by at least 15%)
-    # 3. The breakout happened in the LAST 50% of candles
-    # 4. Price is now pulling back toward the broken resistance
+    # SETUP EXPANSION REQUIREMENTS (LOCKED - DO NOT CHANGE):
+    # - 382: 30% min impulse
+    # - 50:  50% min impulse
+    # - 618: 60% min impulse
+    # - 786: 100% min impulse
+    # - Under-Fib: 60% min impulse
+    # ═══════════════════════════════════════════════════════════════
     
+    symbol = token.get('symbol', '???')
+    candle_count = len(highs)
+    current_price = closes[-1]
+    
+    # --- STEP 1: Find Expansion High (highest wick in chart) ---
+    expansion_high = max(highs)
+    expansion_high_idx = highs.index(expansion_high)
+    
+    # --- STEP 2: Find Prior Resistance (major high BEFORE expansion) ---
+    prior_resistance = 0
+    prior_resistance_idx = 0
+    
+    if expansion_high_idx >= 5:
+        prior_highs = highs[:expansion_high_idx]
+        if prior_highs:
+            prior_resistance = max(prior_highs)
+            prior_resistance_idx = prior_highs.index(prior_resistance)
+    
+    # Fallback: find second-highest peak at least 5 candles away
+    if prior_resistance == 0:
+        sorted_peaks = sorted(enumerate(highs), key=lambda x: x[1], reverse=True)
+        for idx, val in sorted_peaks[1:]:
+            if abs(idx - expansion_high_idx) >= 5:
+                prior_resistance = val
+                prior_resistance_idx = idx
+                break
+    
+    # --- STEP 3: Find Swing Low (base of expansion) ---
+    if expansion_high_idx > 0:
+        swing_low = min(lows[:expansion_high_idx + 1])
+        swing_low_idx = lows.index(swing_low)
+    else:
+        swing_low = min(lows)
+        swing_low_idx = lows.index(swing_low)
+    
+    # Ensure swing low is BEFORE expansion high
+    if swing_low_idx > expansion_high_idx and expansion_high_idx > 0:
+        pre_high_lows = lows[:expansion_high_idx]
+        if pre_high_lows:
+            swing_low = min(pre_high_lows)
+            swing_low_idx = pre_high_lows.index(swing_low)
+    
+    # --- STEP 4: Calculate Metrics ---
+    impulse_range = expansion_high - swing_low
+    impulse_pct = ((impulse_range) / swing_low * 100) if swing_low > 0 else 0
+    
+    breakout_pct = 0
+    if prior_resistance > 0 and prior_resistance < expansion_high:
+        breakout_pct = ((expansion_high - prior_resistance) / prior_resistance * 100)
+    
+    retracement_pct = 0
+    if impulse_range > 0:
+        retracement_pct = ((expansion_high - current_price) / impulse_range * 100)
+        retracement_pct = max(0, retracement_pct)
+    
+    # --- STEP 5: Classify Breakout Type ---
     ath_breakout = False
     major_high_break = False
-    candle_count = len(highs)
     
-    # Calculate the breakout percentage (how much did recent high exceed prior resistance)
-    breakout_pct = ((recent_high - prior_high) / prior_high * 100) if prior_high > 0 else 0
+    # Minimum requirements for ANY valid breakout structure:
+    # - At least 30% impulse (minimum for 382 setup)
+    # - Price in pullback phase (at least 15% retracement)
+    has_min_expansion = impulse_pct >= 30
+    in_pullback = retracement_pct >= 15
+    broke_resistance = breakout_pct >= 10
     
-    # Valid breakout: recent high is significantly above prior resistance
-    # AND the breakout happened recently (recent_high_idx in last 50%)
-    # AND prior_high is actually in the first part of the data (it's prior resistance)
-    
-    breakout_is_recent = recent_high_idx > candle_count * 0.50
-    prior_is_resistance = prior_high_idx < candle_count * 0.60
-    significant_breakout = breakout_pct >= 15  # At least 15% above prior resistance
-    
-    if breakout_is_recent and prior_is_resistance and significant_breakout:
-        # This is a valid breakout above prior resistance
-        if breakout_pct >= 30:
-            ath_breakout = True  # Strong breakout
+    if has_min_expansion and in_pullback:
+        # ATH_BREAK: Strong expansion (enough for 786) + broke resistance
+        if impulse_pct >= 100 and broke_resistance:
+            ath_breakout = True
             structure_score += 20
             reasons.append('ATH_BREAKOUT')
-        else:
-            major_high_break = True  # Moderate breakout
+        
+        # MAJOR_HIGH_BREAK: Moderate expansion + broke resistance
+        elif impulse_pct >= 50 and broke_resistance:
+            major_high_break = True
             structure_score += 15
             reasons.append('MAJOR_HIGH_BREAK')
+        
+        # MAJOR_HIGH_BREAK: Good expansion even without clear prior resistance
+        # (handles fresh coins where prior resistance not visible)
+        elif impulse_pct >= 60:
+            major_high_break = True
+            structure_score += 12
+            reasons.append('MAJOR_HIGH_BREAK')
+        
+        # Weaker but valid structure (enough for 382/50)
+        elif impulse_pct >= 30:
+            major_high_break = True
+            structure_score += 8
+            reasons.append('MAJOR_HIGH_BREAK')
     
-    # If breakout is weak or didn't happen recently, NOT a continuation structure
     if not ath_breakout and not major_high_break:
         reasons.append('NO_BREAKOUT')
-        reasons.append(f'{breakout_pct:.0f}%_exp')
+        reasons.append(f'{impulse_pct:.0f}%_exp')
     
     # --- FLIP ZONE DETECTION ---
-    # The level that was broken becomes the flip zone
-    breakout_level = prior_high  # The resistance that was broken
+    # Use engines.py flip zone detection (fib-based, proper touch counting)
+    breakout_level = prior_resistance  # The resistance that was broken
     
-    flip_zone = _detect_flip_zone(candles, breakout_level)
-    has_valid_flip_zone = flip_zone is not None and flip_zone.valid
+    from engines import analyze_structure as _eng_analyze
+    _eng_structure = _eng_analyze(candles)
+    _eng_flip_zones = _eng_structure.get('flip_zones', []) if _eng_structure else []
     
+    # Valid flip zone = any fib level with 2+ touches
+    has_valid_flip_zone = any(fz.get('touches', 0) >= 2 for fz in _eng_flip_zones)
+    
+    # Create FlipZone object for compatibility
+    flip_zone = None
     if has_valid_flip_zone:
+        best_fz = max(_eng_flip_zones, key=lambda x: x.get('touches', 0))
+        flip_zone = FlipZone(
+            level=best_fz.get('level', best_fz.get('price', 0)),
+            touches=best_fz.get('touches', 0),
+            has_consolidation=True,
+            zone_top=best_fz.get('zone_top', 0),
+            zone_bottom=best_fz.get('zone_bottom', best_fz.get('zone_bot', 0)),
+            valid=True
+        )
         structure_score += 15
-        if flip_zone.touches >= 2:
-            reasons.append(f'FZ_{flip_zone.touches}touch')
-        elif flip_zone.has_consolidation:
-            reasons.append('FZ_consol')
+        reasons.append(f'FZ_{best_fz.get("touches", 0)}touch')
     
     # --- EXPANSION CALCULATION ---
     # Measure from breakout level to recent high
     expansion_pct = 0
     if breakout_level > 0:
-        expansion_pct = ((recent_high - breakout_level) / breakout_level) * 100
+        expansion_pct = ((expansion_high - breakout_level) / breakout_level) * 100
     
-    impulse_pct = ((recent_high - swing_low) / swing_low * 100) if swing_low > 0 else 0
+    impulse_pct = ((expansion_high - swing_low) / swing_low * 100) if swing_low > 0 else 0
     
     impulse_detected = expansion_pct >= 25 or impulse_pct >= 30
     
@@ -429,7 +505,7 @@ def stage3_mini_structure_check(
         reasons.append(f'impulse_{impulse_pct:.0f}%')
     
     # --- VOLUME CONFIRMATION ---
-    expansion_volume_strong = _check_expansion_volume(candles, prior_high_idx, recent_high_idx)
+    expansion_volume_strong = _check_expansion_volume(candles, prior_resistance_idx, expansion_high_idx)
     
     if expansion_volume_strong:
         structure_score += 5
@@ -437,8 +513,8 @@ def stage3_mini_structure_check(
     
     # --- RETRACEMENT CHECK ---
     # Measure from recent high back to breakout level (flip zone)
-    range_size = recent_high - swing_low
-    retracement_pct = ((recent_high - current_price) / range_size * 100) if range_size > 0 else 0
+    range_size = expansion_high - swing_low
+    retracement_pct = ((expansion_high - current_price) / range_size * 100) if range_size > 0 else 0
     
     in_pullback = 20 <= retracement_pct <= 80
     
@@ -684,8 +760,35 @@ async def run_hybrid_intake(
     
     logger.info(f"[HYBRID] Stage 3 complete: {len(structure_results)} tokens analyzed")
     
-    # Sort by total score
-    structure_results.sort(key=lambda x: x.total_score, reverse=True)
+    # DEDUPLICATE structure results: Keep highest-scoring version of each token
+    seen_addresses = set()
+    deduped_results = []
+    skipped_dupes = []
+    
+    # Debug: Log all pair_addresses before dedup
+    all_pairs = [(r.token.get('symbol', '???'), r.token.get('pair_address', 'NONE')[:20], r.total_score) for r in structure_results]
+    logger.info(f"[HYBRID] Pre-dedupe: {len(structure_results)} results")
+    
+    for result in sorted(structure_results, key=lambda x: x.total_score, reverse=True):
+        pair_address = result.token.get('pair_address', '')
+        symbol = result.token.get('symbol', '???')
+        
+        if not pair_address:
+            logger.warning(f"[HYBRID] ⚠️ No pair_address for {symbol} (total={result.total_score}) - keeping anyway")
+            deduped_results.append(result)
+        elif pair_address not in seen_addresses:
+            seen_addresses.add(pair_address)
+            deduped_results.append(result)
+        else:
+            skipped_dupes.append(f"{symbol}:{result.total_score}")
+            logger.info(f"[HYBRID] ↳ Skipped duplicate: {symbol} (score={result.total_score}, addr={pair_address[:20]}...)")
+    
+    if skipped_dupes:
+        logger.info(f"[HYBRID] Stage 3: Deduped {len(skipped_dupes)} duplicates: {', '.join(skipped_dupes[:5])}")
+    else:
+        logger.info(f"[HYBRID] Stage 3: No duplicates found (all {len(deduped_results)} unique)")
+    
+    structure_results = deduped_results
     
     # Log top structure scores
     logger.info(f"[HYBRID] Top structure scores:")
@@ -695,6 +798,13 @@ async def run_hybrid_intake(
         brk = "BRK✓" if (result.ath_breakout or result.major_high_break) else "BRK✗"
         reasons_str = ', '.join(result.reasons[:4])
         logger.info(f"[HYBRID]   #{i+1}: {sym} (total: {result.total_score}, struct: {result.structure_score}) [{fz}|{brk}] {reasons_str}")
+    
+    # Scoring integrity check: Verify all results have complete scores
+    incomplete = [r for r in structure_results if r.total_score == 0 or r.metadata_score == 0]
+    if incomplete:
+        logger.warning(f"[HYBRID] ⚠️ {len(incomplete)} tokens with incomplete scores!")
+        for r in incomplete[:3]:
+            logger.warning(f"[HYBRID]   - {r.token.get('symbol', '???')}: meta={r.metadata_score} struct={r.structure_score} total={r.total_score}")
     
     # Return top N for WizTheory engine
     final_candidates = structure_results[:structure_top_n]

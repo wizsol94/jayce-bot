@@ -18,11 +18,51 @@ from io import BytesIO
 import math
 import random
 
+# ══════════════════════════════════════════════════════════════════════════════
+# STARTUP ENVIRONMENT CHECK - Verify critical API keys are loaded
+# ══════════════════════════════════════════════════════════════════════════════
+import os
+import sys
+
+def verify_environment():
+    """Verify critical environment variables are set before starting."""
+    critical_vars = {
+        'BIRDEYE_API_KEY': 'Birdeye API (candle data)',
+        'TELEGRAM_BOT_TOKEN': 'Telegram alerts',
+        'ANTHROPIC_API_KEY': 'Vision AI analysis'
+    }
+    
+    missing = []
+    for var, description in critical_vars.items():
+        value = os.getenv(var, '')
+        if not value or len(value) < 10:
+            missing.append(f"  ❌ {var} - Required for: {description}")
+        else:
+            print(f"  ✅ {var} loaded ({len(value)} chars)")
+    
+    if missing:
+        print("\n🚨 CRITICAL: Missing environment variables!")
+        print("\n".join(missing))
+        print("\nCheck /opt/jayce/.env file and restart the service.")
+        print("Run: sudo systemctl restart jayce-scanner")
+        sys.exit(1)
+    
+    print("✅ All critical environment variables verified")
+
+# Run check on import
+print("\n🔐 Verifying environment variables...")
+verify_environment()
+print("")
+
+
+
 # v4.1: Import WizTheory detection engines
 from engines import run_detection, format_engine_result_text, cleanup_engine_cooldowns
 from candle_provider import fetch_candles
+from daily_audit import track_tokens_scanned, track_candidates, track_vision_call, track_alert, save_daily_stats
 from hybrid_intake import run_hybrid_intake, stage2_metadata_filter
 from alert_tracker import log_alert
+from quiet_movers import fetch_quiet_movers
 # PSEF and Candle Intelligence modules
 try:
     from psef import run_psef
@@ -38,6 +78,7 @@ try:
     from token_validator import validate_tokens_batch
     from structural_prescan import structural_prescan, run_prescan_batch, ScanBucket, quick_filter
     from flashcard_vision import analyze_with_flashcards, get_usage_stats
+    from vision_audit import log_vision_call, update_outcome
     from setup_watch import check_setup_watch, format_setup_watch_message, clear_old_alerts
     PSEF_ENABLED = False  # Disabled - validators handle quality
 except ImportError as e:
@@ -57,7 +98,7 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
     breakdown = bangers_result.get('breakdown', {})
     
     # Impulse data
-    impulse_data = impulse_result.get('impulse', {})
+    impulse_data = impulse_result.get('impulse') or {}
     expansion_pct = impulse_data.get('expansion_pct', 0)
     impulse_bonus = bangers_result.get('impulse_bonus', 0)
     
@@ -69,12 +110,12 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
     
     # RSI
     rsi_data = bangers_result.get('rsi', {})
-    rsi_label = rsi_data.get('memory_state', 'UNKNOWN')
+    rsi_label = rsi_data.get('mode') or rsi_data.get('memory_state', 'UNKNOWN')
     rsi_points = breakdown.get('rsi_memory', {}).get('points', 0)
     
     # Candles
     candle_data = bangers_result.get('candles', {})
-    candle_char = candle_data.get('character', 'UNKNOWN')
+    candle_char = candle_data.get('recent_character') or candle_data.get('character', 'UNKNOWN')
     candle_points = breakdown.get('candle_quality', {}).get('points', 0)
     
     # Vision
@@ -2103,6 +2144,13 @@ async def send_wiztheory_alert(token: dict, bangers_result: dict, impulse_result
         record_alert_sent(address, f"WIZTHEORY_{setup_type}")
         log_alert(symbol, setup_type, int(bangers_result.get('score', 0)), bangers_result.get('grade', '?'), address)
         logger.info(f"🎯 WIZTHEORY Alert: {symbol} — {setup_type} — Grade: {bangers_result.get('grade')} — Score: {bangers_result.get('score')}")
+        
+        # Update Vision audit outcome
+        try:
+            update_outcome(symbol, setup_type, 'alerted')
+        except:
+            pass
+        
         return True
     except Exception as e:
         logger.error(f"❌ WIZTHEORY alert error: {e}")
@@ -2229,11 +2277,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     engine_result = None
     detected_setup = None
     if candles and len(candles) >= 10:
-        # Add hybrid gate info to token for engine
-        token['passes_50fz_gate'] = candidate.get('passes_50fz_gate', True) if 'candidate' in dir() else True
-        token['ath_breakout'] = candidate.get('ath_breakout', False) if 'candidate' in dir() else False
-        token['major_high_break'] = candidate.get('major_high_break', False) if 'candidate' in dir() else False
-        
+        # Gate flags should already be on token (copied before process_token call)
         engine_result = run_detection(token, candles)
         if engine_result:
             DAILY_METRICS['engine_triggers'] += 1
@@ -2252,7 +2296,8 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             elif engine_id == 'underfib':
                 DAILY_METRICS['engine_underfib'] += 1
             
-            logger.info(f"[{ENVIRONMENT}] 🎯 ENGINE: {symbol} → {detected_setup} Grade: {engine_result['grade']}")
+            logger.info(f"[{ENVIRONMENT}] 🎯 ENGINE: {symbol} → {detected_setup} Grade: {engine_result.get('grade', '?')}")
+            track_alert(symbol, detected_setup, engine_result.get('grade', '?'), engine_result.get('score', 0))
     
     # PHASE 2: Vision gating - only run Vision if engine grade meets threshold
     vision_result = {'is_setup': False, 'confidence': 0, 'match_to_training': 0}
@@ -2296,16 +2341,21 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             current_price=current_price,
             impulse_result=impulse_result,
             candles=analysis_candles,
-            structure_result=bangers_result.get('structure', {})
+            structure_result={}  # Structure not available yet at this stage
         )
         
         if watch_alert:
-            logger.info(f"[{ENVIRONMENT}]    👁️ SETUP WATCH: {symbol} - {watch_alert['setup_type']} @ {watch_alert['distance_pct']:.1f}% from zone")
+            # Safe access to distance_pct with fallback
+            dist_pct = watch_alert.get('distance_pct', 0)
+            if dist_pct > 0:
+                logger.info(f"[{ENVIRONMENT}]    👁️ SETUP WATCH: {symbol} - {watch_alert['setup_type']} @ {dist_pct:.1f}% from zone")
+            else:
+                logger.info(f"[{ENVIRONMENT}]    👁️ SETUP WATCH: {symbol} - {watch_alert['setup_type']} (BOS triggered)")
             
             # Send Setup Watch alert
             try:
                 watch_message = format_setup_watch_message(watch_alert)
-                await send_telegram_message(watch_message)
+                await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=watch_message, parse_mode=ParseMode.HTML)
                 logger.info(f"[{ENVIRONMENT}]    📨 Setup Watch alert sent for {symbol}")
             except Exception as e:
                 logger.error(f"[{ENVIRONMENT}]    ❌ Failed to send watch alert: {e}")
@@ -2317,8 +2367,8 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     
     # Get setup type from impulse detector (382, 50, 618, 786, UNDER_FIB)
     wiz_setup_type = impulse_result.get('setup_type', None)
-    impulse_data = impulse_result.get('impulse', {})
-    retrace_data = impulse_result.get('retrace', {})
+    impulse_data = impulse_result.get('impulse') or {}
+    retrace_data = impulse_result.get('retrace') or {}
     
     # Check retrace quality - reject poor retraces
     retrace_quality = retrace_data.get('retrace_quality', 'UNKNOWN')
@@ -2432,6 +2482,30 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             # Update should_alert
             bangers_result['should_alert'] = bangers_result['grade'] in ['A', 'A+'] and new_score >= 80
     
+    # ═══════════════════════════════════════════════════════════════════
+    # ENGINE GRADE OVERRIDE
+    # If ENGINE detected a valid A+/A setup, trust it over BANGERS
+    # ═══════════════════════════════════════════════════════════════════
+    if engine_result and engine_result.get('grade') in ['A+', 'A']:
+        engine_grade = engine_result.get('grade')
+        engine_score = engine_result.get('score', 0)
+        
+        # If BANGERS grade is lower than ENGINE grade, boost it
+        if bangers_result['grade'] not in ['A+', 'A']:
+            logger.info(f"[{ENVIRONMENT}]    🔧 ENGINE OVERRIDE: {bangers_result['grade']} → {engine_grade} (ENGINE detected valid setup)")
+            
+            # Use ENGINE score as base, add any BANGERS bonuses
+            new_score = max(engine_score, bangers_result['score'])
+            if engine_grade == 'A+':
+                new_score = max(new_score, 95)
+            elif engine_grade == 'A':
+                new_score = max(new_score, 85)
+            
+            bangers_result['score'] = new_score
+            bangers_result['grade'] = engine_grade
+            bangers_result['should_alert'] = new_score >= 80
+            bangers_result['engine_override'] = True
+    
     # Boost or downgrade based on impulse quality
     impulse_score = impulse_data.get('score', 0)
     impulse_grade = impulse_result.get('grade', 'C')
@@ -2516,6 +2590,23 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
                 
                 # Log Vision results
                 logger.info(f"[{ENVIRONMENT}]    👁️ Vision: {similarity}% similarity | +{vision_bonus} bonus")
+                track_vision_call(similarity)
+                
+                # Audit log for Vision analysis
+                try:
+                    log_vision_call(
+                        token=symbol,
+                        address=token.get('address', token.get('token_address', '')),
+                        setup_type=vision_setup_type,
+                        similarity=similarity,
+                        confidence=vision_result.get('confidence', 'unknown'),
+                        bonus_added=vision_bonus,
+                        top_matches=vision_result.get('top_matches', []),
+                        notes=vision_result.get('notes', ''),
+                        outcome='pending'
+                    )
+                except Exception as audit_err:
+                    logger.debug(f"Vision audit log error: {audit_err}")
                 
                 if vision_result.get('top_matches'):
                     logger.info(f"[{ENVIRONMENT}]    Flashcard Matches:")
@@ -2598,6 +2689,12 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     else:
         # Not a banger - check for watchlist
         logger.info(f"[{ENVIRONMENT}]    Alert: NO (Grade {bangers_result['grade']}, Score {bangers_result['score']})")
+        
+        # Update Vision audit outcome as rejected
+        try:
+            update_outcome(symbol, wiz_setup_type or 'unknown', 'rejected')
+        except:
+            pass
         
         if bangers_result['grade'] in ['B+', 'B'] and engine_result:
             add_to_sticky_watchlist(
@@ -2725,6 +2822,32 @@ async def scan_top_movers(browser_ctx):
             symbol = wt.get('symbol', '???')
             token_address = wt.get('token_address', '')
             pair_address = wt.get('pair_address', '')
+            
+            # AUTO-FETCH pair_address if missing
+            if token_address and not pair_address:
+                try:
+                    async with httpx.AsyncClient(timeout=10) as client:
+                        resp = await client.get(f'https://api.dexscreener.com/latest/dex/tokens/{token_address}')
+                        if resp.status_code == 200:
+                            pairs = resp.json().get('pairs', [])
+                            sol_pairs = [p for p in pairs if p.get('chainId') == 'solana']
+                            if sol_pairs:
+                                sol_pairs.sort(key=lambda x: float(x.get('liquidity', {}).get('usd', 0) or 0), reverse=True)
+                                pair_address = sol_pairs[0].get('pairAddress', '')
+                                wt['pair_address'] = pair_address
+                                # Update database
+                                import sqlite3
+                                conn = sqlite3.connect('/opt/jayce/data/queue.db')
+                                conn.execute("UPDATE whale_watchlist SET pair_address = ? WHERE token_address = ?", (pair_address, token_address))
+                                conn.commit()
+                                conn.close()
+                                logger.info(f"[{ENVIRONMENT}]       🔍 Auto-fetched pair for {symbol}")
+                except Exception as e:
+                    logger.warning(f"[{ENVIRONMENT}]       ⚠️ Could not fetch pair for {symbol}: {e}")
+            
+            if not pair_address:
+                logger.info(f"[{ENVIRONMENT}]       ⏭️ {symbol}: No pair_address, skipping")
+                continue
             whale_wallet = wt.get('whale_wallet', '')[:8] + '...'
             buy_sol = wt.get('buy_amount_sol', 0)
             
@@ -2764,6 +2887,20 @@ async def scan_top_movers(browser_ctx):
                 except Exception as e:
                     logger.warning(f"[{ENVIRONMENT}]       ⚠️ {symbol}: Chart intel error: {e}")
                     chart_intel = None
+                
+                # Run hybrid intake to get gate flags for whale token
+                try:
+                    hybrid_result = await run_hybrid_intake(candles, wt)
+                    wt['passes_382fz_gate'] = hybrid_result.passes_382fz_gate
+                    wt['passes_50fz_gate'] = hybrid_result.passes_50fz_gate
+                    wt['passes_618fz_gate'] = hybrid_result.passes_618fz_gate
+                    wt['passes_786fz_gate'] = hybrid_result.passes_786fz_gate
+                    wt['passes_underfib_gate'] = hybrid_result.passes_underfib_gate
+                    wt['ath_breakout'] = hybrid_result.ath_breakout
+                    wt['major_high_break'] = hybrid_result.major_high_break
+                    wt['retracement_pct'] = hybrid_result.retracement_pct
+                except Exception as e:
+                    logger.debug(f"[{ENVIRONMENT}]       Hybrid intake error for {symbol}: {e}")
                 
                 # Run engine detection
                 engine_result = run_detection(wt, candles)
@@ -2863,12 +3000,36 @@ async def scan_top_movers(browser_ctx):
             seen_addresses.add(addr)
             tokens.append(t)
     
+    # ══════════════════════════════════════════════════════════════
+    # PHASE 1: QUIET MOVERS — Supplemental Discovery
+    # Catches tokens with momentum not on main ranked page
+    # Does NOT affect main DEX scan (no age limit on main scan)
+    # ══════════════════════════════════════════════════════════════
+    quiet_movers_count = 0
+    try:
+        quiet_tokens, quiet_stats = await fetch_quiet_movers(existing_tokens=seen_addresses)
+        for qt in quiet_tokens:
+            addr = qt.get('address', '') or qt.get('pair_address', '')
+            if addr and addr not in seen_addresses:
+                seen_addresses.add(addr)
+                tokens.append(qt)
+                quiet_movers_count += 1
+        if quiet_movers_count > 0:
+            logger.info(f"[{ENVIRONMENT}] 🔍 Quiet Movers: +{quiet_movers_count} supplemental tokens (checked={quiet_stats['checked']})")
+            # Log each QM token for 24hr observation
+            for qt in quiet_tokens:
+                addr = qt.get('address', '') or qt.get('pair_address', '')
+                if addr in seen_addresses:
+                    logger.info(f"[{ENVIRONMENT}]    QM: {qt.get('symbol','???')} | MC=${qt.get('market_cap',0):,.0f} | Liq=${qt.get('liquidity',0):,.0f} | +{qt.get('price_change_1h',0):.0f}%/1h | {qt.get('pair_address','')[:20]}...")
+    except Exception as e:
+        logger.warning(f"[{ENVIRONMENT}] Quiet movers error: {e}")
+    
     logger.info(f"[{ENVIRONMENT}] ✅ Validation complete: {len(all_validated)} passed → {len(tokens)} unique")
     logger.info(f"[{ENVIRONMENT}]    TRENDING: {len(validated_trending)} | 5M: {len(validated_5m)} | 1H: {len(validated_1h)}")
     
     # Source counts from extension queue
-    source_counts = {"TRENDING": ext_counts.get("TRENDING", 0), "VOL_5M": ext_counts.get("VOL_5M", 0), "VOL_1H": ext_counts.get("VOL_1H", 0)}
-    logger.info(f"[{ENVIRONMENT}] Queue: {len(tokens)} unique tokens (TREND:{source_counts['TRENDING']} 5M:{source_counts['VOL_5M']} 1H:{source_counts['VOL_1H']})")
+    source_counts = {"TRENDING": ext_counts.get("TRENDING", 0), "VOL_5M": ext_counts.get("VOL_5M", 0), "VOL_1H": ext_counts.get("VOL_1H", 0), "QUIET_MOVERS": quiet_movers_count}
+    logger.info(f"[{ENVIRONMENT}] Queue: {len(tokens)} unique tokens (TREND:{source_counts['TRENDING']} 5M:{source_counts['VOL_5M']} 1H:{source_counts['VOL_1H']} QM:{quiet_movers_count})")
     
     # Visibility logging
     log_cycle_start()
@@ -3115,6 +3276,17 @@ async def scan_top_movers(browser_ctx):
             # Pass PSEF data from candidate to process_token
             psef_result = candidate.get('psef_result', {'passed': False})
             psef_candles = candidate.get('psef_candles', None)
+            
+            # Copy ALL gate flags from candidate to token BEFORE process_token
+            token['passes_382fz_gate'] = candidate.get('passes_382fz_gate', False)
+            token['passes_50fz_gate'] = candidate.get('passes_50fz_gate', False)
+            token['passes_618fz_gate'] = candidate.get('passes_618fz_gate', False)
+            token['passes_786fz_gate'] = candidate.get('passes_786fz_gate', False)
+            token['passes_underfib_gate'] = candidate.get('passes_underfib_gate', False)
+            token['ath_breakout'] = candidate.get('ath_breakout', False)
+            token['major_high_break'] = candidate.get('major_high_break', False)
+            token['retracement_pct'] = candidate.get('retracement_pct', 0)
+            
             if await process_token(token, browser_ctx, psef_result=psef_result, psef_candles=psef_candles):
                 alerts += 1
         except Exception as e:
@@ -3130,8 +3302,11 @@ async def scan_top_movers(browser_ctx):
     
     logger.info(f"[{ENVIRONMENT}] ══════════════════════════════════════════════════")
     logger.info(f"[{ENVIRONMENT}] CYCLE COMPLETE")
+    save_daily_stats()
     logger.info(f"[{ENVIRONMENT}]    Time: {cycle_time:.0f}s")
     logger.info(f"[{ENVIRONMENT}]    Scanned: {len(tokens)} → {len(candidates)} candidates")
+    track_tokens_scanned(len(tokens))
+    track_candidates(len(candidates))
     logger.info(f"[{ENVIRONMENT}]    Alerts: {alerts}")
     logger.info(f"[{ENVIRONMENT}] ══════════════════════════════════════════════════")
     

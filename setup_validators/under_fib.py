@@ -1,17 +1,31 @@
 """
-UNDER-FIB FLIP ZONE VALIDATOR (HUNTER MODE)
+UNDER-FIB FLIP ZONE VALIDATOR (HUNTER MODE) v2.0
 
 HUNTER MODE ALERT TIMING:
-- Alert when price breaks the fib level above
-- AND begins moving toward the untouched flip zone below
+- Alert when price breaks the fib level above (GATE)
+- AND begins moving toward the flip zone below (DESTINATION)
 - Zone is the DESTINATION, fib is the GATE
 
-This is destination-based: price traveling toward known target.
+DESTINATION-FIRST LOGIC:
+1. Find valid flip zone first
+2. Identify which fib is directly ABOVE it (that's the gate)
+3. Track price relative to gate and destination
+
+UNDER-FIB SUBTYPES:
+- Under-Fib 382: Zone below .382, gate at .382
+- Under-Fib 50: Zone below .50, gate at .50  
+- Under-Fib 618: Zone below .618, gate at .618
+- Under-Fib 786: Zone below .786, gate at .786
+
+FRESHNESS RULE (CRITICAL):
+- Pre-breakout touches are ALLOWED (zone establishment)
+- Only POST-breakout touches determine freshness
+- Zone is fresh if untested AFTER the breakout
 """
 
 import logging
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +54,165 @@ class ValidationResult:
     stage_label: str = ""
     hunter_mode: bool = True
     gate_fib: str = ""
+    fib_level_above: str = ""  # Alias for gate_fib
     destination_zone: float = 0
+    underfib_subtype: str = ""  # "Under-Fib 382", "Under-Fib 50", etc.
+
+
+def _find_breakout_index(candles: List[Dict], swing_high: float) -> int:
+    """
+    Find the index where the breakout to swing high occurred.
+    This is the candle that first closed above 90% of the swing high.
+    """
+    if not candles or swing_high <= 0:
+        return -1
+    
+    breakout_threshold = swing_high * 0.90
+    
+    for i, c in enumerate(candles):
+        close = float(c.get('c', 0) or 0)
+        if close >= breakout_threshold:
+            return i
+    
+    return -1
+
+
+def _count_post_breakout_zone_touches(
+    candles: List[Dict], 
+    breakout_idx: int, 
+    zone_level: float, 
+    zone_tolerance: float
+) -> Tuple[int, bool]:
+    """
+    Count how many times price interacted with the zone AFTER breakout.
+    
+    Returns:
+        (touch_count, is_fresh)
+        - is_fresh = True if zone has 0-1 post-breakout touches
+    """
+    if breakout_idx < 0 or breakout_idx >= len(candles):
+        return (0, True)
+    
+    post_breakout_candles = candles[breakout_idx:]
+    zone_top = zone_level + zone_tolerance
+    zone_bottom = zone_level - zone_tolerance
+    
+    touch_count = 0
+    
+    for c in post_breakout_candles:
+        low = float(c.get('l', 0) or 0)
+        high = float(c.get('h', 0) or 0)
+        
+        # Touch = price entered the zone
+        if low <= zone_top and high >= zone_bottom:
+            touch_count += 1
+    
+    # Fresh = 0-1 post-breakout touches (first touch is the entry opportunity)
+    is_fresh = touch_count <= 1
+    
+    return (touch_count, is_fresh)
+
+
+def _find_destination_zone(
+    flip_zones: List[Dict], 
+    fibs: Dict[str, float], 
+    current_price: float,
+    range_size: float
+) -> Tuple[Optional[Dict], str, float]:
+    """
+    DESTINATION-FIRST LOGIC:
+    1. Find flip zones that are BELOW a fib level
+    2. Identify which fib is directly above (the gate)
+    3. Return the best destination zone
+    
+    Returns:
+        (zone_dict, gate_fib_name, zone_level)
+    """
+    # Sort fibs by level descending (382 highest, 786 lowest)
+    fib_order = ['382', '50', '618', '786']
+    
+    best_zone = None
+    best_gate = None
+    best_level = 0
+    
+    for fz in flip_zones:
+        if not isinstance(fz, dict):
+            continue
+        
+        fz_level = fz.get('level', 0)
+        if fz_level <= 0:
+            continue
+        
+        # Find which fib is directly ABOVE this zone
+        for fib_name in fib_order:
+            fib_level = fibs.get(fib_name, 0)
+            
+            # Zone must be meaningfully below the fib (at least 3% of range)
+            if fz_level < fib_level - (range_size * 0.03):
+                # This fib is above the zone - it's the gate
+                # Check if price has broken or is near this gate
+                if current_price < fib_level * 1.02:  # Within 2% of gate or below
+                    best_zone = fz
+                    best_gate = fib_name
+                    best_level = fz_level
+                    break
+        
+        if best_zone:
+            break
+    
+    return (best_zone, best_gate or "", best_level)
+
+
+def _check_alert_timing(
+    current_price: float,
+    gate_level: float,
+    destination_zone: float,
+    zone_tolerance: float
+) -> Tuple[bool, bool, bool, str]:
+    """
+    Check alert timing state.
+    
+    Returns:
+        (price_broke_gate, is_approaching, is_first_touch, state_label)
+    
+    States:
+    - APPROACHING: Price broke gate, moving toward zone, hasn't touched yet
+    - FIRST_TOUCH: Price just entered zone for first time
+    - REACTING: Price bounced from zone (too late for alert)
+    """
+    zone_top = destination_zone + zone_tolerance
+    zone_bottom = destination_zone - zone_tolerance
+    
+    price_broke_gate = current_price < gate_level
+    
+    # Check position relative to zone
+    if current_price > zone_top:
+        # Above zone - approaching
+        is_approaching = price_broke_gate
+        is_first_touch = False
+        state = "APPROACHING" if is_approaching else "ABOVE_GATE"
+    elif current_price >= zone_bottom:
+        # Inside zone - first touch window
+        is_approaching = False
+        is_first_touch = True
+        state = "FIRST_TOUCH"
+    else:
+        # Below zone - either deep in zone or bounced
+        # Still valid if just slightly below (within 2x tolerance)
+        if current_price >= zone_bottom - zone_tolerance:
+            is_approaching = False
+            is_first_touch = True
+            state = "IN_ZONE"
+        else:
+            is_approaching = False
+            is_first_touch = False
+            state = "BELOW_ZONE"
+    
+    return (price_broke_gate, is_approaching, is_first_touch, state)
+
 
 def validate_under_fib(candles: List[Dict], symbol: str, structure: Dict = None) -> ValidationResult:
-    """Validate Under-Fib Flip Zone with HUNTER MODE."""
+    """Validate Under-Fib Flip Zone with HUNTER MODE v2.0."""
     result = ValidationResult()
     
     if structure is None:
@@ -71,6 +240,7 @@ def validate_under_fib(candles: List[Dict], symbol: str, structure: Dict = None)
         return result
     
     range_size = swing_high - swing_low if swing_high > swing_low else 0
+    zone_tolerance = range_size * 0.03  # 3% tolerance for zone boundaries
     
     # Calculate all fib levels
     fibs = {
@@ -80,60 +250,49 @@ def validate_under_fib(candles: List[Dict], symbol: str, structure: Dict = None)
         '786': swing_high - (range_size * 0.786)
     }
     
-    # HUNTER MODE: Find fresh flip zone BELOW a fib level
-    fresh_zone_below_fib = False
-    gate_fib_name = None
-    destination_zone_level = 0
-    zone_touches = 0
+    # ═══════════════════════════════════════════════════════════════
+    # DESTINATION-FIRST: Find the target zone and its gate
+    # ═══════════════════════════════════════════════════════════════
+    dest_zone, gate_fib_name, destination_zone_level = _find_destination_zone(
+        flip_zones, fibs, current_price, range_size
+    )
     
-    for fz in flip_zones:
-        if not isinstance(fz, dict):
-            continue
-        fz_level = fz.get('level', 0)
-        touches = fz.get('touches', 0)
-        is_fresh = fz.get('fresh', True)
-        
-        if fz_level <= 0 or not is_fresh:
-            continue
-        
-        # Check if zone is below any fib
-        for fib_name, fib_level in fibs.items():
-            if fz_level < fib_level - (range_size * 0.03):
-                # Zone is below this fib
-                # Check if price has broken this fib (approaching zone)
-                if current_price < fib_level:
-                    fresh_zone_below_fib = True
-                    gate_fib_name = fib_name
-                    destination_zone_level = fz_level
-                    zone_touches = touches
-                    break
-        if fresh_zone_below_fib:
-            break
+    fresh_zone_below_fib = dest_zone is not None and destination_zone_level > 0
+    zone_touches_total = dest_zone.get('touches', 0) if dest_zone else 0
     
-    result.gate_fib = gate_fib_name or ""
+    result.gate_fib = gate_fib_name
+    result.fib_level_above = gate_fib_name
     result.destination_zone = destination_zone_level
+    result.underfib_subtype = f"Under-Fib {gate_fib_name}" if gate_fib_name else ""
+    
+    # ═══════════════════════════════════════════════════════════════
+    # ZONE FRESHNESS: Count only POST-BREAKOUT touches
+    # ═══════════════════════════════════════════════════════════════
+    breakout_idx = _find_breakout_index(candles, swing_high)
+    post_breakout_touches, zone_is_fresh = _count_post_breakout_zone_touches(
+        candles, breakout_idx, destination_zone_level, zone_tolerance
+    )
     
     # LAYER: Flip Zone Below Fib
     result.layers.append(ValidationLayer(
         layer_name="flip_zone",
         passed=fresh_zone_below_fib,
         score=25 if fresh_zone_below_fib else 0,
-        reason=f"Fresh zone below {gate_fib_name}: {'✓' if fresh_zone_below_fib else '✗'}",
+        reason=f"Zone below {gate_fib_name}: {'✓' if fresh_zone_below_fib else '✗'} ({result.underfib_subtype})",
         weight=1.4
     ))
     
-    # LAYER: Zone Freshness
-    zone_fresh = fresh_zone_below_fib and zone_touches <= 2
+    # LAYER: Zone Freshness (POST-BREAKOUT only)
     result.layers.append(ValidationLayer(
         layer_name="zone_freshness",
-        passed=zone_fresh,
-        score=25 if zone_fresh else 10 if fresh_zone_below_fib else 0,
-        reason=f"Zone touches: {zone_touches} ({'fresh' if zone_fresh else 'tested'})",
+        passed=zone_is_fresh,
+        score=25 if zone_is_fresh else 10 if fresh_zone_below_fib else 0,
+        reason=f"Post-breakout touches: {post_breakout_touches} ({'fresh' if zone_is_fresh else 'tested'}) [pre-BO: {zone_touches_total - post_breakout_touches}]",
         weight=1.5
     ))
     
-    if zone_fresh:
-        logger.info(f"   [UFIB-VAL] zone_freshness: ✓ - Fresh untouched zone below {gate_fib_name} ✓")
+    if zone_is_fresh and fresh_zone_below_fib:
+        logger.info(f"   [UFIB-VAL] zone_freshness: ✓ - Fresh zone (post-BO touches: {post_breakout_touches})")
     
     # LAYER: Expansion
     expansion_passed = impulse_pct >= 60
@@ -157,20 +316,31 @@ def validate_under_fib(candles: List[Dict], symbol: str, structure: Dict = None)
         weight=1.1
     ))
     
-    # LAYER: Alert Timing (price broke fib gate)
+    # ═══════════════════════════════════════════════════════════════
+    # ALERT TIMING: Approach OR First-Touch window
+    # ═══════════════════════════════════════════════════════════════
     price_broke_gate = False
-    approaching_zone = False
+    is_approaching = False
+    is_first_touch = False
+    timing_state = "UNKNOWN"
+    
     if gate_fib_name and gate_fib_name in fibs:
         gate_level = fibs[gate_fib_name]
-        price_broke_gate = current_price < gate_level
-        approaching_zone = price_broke_gate and current_price > destination_zone_level
+        price_broke_gate, is_approaching, is_first_touch, timing_state = _check_alert_timing(
+            current_price, gate_level, destination_zone_level, zone_tolerance
+        )
     
-    alert_ready = price_broke_gate and approaching_zone and fresh_zone_below_fib
+    # Alert is ready if:
+    # - Price broke gate AND (approaching OR first touch)
+    # - Zone is fresh
+    alert_timing_passed = price_broke_gate and (is_approaching or is_first_touch)
+    alert_ready = alert_timing_passed and zone_is_fresh and fresh_zone_below_fib
+    
     result.layers.append(ValidationLayer(
         layer_name="alert_timing",
-        passed=alert_ready,
-        score=20 if alert_ready else 10 if price_broke_gate else 0,
-        reason=f"Broke {gate_fib_name}: {'✓' if price_broke_gate else '✗'} | Approaching zone: {'✓' if approaching_zone else '✗'}",
+        passed=alert_timing_passed,
+        score=20 if alert_timing_passed else 10 if price_broke_gate else 0,
+        reason=f"Gate {gate_fib_name}: {'✓' if price_broke_gate else '✗'} | State: {timing_state}",
         weight=1.3
     ))
     
@@ -193,8 +363,8 @@ def validate_under_fib(candles: List[Dict], symbol: str, structure: Dict = None)
     total_score = sum(layer.score * layer.weight for layer in result.layers) + whale_bonus
     result.final_score = min(100, int((total_score / 130) * 100))
     
-    # Pass criteria: Fresh zone + broke gate + expansion + approaching
-    critical_passed = fresh_zone_below_fib and zone_fresh and expansion_passed and alert_ready
+    # Pass criteria: Zone exists + fresh + expansion + alert timing
+    critical_passed = fresh_zone_below_fib and zone_is_fresh and expansion_passed and alert_timing_passed
     result.passed = critical_passed and result.final_score >= 60
     
     if result.final_score >= 90: result.final_grade = "A+"
@@ -207,7 +377,7 @@ def validate_under_fib(candles: List[Dict], symbol: str, structure: Dict = None)
     
     if result.passed:
         result.stage = 1
-        result.stage_label = f"BROKE {gate_fib_name} - TARGETING ZONE"
+        result.stage_label = f"{result.underfib_subtype} - {timing_state}"
     
     for layer in result.layers:
         if layer.passed:
@@ -216,11 +386,13 @@ def validate_under_fib(candles: List[Dict], symbol: str, structure: Dict = None)
             result.reasons_failed.append(layer.layer_name)
     
     status = "✅ PASSED" if result.passed else "❌ REJECTED"
-    logger.info(f"   [UFIB-VAL] {symbol}: {status} [HUNTER] Score={result.final_score} Grade={result.final_grade} Gate={gate_fib_name}")
+    logger.info(f"   [UFIB-VAL] {symbol}: {status} [HUNTER] Score={result.final_score} Grade={result.final_grade} {result.underfib_subtype}")
     
     return result
 
+
 def _compute_basic_structure(candles: List[Dict]) -> Dict:
+    """Fallback structure computation if none provided."""
     if not candles or len(candles) < 50:
         return {}
     try:
