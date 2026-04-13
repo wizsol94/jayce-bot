@@ -2406,16 +2406,49 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     if not chart_bytes: return False
     
     # ══════════════════════════════════════════════════════════════
-    # DUAL TIMEFRAME ANALYSIS (SELECTIVE 1m ACCESS)
-    # 5m = broad structure scan for all tokens
-    # 1m = selective precision layer for high-relevance tokens only
+    # WIZ TIMEFRAME ENGINE (1M DOMINANT)
+    # 1M = PRIMARY decision-making timeframe
+    # 5M = SECONDARY confirmation only
     # ══════════════════════════════════════════════════════════════
     candles_5m = candles  # From screenshot_chart (5m)
     candles_1m = None
     
-    # Determine token tier and if 1m is warranted (TIERED CACHE SYSTEM)
+    # COIN AGE DETECTION FOR TIMEFRAME SELECTION
+    coin_age_hours = 999
+    pair_created = token.get('pairCreatedAt', 0)
+    if pair_created:
+        try:
+            from datetime import datetime
+            coin_age_hours = (datetime.now().timestamp() - (pair_created / 1000 if pair_created > 1e12 else pair_created)) / 3600
+        except:
+            pass
+    
+    whale_conviction = token.get('whale_conviction', False) or token.get('whale_detected', False)
+    
+    # 1M DOMINANT TIMEFRAME LOGIC
+    if whale_conviction:
+        primary_tf = '1m'
+        tf_reason = 'whale_override'
+        use_1m = True
+    elif coin_age_hours < 2:
+        primary_tf = '1m'
+        tf_reason = 'early_phase'
+        use_1m = True
+    elif coin_age_hours < 6:
+        primary_tf = '1m'
+        tf_reason = 'developing_phase'
+        use_1m = True
+    else:
+        primary_tf = '5m'
+        tf_reason = 'mature_phase'
+        use_1m = True
+    
+    token['primary_tf'] = primary_tf
+    token['coin_age_hours'] = coin_age_hours
+    
+    # Legacy tier assessment
     token_tier, tier_reason = assess_token_tier(token, candles_5m)
-    use_1m, use_1m_reason = should_fetch_1m(token, candles_5m)
+    use_1m_reason = tf_reason
     
     # Log tier assignment for visibility
     if token_tier == 1:
@@ -2535,16 +2568,18 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         logger.info(f"[{ENVIRONMENT}]    ⏭️ {symbol}: No valid breakout on either TF - {reason}")
         return False
     
-    # Select primary candles and breakout result
+    # Select primary candles and breakout result (1M DOMINANT)
     if valid_5m and valid_1m:
-        # CONFLUENCE: Both timeframes confirm structure
         confluence = True
-        candles = candles_5m  # Use 5m for cleaner structure
-        breakout_result = breakout_5m
+        if primary_tf == '1m':
+            candles = candles_1m
+            breakout_result = breakout_1m
+        else:
+            candles = candles_5m
+            breakout_result = breakout_5m
         detected_tf = 'BOTH'
-        logger.info(f"[{ENVIRONMENT}]    🎯 {symbol}: CONFLUENCE - Breakout on both 1m and 5m")
+        logger.info(f"[{ENVIRONMENT}]    🎯 {symbol}: CONFLUENCE (primary={primary_tf})")
     elif valid_1m:
-        # 1m detected first (faster)
         candles = candles_1m
         breakout_result = breakout_1m
         detected_tf = '1m'
