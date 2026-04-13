@@ -329,7 +329,7 @@ CHARTS_PER_SCAN = int(os.getenv('CHARTS_PER_SCAN', 70))
 MIN_MARKET_CAP = 0  # DISABLED
 MIN_LIQUIDITY = int(os.getenv('MIN_LIQUIDITY', 10000))
 MIN_COIN_AGE_HOURS = float(os.getenv('MIN_COIN_AGE_HOURS', 3))  # Minimum 3 hours old
-MIN_CANDLES = int(os.getenv('MIN_CANDLES', 36))  # 36 candles = 3 hours on 5M chart
+MIN_CANDLES = int(os.getenv('MIN_CANDLES', 12))  # 12 candles = 1 hour on 5M chart
 IMPULSE_H24_THRESHOLD = float(os.getenv('IMPULSE_H24_THRESHOLD', 40))
 IMPULSE_H6_THRESHOLD = float(os.getenv('IMPULSE_H6_THRESHOLD', 25))
 IMPULSE_H1_THRESHOLD = float(os.getenv('IMPULSE_H1_THRESHOLD', 15))
