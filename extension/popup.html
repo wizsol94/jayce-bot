@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { width: 280px; padding: 15px; font-family: system-ui; background: #1a1a2e; color: #eee; }
+    h1 { font-size: 16px; margin: 0 0 15px; color: #00d4aa; }
+    .status { padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+    .running { background: #00d4aa22; color: #00d4aa; }
+    .stopped { background: #ff5c5c22; color: #ff5c5c; }
+    .stats { background: #2a2a4a; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; }
+    .stats div { display: flex; justify-content: space-between; margin: 5px 0; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .start { background: #00d4aa; color: #1a1a2e; }
+    .stop { background: #ff5c5c; color: white; }
+    .info { font-size: 11px; color: #888; text-align: center; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Jayce Collector v2</h1>
+  <div id="status" class="status stopped">STOPPED</div>
+  <div class="stats">
+    <div><span>Scans:</span><span id="scans">0</span></div>
+    <div><span>Tokens:</span><span id="tokens">0</span></div>
+    <div><span>Screenshots:</span><span id="screenshots">0</span></div>
+    <div><span>Errors:</span><span id="errors">0</span></div>
+  </div>
+  <button id="btn" class="start">START</button>
+  <div id="info" class="info">Ready</div>
+  <script src="popup.js"></script>
+</body>
+</html>

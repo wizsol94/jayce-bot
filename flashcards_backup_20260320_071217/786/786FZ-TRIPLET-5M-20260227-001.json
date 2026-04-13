@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-TRIPLET-5M-20260227-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "TRIPLET",
+  "timeframe": "5M",
+  "date": "2026-02-27",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 250,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIIPWmhTzvezzlDIrrdf4Hgg0oci0ZtAAKeDmsbY2ARRYugv47mdNyFAQADAgADdwADOgQ",
+  "notes": "whale conviction clean structure",
+  "trained_at": "2026-02-27T08:02:47.680961"
+}

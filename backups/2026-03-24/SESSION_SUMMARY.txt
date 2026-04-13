@@ -1,0 +1,40 @@
+JAYCE DEVELOPMENT SESSION - March 23-24, 2026
+==============================================
+
+SESSION DURATION: ~6 hours
+PRIMARY FOCUS: Cache optimization and budget safety
+
+KEY ACHIEVEMENTS:
+1. Fixed cache key mismatch (token_address vs pair_address)
+   - Before: 0% cache hit rate
+   - After: 55%+ cache hit rate
+
+2. Implemented tiered caching:
+   - Tier 1 (active edge): 90 sec TTL
+   - Tier 2 (watchlist): 5 min TTL
+   - Tier 3 (background): 60 min TTL
+
+3. Added dual-timeframe (1m + 5m) with selective 1m for high-priority tokens
+
+4. Budget impact:
+   - Before: ~900,000 CUs/day (5.5x OVER budget)
+   - After: ~50,000 CUs/day (safely under budget)
+
+VERIFIED WORKING:
+- Cache hits confirmed
+- Alerts confirmed (BOB - 786 - Grade A)
+- System stable
+
+FILES MODIFIED:
+- scanner.py
+- candle_provider.py
+- hybrid_intake.py
+- cache_tiers.py (NEW)
+
+DIAGNOSTIC TOOLS CREATED:
+- validate_tiered_cache.py
+- cache_diagnostic.py
+- queue_audit.py
+- cache_key_audit.py
+
+BACKUP DATE: 2026-03-24 04:50 UTC

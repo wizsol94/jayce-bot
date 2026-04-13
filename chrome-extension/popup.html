@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { width: 320px; padding: 15px; font-family: -apple-system, Arial, sans-serif; background: #1a1a2e; color: #fff; }
+    h2 { margin: 0 0 15px 0; text-align: center; }
+    .btn { 
+      display: block; width: 100%; padding: 14px; margin: 10px 0;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-size: 15px; font-weight: 600; transition: all 0.2s;
+    }
+    .btn-top { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
+    .btn-5m { background: linear-gradient(135deg, #2196F3, #1976D2); color: white; }
+    .btn-1h { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; }
+    .btn-all { background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; }
+    .btn:hover { transform: scale(1.02); opacity: 0.95; }
+    .btn:active { transform: scale(0.98); }
+    .status { margin-top: 15px; padding: 12px; background: #16213e; border-radius: 6px; font-size: 13px; text-align: center; }
+    .info { margin-top: 12px; font-size: 11px; color: #888; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h2>🔍 Jayce Collector</h2>
+  
+  <button class="btn btn-all" id="btnAll">🚀 Capture ALL 3 Rotations</button>
+  
+  <button class="btn btn-top" id="btnTop">📊 TOP 1-100 (Trending H6)</button>
+  <button class="btn btn-5m" id="btn5m">⚡ 5M MOVERS</button>
+  <button class="btn btn-1h" id="btn1h">⏰ 1H MOVERS</button>
+  
+  <div class="status" id="status">Ready to capture</div>
+  
+  <div class="info">
+    Opens DexScreener with your filters, waits for load, then sends tokens to Jayce VPS.
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

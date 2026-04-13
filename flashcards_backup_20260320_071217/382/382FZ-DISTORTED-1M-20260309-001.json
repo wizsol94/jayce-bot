@@ -1,0 +1,18 @@
+{
+  "chart_id": "382FZ-DISTORTED-1M-20260309-001",
+  "setup_name": "382 + Flip Zone",
+  "canonical_key": "382_flip_zone",
+  "token": "DISTORTED",
+  "timeframe": "1M",
+  "date": "2026-03-09",
+  "fib_depth": "382",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 55,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIOGmmvLtokgAxQN56Rim1oxqejZDtFAAIhDWsbECF5RZ_1U3nu60wZAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-03-09T20:34:57.605249"
+}

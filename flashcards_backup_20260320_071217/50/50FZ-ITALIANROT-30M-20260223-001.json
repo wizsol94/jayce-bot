@@ -1,0 +1,18 @@
+{
+  "chart_id": "50FZ-ITALIANROT-30M-20260223-001",
+  "setup_name": "50 + Flip Zone",
+  "canonical_key": "50_flip_zone",
+  "token": "ITALIANROT",
+  "timeframe": "30M",
+  "date": "2026-02-23",
+  "fib_depth": "50",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 300,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGBWmcBAs41PMe13oYxr_3P0Cx_Gs5AAInDGsbHBvhRHak3eMW6Xi7AQADAgADdwADOgQ",
+  "notes": "WHALE CONVICTION",
+  "trained_at": "2026-02-23T07:39:16.611624"
+}

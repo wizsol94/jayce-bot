@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-DOT-15M-20260223-001",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "DOT",
+  "timeframe": "15M",
+  "date": "2026-02-23",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 100,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGJ2mcB6js82oi6I4SoKG_CVsm45s-AAIxDGsbHBvhRLzeekIkrLmjAQADAgADdwADOgQ",
+  "notes": "clean structure",
+  "trained_at": "2026-02-23T07:54:41.151673"
+}

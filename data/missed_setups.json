@@ -1,0 +1,74 @@
+{
+  "missed": [
+    {
+      "timestamp": "2026-03-20T20:51:04.579593",
+      "date": "2026-03-20",
+      "token": "CHIBI",
+      "setup": "Under-Fib + Flip Zone",
+      "note": "Flip zone at 618-786 level, deep retrace setup, bodies accepted in under-fib zone"
+    },
+    {
+      "timestamp": "2026-03-20T21:23:26.321409",
+      "date": "2026-03-20",
+      "token": "CHIBI",
+      "setup": "Under-Fib 382",
+      "note": "DETECTED A+ but alert crashed - distance_pct bug (NOW FIXED)"
+    },
+    {
+      "timestamp": "2026-03-21T06:24:38.470093",
+      "date": "2026-03-21",
+      "token": "NEURIX",
+      "setup": "FALSE POSITIVE",
+      "note": "Alert sent as 618+FZ Grade A but chart shows no breakout, no impulse, just ranging - NOT WizTheory"
+    },
+    {
+      "timestamp": "2026-03-21T06:39:49.181204",
+      "date": "2026-03-21",
+      "token": "Chuck",
+      "setup": "FALSE POSITIVE",
+      "note": "No setup, no breakout - flat chart"
+    },
+    {
+      "timestamp": "2026-03-21T06:39:49.280390",
+      "date": "2026-03-21",
+      "token": "fine999.9",
+      "setup": "FALSE POSITIVE",
+      "note": "Invalid - rug/scam looking coin, no real setup"
+    },
+    {
+      "timestamp": "2026-03-21T06:39:49.445443",
+      "date": "2026-03-21",
+      "token": "Pete",
+      "setup": "EARLY ALERT",
+      "note": "Fired too early, should wait for breakout - would be 382+FZ"
+    },
+    {
+      "timestamp": "2026-03-21T06:39:49.580013",
+      "date": "2026-03-21",
+      "token": "Optimistic",
+      "setup": "EARLY ALERT",
+      "note": "No setup yet, waiting for breakout - whale present, high alert"
+    },
+    {
+      "timestamp": "2026-03-21T06:39:49.727831",
+      "date": "2026-03-21",
+      "token": "Chuck",
+      "setup": "FALSE POSITIVE",
+      "note": "No setup, flat chart, no breakout (2nd alert)"
+    },
+    {
+      "timestamp": "2026-03-21T06:39:49.865959",
+      "date": "2026-03-21",
+      "token": "FML",
+      "setup": "FALSE POSITIVE",
+      "note": "No setup, sketchy scam-looking chart"
+    },
+    {
+      "timestamp": "2026-03-21T06:39:49.963891",
+      "date": "2026-03-21",
+      "token": "Doolysaurus",
+      "setup": "FALSE POSITIVE",
+      "note": "No breakout, no expansion"
+    }
+  ]
+}

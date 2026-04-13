@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-PANDORA-1M-20260223-001",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "PANDORA",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 400,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGm2mcDsgQyy4yXr_vRF10UCQn4EzxAAJWDGsbHBvhRDrzk8eC8JTmAQADAgADdwADOgQ",
+  "notes": "whale conviction",
+  "trained_at": "2026-02-23T08:25:02.702066"
+}

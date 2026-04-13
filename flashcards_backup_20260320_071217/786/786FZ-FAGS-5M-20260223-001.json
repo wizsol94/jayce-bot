@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-FAGS-5M-20260223-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "FAGS",
+  "timeframe": "5M",
+  "date": "2026-02-23",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 70,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG9GmcZo_pqLnhsoRCByIqLTLCUCC7AAKBDGsbHBvhRPjmYyhEAbDBAQADAgADdwADOgQ",
+  "notes": "clean structure fresh zone funny narrative",
+  "trained_at": "2026-02-23T14:39:51.876520"
+}

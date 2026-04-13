@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-AGENCY-30M-20260223-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "AGENCY",
+  "timeframe": "30M",
+  "date": "2026-02-23",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 90,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG42mcZa3shHEU-Q1zcbm2gVck0TC_AAJ7DGsbHBvhRNzEEkurL6mhAQADAgADdwADOgQ",
+  "notes": "clean structure",
+  "trained_at": "2026-02-23T14:35:56.793547"
+}

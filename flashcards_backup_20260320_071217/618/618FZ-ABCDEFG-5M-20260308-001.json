@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-ABCDEFG-5M-20260308-001",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "ABCDEFG",
+  "timeframe": "5M",
+  "date": "2026-03-08",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 130,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAINOWms9yGXdGfHVqvwrAtRDeQyPULNAAJ3C2sbfm1pRbUZ0FkGQDYNAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE",
+  "trained_at": "2026-03-08T04:12:43.425452"
+}

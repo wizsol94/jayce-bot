@@ -3062,8 +3062,8 @@ async def training_stats_command(update: Update, context: ContextTypes.DEFAULT_T
     stats = get_training_stats()
     
     # Training goal: 50 per setup, 250 total
-    GOAL_PER_SETUP = 50
-    TOTAL_GOAL = 250
+    GOAL_PER_SETUP = 200
+    TOTAL_GOAL = 1000
     
     response_lines = [
         "📊 **Training Stats**",

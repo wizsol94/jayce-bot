@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-VAR-GROYPER-1M-20260223-002",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "GROYPER",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 55,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGNmmcCFpeN7tvyL179EZbNV4qNOdQAAI2DGsbHBvhRCXmPnf9n6XtAQADAgADdwADOgQ",
+  "notes": "[VARIATION] clean structure",
+  "trained_at": "2026-02-23T07:57:44.620766"
+}

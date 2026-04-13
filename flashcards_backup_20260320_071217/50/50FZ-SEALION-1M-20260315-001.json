@@ -1,0 +1,18 @@
+{
+  "chart_id": "50FZ-SEALION-1M-20260315-001",
+  "setup_name": "50 + Flip Zone",
+  "canonical_key": "50_flip_zone",
+  "token": "SEALION",
+  "timeframe": "1M",
+  "date": "2026-03-15",
+  "fib_depth": "50",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 50,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIS22m2a-e3mvbYxUZdh5OzZ7WfvxF3AAJMDWsbsIewRav8U00k1OvRAQADAgADdwADOgQ",
+  "notes": "CLEAN STRUCTURE RSI SPIKED 95",
+  "trained_at": "2026-03-15T08:21:36.078395"
+}

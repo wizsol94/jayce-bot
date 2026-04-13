@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Jayce Collector",
+  "version": "2.0",
+  "description": "Collects DEX Screener data with screenshots for Jayce Scanner",
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://dexscreener.com/*",
+    "http://104.236.105.118:5000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["https://dexscreener.com/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Jayce Collector"
+  }
+}

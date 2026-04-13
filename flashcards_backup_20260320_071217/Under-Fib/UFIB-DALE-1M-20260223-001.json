@@ -1,0 +1,18 @@
+{
+  "chart_id": "UFIB-DALE-1M-20260223-001",
+  "setup_name": "Under-Fib Flip Zone",
+  "canonical_key": "under_fib_flip_zone",
+  "token": "DALE",
+  "timeframe": "1M",
+  "date": "2026-02-23",
+  "fib_depth": "Under-Fib",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 300,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHWWmcbwlX6hLusPhVZAp1pB2RhkKdAAKiDGsbHBvhRAPbzAhMAl9KAQADAgADdwADOgQ",
+  "notes": "whale conviction clean structure",
+  "trained_at": "2026-02-23T15:15:47.751929"
+}

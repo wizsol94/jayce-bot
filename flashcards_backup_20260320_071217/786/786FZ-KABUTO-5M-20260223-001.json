@@ -1,0 +1,18 @@
+{
+  "chart_id": "786FZ-KABUTO-5M-20260223-001",
+  "setup_name": "786 + Flip Zone",
+  "canonical_key": "786_flip_zone",
+  "token": "KABUTO",
+  "timeframe": "5M",
+  "date": "2026-02-23",
+  "fib_depth": "786",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 70,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIG_WmcZwNkqWP6dT2dbWLqe8FTlk6pAAKEDGsbHBvhRHlZFVV4I9T_AQADAgADdwADOgQ",
+  "notes": "rsi divergence clean structure",
+  "trained_at": "2026-02-23T14:41:38.519228"
+}

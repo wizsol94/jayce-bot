@@ -1,0 +1,18 @@
+{
+  "chart_id": "UFIB-MRLEAST-15M-20260223-001",
+  "setup_name": "Under-Fib Flip Zone",
+  "canonical_key": "under_fib_flip_zone",
+  "token": "MRLEAST",
+  "timeframe": "15M",
+  "date": "2026-02-23",
+  "fib_depth": "Under-Fib",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 180,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIHw2mcdMuo_S1iLvcrNCwPC6-VJp0FAALFDGsbHBvhRIejKZ19K-TLAQADAgADdwADOgQ",
+  "notes": "clean structure social media viral",
+  "trained_at": "2026-02-23T15:40:20.491517"
+}

@@ -1,0 +1,18 @@
+{
+  "chart_id": "382FZ-PEDGY-1M-20260307-001",
+  "setup_name": "382 + Flip Zone",
+  "canonical_key": "382_flip_zone",
+  "token": "PEDGY",
+  "timeframe": "1M",
+  "date": "2026-03-07",
+  "fib_depth": "382",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 80,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIMzWmr3-D36Bc1k6FnMPQ99T4Kfw7YAAKOC2sbfm1hRbdyg-LYupaVAQADAgADdwADOgQ",
+  "notes": "WHALE CONVICTION CLEAN STRUCTURE",
+  "trained_at": "2026-03-07T08:21:27.638784"
+}

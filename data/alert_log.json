@@ -1,0 +1,674 @@
+{
+  "alerts": [
+    {
+      "timestamp": "2026-03-20T19:49:47.828001",
+      "date": "2026-03-20",
+      "token": "Chuck",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 90,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T19:50:12.788967",
+      "date": "2026-03-20",
+      "token": "fine999.9",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T19:51:02.330242",
+      "date": "2026-03-20",
+      "token": "Pete",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T19:51:43.593101",
+      "date": "2026-03-20",
+      "token": "Optimistic",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 90,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T21:18:42.756708",
+      "date": "2026-03-20",
+      "token": "Pete",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 91,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T21:39:52.956508",
+      "date": "2026-03-20",
+      "token": "Pete",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 80,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T21:41:13.222145",
+      "date": "2026-03-20",
+      "token": "Chuck",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T22:15:36.316665",
+      "date": "2026-03-20",
+      "token": "FML",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 77,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T23:05:36.059097",
+      "date": "2026-03-20",
+      "token": "Doolysaurus",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 90,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-20T23:24:05.033504",
+      "date": "2026-03-20",
+      "token": "Doolysaurus",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T01:33:07.063396",
+      "date": "2026-03-21",
+      "token": "Pete",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 93,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T02:22:03.188282",
+      "date": "2026-03-21",
+      "token": "Pete",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T02:23:41.541889",
+      "date": "2026-03-21",
+      "token": "YEPE",
+      "setup_type": "786 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T04:37:38.098402",
+      "date": "2026-03-21",
+      "token": "Optimistic",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 89,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T06:24:45.660338",
+      "date": "2026-03-21",
+      "token": "PISS",
+      "setup_type": "382 + Flip Zone",
+      "grade": "B+",
+      "score": 79,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T06:57:15.535527",
+      "date": "2026-03-21",
+      "token": "Pete",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 82,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T07:09:43.484311",
+      "date": "2026-03-21",
+      "token": "fine999.9",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 93,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T07:40:22.228255",
+      "date": "2026-03-21",
+      "token": "Boss",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 93,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T08:03:15.707448",
+      "date": "2026-03-21",
+      "token": "LIBERTY",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 87,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T13:45:49.909677",
+      "date": "2026-03-21",
+      "token": "CHIBI",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 82,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T15:55:47.180060",
+      "date": "2026-03-21",
+      "token": "CHIBELON",
+      "setup_type": "786 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T15:55:59.427825",
+      "date": "2026-03-21",
+      "token": "Pete",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 77,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T15:57:43.542344",
+      "date": "2026-03-21",
+      "token": "CHIBI",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 85,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T16:12:36.407531",
+      "date": "2026-03-21",
+      "token": "CHIBIELON",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 85,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T16:13:45.867649",
+      "date": "2026-03-21",
+      "token": "LOL",
+      "setup_type": "Under-Fib Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T16:48:04.131171",
+      "date": "2026-03-21",
+      "token": "YEPE",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 96,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T17:05:48.863327",
+      "date": "2026-03-21",
+      "token": "Doolysaurus",
+      "setup_type": "Under-Fib Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T17:20:57.361661",
+      "date": "2026-03-21",
+      "token": "CHIBIELON",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T17:22:40.463058",
+      "date": "2026-03-21",
+      "token": "LOL",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 85,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-21T17:23:25.396020",
+      "date": "2026-03-21",
+      "token": "Doolysaurus",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 85,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T03:38:23.354861",
+      "date": "2026-03-22",
+      "token": "AirDolphin",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 94,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T04:10:53.688122",
+      "date": "2026-03-22",
+      "token": "TERAFAB",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 88,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T04:29:32.144732",
+      "date": "2026-03-22",
+      "token": "AirDolphin",
+      "setup_type": "Under-Fib Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T04:46:39.560123",
+      "date": "2026-03-22",
+      "token": "CHIBIELON",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 90,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T04:52:19.029295",
+      "date": "2026-03-22",
+      "token": "AirDolphin",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 99,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T05:24:36.080693",
+      "date": "2026-03-22",
+      "token": "TERAFAB",
+      "setup_type": "618 + Flip Zone",
+      "grade": "B+",
+      "score": 79,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T06:01:20.174633",
+      "date": "2026-03-22",
+      "token": "Downald",
+      "setup_type": "786 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T06:52:36.720028",
+      "date": "2026-03-22",
+      "token": "cowgorithm",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T07:09:08.028468",
+      "date": "2026-03-22",
+      "token": "TERAFAB",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 99,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T07:33:13.482871",
+      "date": "2026-03-22",
+      "token": "Sanae",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T07:43:12.393212",
+      "date": "2026-03-22",
+      "token": "TERAFAB",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T20:09:27.291060",
+      "date": "2026-03-22",
+      "token": "FML",
+      "setup_type": "382 + Flip Zone",
+      "grade": "B+",
+      "score": 78,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T20:10:37.261444",
+      "date": "2026-03-22",
+      "token": "LOL",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 85,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T21:00:50.257657",
+      "date": "2026-03-22",
+      "token": "FML",
+      "setup_type": "Under-Fib Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T21:05:02.883348",
+      "date": "2026-03-22",
+      "token": "cowgorithm",
+      "setup_type": "382 + Flip Zone",
+      "grade": "B+",
+      "score": 77,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T21:20:34.682685",
+      "date": "2026-03-22",
+      "token": "FML",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T21:21:03.617460",
+      "date": "2026-03-22",
+      "token": "Pete",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 94,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T21:21:16.210355",
+      "date": "2026-03-22",
+      "token": "LOL",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T21:36:36.076473",
+      "date": "2026-03-22",
+      "token": "FML",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T21:39:51.857938",
+      "date": "2026-03-22",
+      "token": "FML",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T22:08:04.554251",
+      "date": "2026-03-22",
+      "token": "Downald",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 88,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T22:47:13.643402",
+      "date": "2026-03-22",
+      "token": "abcdefg",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T22:47:28.547994",
+      "date": "2026-03-22",
+      "token": "one",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T23:03:13.585940",
+      "date": "2026-03-22",
+      "token": "abcdefg",
+      "setup_type": "Under-Fib Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T23:19:12.709528",
+      "date": "2026-03-22",
+      "token": "abcdefg",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 90,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T23:41:28.877601",
+      "date": "2026-03-22",
+      "token": "CHIBI",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 84,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-22T23:41:53.813811",
+      "date": "2026-03-22",
+      "token": "abcdefg",
+      "setup_type": "Under-Fib Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T00:30:17.916356",
+      "date": "2026-03-23",
+      "token": "AirDolphin",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A+",
+      "score": 99,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T01:49:50.713724",
+      "date": "2026-03-23",
+      "token": "CHIBI",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T05:05:36.007585",
+      "date": "2026-03-23",
+      "token": "abcdefg",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T05:11:08.111032",
+      "date": "2026-03-23",
+      "token": "abcdefg",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T05:16:28.040954",
+      "date": "2026-03-23",
+      "token": "abcdefg",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T14:39:41.106700",
+      "date": "2026-03-23",
+      "token": "Chud",
+      "setup_type": "382 + Flip Zone",
+      "grade": "A",
+      "score": 86,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T19:57:12.043031",
+      "date": "2026-03-23",
+      "token": "\u5927\u80d6",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T21:56:33.867163",
+      "date": "2026-03-23",
+      "token": "\u5927\u80d6",
+      "setup_type": "786 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-23T23:48:01.958846",
+      "date": "2026-03-23",
+      "token": "7DOGE",
+      "setup_type": "618 + Flip Zone",
+      "grade": "A+",
+      "score": 99,
+      "similarity": null,
+      "vision_used": false
+    },
+    {
+      "timestamp": "2026-03-24T00:34:44.083755",
+      "date": "2026-03-24",
+      "token": "\u5927\u80d6",
+      "setup_type": "786 + Flip Zone",
+      "grade": "A+",
+      "score": 100,
+      "similarity": null,
+      "vision_used": false
+    }
+  ]
+}

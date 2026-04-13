@@ -1,0 +1,18 @@
+{
+  "chart_id": "382FZ-LIFE-5M-20260312-001",
+  "setup_name": "382 + Flip Zone",
+  "canonical_key": "382_flip_zone",
+  "token": "LIFE",
+  "timeframe": "5M",
+  "date": "2026-03-12",
+  "fib_depth": "382",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 200,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIQQmmzF7Hn5-JQLaAeSnFicaKJWfV-AAJyC2sbWiGgRWW7z2F6MO0zAQADAgADdwADOgQ",
+  "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 80",
+  "trained_at": "2026-03-12T19:46:44.436988"
+}

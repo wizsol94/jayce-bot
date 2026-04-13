@@ -1,0 +1,18 @@
+{
+  "chart_id": "618FZ-JEWCOIN-5M-20260223-001",
+  "setup_name": "618 + Flip Zone",
+  "canonical_key": "618_flip_zone",
+  "token": "JEWCOIN",
+  "timeframe": "5M",
+  "date": "2026-02-23",
+  "fib_depth": "618",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 130,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIGQWmcCPdGewo0MOlqUR64wnm8L9OsAAI5DGsbHBvhRDQm7AABvN4RXgEAAwIAA3cAAzoE",
+  "notes": "clean structure",
+  "trained_at": "2026-02-23T08:00:08.452641"
+}

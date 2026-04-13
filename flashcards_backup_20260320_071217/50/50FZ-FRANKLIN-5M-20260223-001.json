@@ -1,0 +1,18 @@
+{
+  "chart_id": "50FZ-FRANKLIN-5M-20260223-001",
+  "setup_name": "50 + Flip Zone",
+  "canonical_key": "50_flip_zone",
+  "token": "FRANKLIN",
+  "timeframe": "5M",
+  "date": "2026-02-23",
+  "fib_depth": "50",
+  "structure_state": "Trained",
+  "rsi_behavior": "",
+  "whale_conviction": false,
+  "violent_mode": false,
+  "outcome_percentage": 60,
+  "expansion_time_minutes": 0,
+  "screenshot_fingerprint_id": "AgACAgEAAxkBAAIF32mcAVGw_e6aiVp2WdWEmX2WNm9KAAIbDGsbHBvhRAjHyQElFmxpAQADAgADdwADOgQ",
+  "notes": "WHALE CONVICTION",
+  "trained_at": "2026-02-23T07:27:39.409130"
+}

@@ -1,20 +1,27 @@
 """
-FLASHCARD VISION AI v1.0
-========================
-Compares live charts to trained flashcards using Vision AI.
+FLASHCARD VISION AI v2.0 - CONTROLLED DIVERSITY SAMPLING
+=========================================================
+Mimics how a real trader scans flashcards visually.
 
-Budget Controls:
-- Daily cap: 50 requests
-- Monthly cap: 1000 requests
-- Min score gate: 70+ only
-- Narrowed search: Only compare to matching setup type
+NOT based on "best trades" or strict metadata.
+Instead: Controlled diversity sampling across outcome ranges.
 
-Cost: ~$0.01-0.02 per comparison
+System:
+1. Load ALL flashcards for detected setup type
+2. Sample 7 flashcards with controlled diversity:
+   - 2 HIGH outcome (winners)
+   - 3 MID outcome (average)
+   - 2 LOW outcome (failures/weak)
+3. Rotate selection to expose full library over time
+4. Vision compares structure, pullback, momentum, reaction
+
+Cost: ~$0.03-0.04 per comparison (7 images)
 """
 
 import os
 import json
 import base64
+import random
 import requests
 from datetime import datetime, date
 from typing import Dict, List, Optional, Tuple
@@ -29,13 +36,24 @@ logger = logging.getLogger(__name__)
 FLASHCARD_DIR = "/opt/jayce/flashcards"
 METADATA_FILE = f"{FLASHCARD_DIR}/metadata.json"
 USAGE_FILE = "/opt/jayce/data/vision_usage.json"
+ROTATION_FILE = "/opt/jayce/data/flashcard_rotation.json"
 
 # Budget limits
 DAILY_CAP = 50
 MONTHLY_CAP = 1000
-MIN_SCORE_GATE = 60  # Lowered to allow Vision to participate in scoring  # Only run Vision on scores 70+
+MIN_SCORE_GATE = 60
 
-# Anthropic API (for Vision)
+# Controlled Diversity Sampling
+SAMPLE_SIZE = 7
+HIGH_COUNT = 2   # Top performers (outcome >= 70%)
+MID_COUNT = 3    # Average performers (30% <= outcome < 70%)
+LOW_COUNT = 2    # Weak/failed (outcome < 30%)
+
+# Outcome thresholds
+HIGH_THRESHOLD = 70
+LOW_THRESHOLD = 30
+
+# Anthropic API
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
 
 # Setup type mapping
@@ -54,14 +72,12 @@ SETUP_FOLDERS = {
 # ══════════════════════════════════════════════════════════════════════════════
 
 def load_usage() -> Dict:
-    """Load usage tracking data."""
     try:
         if os.path.exists(USAGE_FILE):
             with open(USAGE_FILE, 'r') as f:
                 return json.load(f)
     except:
         pass
-    
     return {
         'daily': {'date': str(date.today()), 'count': 0},
         'monthly': {'month': date.today().strftime('%Y-%m'), 'count': 0},
@@ -70,29 +86,24 @@ def load_usage() -> Dict:
 
 
 def save_usage(usage: Dict):
-    """Save usage tracking data."""
     os.makedirs(os.path.dirname(USAGE_FILE), exist_ok=True)
     with open(USAGE_FILE, 'w') as f:
         json.dump(usage, f, indent=2)
 
 
 def check_budget() -> Tuple[bool, str]:
-    """Check if we're within budget limits."""
     usage = load_usage()
     today = str(date.today())
     month = date.today().strftime('%Y-%m')
     
-    # Reset daily counter if new day
     if usage['daily']['date'] != today:
         usage['daily'] = {'date': today, 'count': 0}
         save_usage(usage)
     
-    # Reset monthly counter if new month
     if usage['monthly']['month'] != month:
         usage['monthly'] = {'month': month, 'count': 0}
         save_usage(usage)
     
-    # Check limits
     if usage['daily']['count'] >= DAILY_CAP:
         return False, f"Daily cap reached ({DAILY_CAP})"
     
@@ -103,7 +114,6 @@ def check_budget() -> Tuple[bool, str]:
 
 
 def increment_usage():
-    """Increment usage counters."""
     usage = load_usage()
     today = str(date.today())
     month = date.today().strftime('%Y-%m')
@@ -122,7 +132,6 @@ def increment_usage():
 
 
 def get_usage_stats() -> Dict:
-    """Get current usage statistics."""
     usage = load_usage()
     return {
         'daily_used': usage['daily']['count'],
@@ -133,6 +142,44 @@ def get_usage_stats() -> Dict:
         'monthly_remaining': max(0, MONTHLY_CAP - usage['monthly']['count']),
         'total': usage['total']
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ROTATION TRACKING (Avoid sending same flashcards repeatedly)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def load_rotation_history() -> Dict:
+    try:
+        if os.path.exists(ROTATION_FILE):
+            with open(ROTATION_FILE, 'r') as f:
+                return json.load(f)
+    except:
+        pass
+    return {}
+
+
+def save_rotation_history(history: Dict):
+    os.makedirs(os.path.dirname(ROTATION_FILE), exist_ok=True)
+    with open(ROTATION_FILE, 'w') as f:
+        json.dump(history, f, indent=2)
+
+
+def get_recently_used(setup_type: str, max_history: int = 21) -> List[str]:
+    """Get recently used flashcard IDs for this setup type."""
+    history = load_rotation_history()
+    setup_history = history.get(setup_type, [])
+    return setup_history[-max_history:] if setup_history else []
+
+
+def record_used_flashcards(setup_type: str, chart_ids: List[str]):
+    """Record which flashcards were used to avoid repeats."""
+    history = load_rotation_history()
+    if setup_type not in history:
+        history[setup_type] = []
+    history[setup_type].extend(chart_ids)
+    # Keep last 50 to allow rotation
+    history[setup_type] = history[setup_type][-50:]
+    save_rotation_history(history)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -149,10 +196,10 @@ def load_metadata() -> List[Dict]:
         return []
 
 
-def get_flashcards_for_setup(setup_type: str, limit: int = 10) -> List[Dict]:
+def get_all_flashcards_for_setup(setup_type: str) -> List[Dict]:
     """
-    Get flashcard images for a specific setup type.
-    Returns the best examples (highest outcome %) first.
+    Load ALL flashcards for a setup type.
+    No limit - we load everything, then sample intelligently.
     """
     metadata = load_metadata()
     folder = SETUP_FOLDERS.get(setup_type, setup_type)
@@ -168,23 +215,100 @@ def get_flashcards_for_setup(setup_type: str, limit: int = 10) -> List[Dict]:
         if m.get('fib_depth') == setup_type or SETUP_FOLDERS.get(m.get('fib_depth')) == folder
     ]
     
-    # Sort by outcome percentage (best performers first)
-    setup_cards.sort(key=lambda x: x.get('outcome_percentage', 0), reverse=True)
-    
-    # Get top N with their file paths
+    # Build full list with file paths
     result = []
-    for card in setup_cards[:limit]:
+    for card in setup_cards:
         chart_id = card.get('chart_id', '').replace('/', '_')
         file_path = f"{folder_path}/{chart_id}.jpg"
         
         if os.path.exists(file_path):
             result.append({
+                'chart_id': chart_id,
                 'metadata': card,
                 'file_path': file_path,
-                'outcome': card.get('outcome_percentage', 0)
+                'outcome': card.get('outcome_percentage', 50)  # Default to mid if unknown
             })
     
+    logger.info(f"[FLASHCARD] Loaded {len(result)} flashcards for {setup_type}")
     return result
+
+
+def controlled_diversity_sample(
+    all_cards: List[Dict], 
+    setup_type: str
+) -> List[Dict]:
+    """
+    CONTROLLED DIVERSITY SAMPLING
+    
+    Select 7 flashcards with balanced outcome distribution:
+    - 2 HIGH (outcome >= 70%) - winners
+    - 3 MID (30% <= outcome < 70%) - average
+    - 2 LOW (outcome < 30%) - failures/weak
+    
+    Also avoids recently used flashcards for rotation.
+    """
+    if not all_cards:
+        return []
+    
+    # Get recently used to avoid repeats
+    recently_used = set(get_recently_used(setup_type))
+    
+    # Separate into buckets by outcome
+    high_cards = [c for c in all_cards if c['outcome'] >= HIGH_THRESHOLD and c['chart_id'] not in recently_used]
+    mid_cards = [c for c in all_cards if LOW_THRESHOLD <= c['outcome'] < HIGH_THRESHOLD and c['chart_id'] not in recently_used]
+    low_cards = [c for c in all_cards if c['outcome'] < LOW_THRESHOLD and c['chart_id'] not in recently_used]
+    
+    # If buckets are empty after filtering recently used, allow repeats
+    if not high_cards:
+        high_cards = [c for c in all_cards if c['outcome'] >= HIGH_THRESHOLD]
+    if not mid_cards:
+        mid_cards = [c for c in all_cards if LOW_THRESHOLD <= c['outcome'] < HIGH_THRESHOLD]
+    if not low_cards:
+        low_cards = [c for c in all_cards if c['outcome'] < LOW_THRESHOLD]
+    
+    # Shuffle each bucket
+    random.shuffle(high_cards)
+    random.shuffle(mid_cards)
+    random.shuffle(low_cards)
+    
+    # Sample from each bucket
+    sampled = []
+    
+    # HIGH: Take up to HIGH_COUNT
+    sampled.extend(high_cards[:HIGH_COUNT])
+    
+    # MID: Take up to MID_COUNT
+    sampled.extend(mid_cards[:MID_COUNT])
+    
+    # LOW: Take up to LOW_COUNT
+    sampled.extend(low_cards[:LOW_COUNT])
+    
+    # If we don't have enough in some buckets, fill from others
+    current_count = len(sampled)
+    if current_count < SAMPLE_SIZE:
+        # Try to fill from mid first (most common)
+        remaining_mid = [c for c in mid_cards if c not in sampled]
+        remaining_high = [c for c in high_cards if c not in sampled]
+        remaining_low = [c for c in low_cards if c not in sampled]
+        
+        fill_pool = remaining_mid + remaining_high + remaining_low
+        random.shuffle(fill_pool)
+        
+        needed = SAMPLE_SIZE - current_count
+        sampled.extend(fill_pool[:needed])
+    
+    # Record what we used for rotation
+    used_ids = [c['chart_id'] for c in sampled]
+    record_used_flashcards(setup_type, used_ids)
+    
+    # Log the diversity
+    high_count = len([c for c in sampled if c['outcome'] >= HIGH_THRESHOLD])
+    mid_count = len([c for c in sampled if LOW_THRESHOLD <= c['outcome'] < HIGH_THRESHOLD])
+    low_count = len([c for c in sampled if c['outcome'] < LOW_THRESHOLD])
+    
+    logger.info(f"[FLASHCARD] Sampled {len(sampled)} cards: {high_count} HIGH, {mid_count} MID, {low_count} LOW")
+    
+    return sampled
 
 
 def image_to_base64(file_path: str) -> Optional[str]:
@@ -198,18 +322,24 @@ def image_to_base64(file_path: str) -> Optional[str]:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# VISION AI COMPARISON
+# VISION AI COMPARISON - TRADER STYLE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def compare_charts_vision(
     live_chart_path: str,
-    flashcard_paths: List[str],
+    sampled_cards: List[Dict],
     setup_type: str
 ) -> Dict:
     """
-    Use Vision AI to compare live chart against flashcard examples.
+    Use Vision AI to compare live chart against diverse flashcard examples.
     
-    Returns similarity score and best match info.
+    Prompt focuses on:
+    - Structure similarity
+    - Pullback behavior
+    - Momentum patterns
+    - Reaction at levels
+    
+    NOT just visual similarity - behavior similarity.
     """
     if not ANTHROPIC_API_KEY:
         return {
@@ -239,12 +369,17 @@ def compare_charts_vision(
             'similarity': 0
         }
     
-    # Load flashcard images (max 3 to save tokens)
+    # Load flashcard images
     flashcard_images = []
-    for path in flashcard_paths[:3]:
-        b64 = image_to_base64(path)
+    for card in sampled_cards:
+        b64 = image_to_base64(card['file_path'])
         if b64:
-            flashcard_images.append({'path': path, 'b64': b64})
+            flashcard_images.append({
+                'chart_id': card['chart_id'],
+                'b64': b64,
+                'outcome': card['outcome'],
+                'path': card['file_path']
+            })
     
     if not flashcard_images:
         return {
@@ -253,90 +388,79 @@ def compare_charts_vision(
             'similarity': 0
         }
     
-    # Build Vision API request
+    # Build Vision API request with TRADER-STYLE prompt
     try:
-        messages = [
-            {
-                "role": "system",
-                "content": """You are a crypto chart pattern analyzer. Compare the LIVE chart to the REFERENCE flashcard examples.
+        # Build reference info for prompt
+        ref_info = []
+        for i, fc in enumerate(flashcard_images):
+            outcome_label = "WINNER" if fc['outcome'] >= 70 else ("AVERAGE" if fc['outcome'] >= 30 else "WEAK/FAILED")
+            ref_info.append(f"REF {i+1}: {outcome_label} ({fc['outcome']}% outcome)")
+        
+        ref_text = "\n".join(ref_info)
+        
+        system_prompt = f"""You are an expert crypto trader analyzing chart patterns. 
 
-Rate similarity from 0-100 based on:
-- Chart structure similarity
-- Fib retracement pattern match
-- Flip zone formation
-- Overall setup quality match
+Compare the LIVE chart to these REFERENCE flashcard examples from past trades.
+
+Reference Cards:
+{ref_text}
+
+Focus on BEHAVIOR SIMILARITY, not just visual similarity:
+- Structure: Does price structure match? (HH/HL patterns, trend integrity)
+- Pullback: Is the pullback behavior similar? (depth, speed, control)
+- Momentum: RSI behavior, volume patterns, exhaustion signs
+- Reaction: How price reacts at key levels (fib zones, flip zones)
 
 Respond ONLY with JSON:
-{"matches": [{"ref": 1, "similarity": 85}, {"ref": 2, "similarity": 78}, {"ref": 3, "similarity": 72}], "confidence": "high", "notes": "brief reason"}
+{{
+  "top_matches": [
+    {{"ref": 1, "similarity": 85, "pattern_type": "winner/average/weak"}},
+    {{"ref": 3, "similarity": 72, "pattern_type": "winner/average/weak"}},
+    {{"ref": 5, "similarity": 68, "pattern_type": "winner/average/weak"}}
+  ],
+  "current_resembles": "winning/average/failing",
+  "confidence": 0-100,
+  "reasoning": "Brief explanation of what behavior patterns match"
+}}
 
-Rate ALL reference images by similarity (0-100). Return matches sorted by similarity descending."""
-            },
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": f"LIVE CHART (analyzing for {setup_type} setup):"},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{live_b64}"}}
-                ]
-            }
-        ]
-        
-        # Add flashcard reference images
-        for i, fc in enumerate(flashcard_images):
-            messages.append({
-                "role": "user", 
-                "content": [
-                    {"type": "text", "text": f"REFERENCE {i+1} ({setup_type} example):"},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{fc['b64']}"}}
-                ]
-            })
-        
-        messages.append({
-            "role": "user",
-            "content": "Compare the LIVE chart to these reference examples. How similar is it? Respond with JSON only."
-        })
-        
-        # Convert to Claude message format
-        claude_messages = []
+Return top 3 most similar references. Be honest - if it looks like a failing pattern, say so."""
+
+        # Build Claude message content
         claude_content = []
         
-        # Add system prompt as first user message for Claude
-        system_text = messages[0]["content"]
-        claude_content.append({"type": "text", "text": system_text})
+        # Add system prompt
+        claude_content.append({"type": "text", "text": system_prompt})
         
-        # Add all images and text from user messages
-        for msg in messages[1:]:
-            if msg["role"] == "user":
-                msg_content = msg["content"]
-                if isinstance(msg_content, list):
-                    for item in msg_content:
-                        if item.get("type") == "text":
-                            claude_content.append({"type": "text", "text": item["text"]})
-                        elif item.get("type") == "image_url":
-                            # Extract base64 from data URL
-                            data_url = item["image_url"]["url"]
-                            if data_url.startswith("data:image/jpeg;base64,"):
-                                b64_data = data_url.replace("data:image/jpeg;base64,", "")
-                                # Detect media type from base64 header
-                                media_type = "image/jpeg"
-                                if b64_data.startswith("/9j/"):
-                                    media_type = "image/jpeg"
-                                elif b64_data.startswith("iVBORw"):
-                                    media_type = "image/png"
-                                
-                                claude_content.append({
-                                    "type": "image",
-                                    "source": {
-                                        "type": "base64",
-                                        "media_type": media_type,
-                                        "data": b64_data
-                                    }
-                                })
-                elif isinstance(msg_content, str):
-                    claude_content.append({"type": "text", "text": msg_content})
+        # Add live chart
+        claude_content.append({"type": "text", "text": f"\n\nLIVE CHART (analyzing for {setup_type} setup):"})
+        claude_content.append({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/jpeg",
+                "data": live_b64
+            }
+        })
+        
+        # Add reference flashcards
+        for i, fc in enumerate(flashcard_images):
+            outcome_label = "WINNER" if fc['outcome'] >= 70 else ("AVERAGE" if fc['outcome'] >= 30 else "WEAK/FAILED")
+            claude_content.append({"type": "text", "text": f"\n\nREFERENCE {i+1} - {outcome_label} ({fc['outcome']}% outcome):"})
+            claude_content.append({
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": fc['b64']
+                }
+            })
+        
+        # Final instruction
+        claude_content.append({"type": "text", "text": "\n\nCompare the LIVE chart to these references. Which patterns does it behave most similarly to? Respond with JSON only."})
         
         claude_messages = [{"role": "user", "content": claude_content}]
         
-        # Call Claude Vision API (Anthropic)
+        # Call Claude Vision API
         response = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -346,10 +470,10 @@ Rate ALL reference images by similarity (0-100). Return matches sorted by simila
             },
             json={
                 "model": "claude-sonnet-4-20250514",
-                "max_tokens": 150,
+                "max_tokens": 300,
                 "messages": claude_messages
             },
-            timeout=30
+            timeout=45
         )
         
         # Increment usage counter
@@ -365,7 +489,6 @@ Rate ALL reference images by similarity (0-100). Return matches sorted by simila
         
         result = response.json()
         
-        # Check for API errors in response
         if 'error' in result:
             logger.error(f"Vision API returned error: {result['error']}")
             return {
@@ -375,7 +498,6 @@ Rate ALL reference images by similarity (0-100). Return matches sorted by simila
             }
         
         try:
-            # Claude format: result['content'][0]['text']
             content = result['content'][0]['text']
         except (KeyError, IndexError) as e:
             logger.error(f"Vision API unexpected response format: {result}")
@@ -385,8 +507,7 @@ Rate ALL reference images by similarity (0-100). Return matches sorted by simila
                 'similarity': 0
             }
         
-        # Debug log the raw response
-        logger.info(f"Vision API raw response: {content[:300]}...")
+        logger.info(f"Vision API raw response: {content[:500]}...")
         
         # Parse JSON response
         import re
@@ -394,36 +515,36 @@ Rate ALL reference images by similarity (0-100). Return matches sorted by simila
         if json_match:
             parsed = json.loads(json_match.group())
             
-            # Handle top 10 matches
-            matches = parsed.get('matches', [])
-            if not matches and 'similarity' in parsed:
-                # Fallback for old format
-                matches = [{'ref': parsed.get('best_match', 1), 'similarity': parsed.get('similarity', 0)}]
+            top_matches = parsed.get('top_matches', [])
             
             # Sort by similarity descending
-            matches = sorted(matches, key=lambda x: x.get('similarity', 0), reverse=True)[:3]
+            top_matches = sorted(top_matches, key=lambda x: x.get('similarity', 0), reverse=True)[:3]
             
-            # Calculate average similarity of top 10
-            similarities = [m.get('similarity', 0) for m in matches]
+            # Calculate average similarity
+            similarities = [m.get('similarity', 0) for m in top_matches]
             avg_similarity = sum(similarities) / len(similarities) if similarities else 0
             
-            # Build top 10 results with paths
-            top_matches = []
-            for m in matches:
+            # Build detailed results
+            detailed_matches = []
+            for m in top_matches:
                 ref_idx = m.get('ref', 1) - 1
                 if 0 <= ref_idx < len(flashcard_images):
-                    top_matches.append({
-                        'path': flashcard_images[ref_idx]['path'],
+                    fc = flashcard_images[ref_idx]
+                    detailed_matches.append({
+                        'chart_id': fc['chart_id'],
+                        'path': fc['path'],
                         'similarity': m.get('similarity', 0),
-                        'chart_id': os.path.basename(flashcard_images[ref_idx]['path']).replace('.jpg', '')
+                        'pattern_type': m.get('pattern_type', 'unknown'),
+                        'outcome': fc['outcome']
                     })
             
             return {
                 'success': True,
                 'similarity': round(avg_similarity, 1),
-                'top_matches': top_matches,
-                'confidence': parsed.get('confidence', 'unknown'),
-                'notes': parsed.get('notes', ''),
+                'top_matches': detailed_matches,
+                'current_resembles': parsed.get('current_resembles', 'unknown'),
+                'confidence': parsed.get('confidence', 0),
+                'reasoning': parsed.get('reasoning', ''),
                 'usage': get_usage_stats()
             }
         else:
@@ -455,14 +576,12 @@ def analyze_with_flashcards(
     """
     Main entry point for flashcard Vision analysis.
     
-    Only runs if:
-    - current_score >= MIN_SCORE_GATE (70)
-    - Within daily/monthly budget
-    - Setup type has flashcard examples
+    Uses Controlled Diversity Sampling to mimic real trader behavior.
     
     Returns:
     - similarity: 0-100 match score
-    - bonus_points: Points to add to final score (0-10)
+    - current_resembles: winning/average/failing
+    - bonus_points: Points to add to final score
     - should_boost: Whether to boost the grade
     """
     result = {
@@ -471,7 +590,8 @@ def analyze_with_flashcards(
         'bonus_points': 0,
         'should_boost': False,
         'reason': '',
-        'best_match': None
+        'best_match': None,
+        'current_resembles': 'unknown'
     }
     
     # Gate 1: Score check
@@ -485,59 +605,101 @@ def analyze_with_flashcards(
         result['reason'] = budget_reason
         return result
     
-    # Gate 3: Get flashcards for this setup type
-    flashcards = get_flashcards_for_setup(setup_type, limit=10)
-    if not flashcards:
-        result['reason'] = f'No flashcards for setup type: {setup_type}'
-        return result
-    
-    # Gate 4: Check live chart exists
+    # Gate 3: Check live chart exists
     if not os.path.exists(live_chart_path):
         result['reason'] = 'Live chart not found'
         return result
     
-    # Run Vision comparison
-    flashcard_paths = [fc['file_path'] for fc in flashcards]
-    vision_result = compare_charts_vision(live_chart_path, flashcard_paths, setup_type)
+    # Load ALL flashcards for this setup type
+    all_cards = get_all_flashcards_for_setup(setup_type)
+    if not all_cards:
+        result['reason'] = f'No flashcards for setup type: {setup_type}'
+        return result
+    
+    # Apply Controlled Diversity Sampling
+    sampled_cards = controlled_diversity_sample(all_cards, setup_type)
+    if not sampled_cards:
+        result['reason'] = 'Failed to sample flashcards'
+        return result
+    
+    # Run Vision comparison with diverse sample
+    vision_result = compare_charts_vision(live_chart_path, sampled_cards, setup_type)
     
     result['ran_vision'] = True
     result['vision_result'] = vision_result
     
     if vision_result.get('success'):
-        similarity = vision_result.get('similarity', 0)  # Now average of top 10
+        similarity = vision_result.get('similarity', 0)
         result['similarity'] = similarity
         result['top_matches'] = vision_result.get('top_matches', [])
-        result['confidence'] = vision_result.get('confidence')
-        result['notes'] = vision_result.get('notes')
+        result['confidence'] = vision_result.get('confidence', 0)
+        result['reasoning'] = vision_result.get('reasoning', '')
+        result['current_resembles'] = vision_result.get('current_resembles', 'unknown')
         
-        # Log top 3 highest matches (for inspection)
+        # Log matches
         if result['top_matches']:
-            logger.info("Flashcard Matches:")
+            logger.info(f"[FLASHCARD] Pattern Analysis:")
+            logger.info(f"  Current chart resembles: {result['current_resembles'].upper()} pattern")
             for match in result['top_matches']:
-                logger.info(f"  - {match['chart_id']} → {match['similarity']}%")
+                logger.info(f"  - {match['chart_id']} ({match['pattern_type']}) → {match['similarity']}%")
         
-        # Calculate bonus points based on similarity
-        if similarity >= 90:
-            result['bonus_points'] = 10
-            result['should_boost'] = True
-        elif similarity >= 80:
-            result['bonus_points'] = 7
-            result['should_boost'] = True
-        elif similarity >= 70:
-            result['bonus_points'] = 5
+        # Calculate bonus points based on similarity AND pattern type
+        resembles = result['current_resembles'].lower()
+        
+        if resembles == 'winning':
+            # Looks like a winner
+            if similarity >= 85:
+                result['bonus_points'] = 12
+                result['should_boost'] = True
+            elif similarity >= 75:
+                result['bonus_points'] = 8
+                result['should_boost'] = True
+            elif similarity >= 65:
+                result['bonus_points'] = 5
+                result['should_boost'] = False
+            else:
+                result['bonus_points'] = 3
+                result['should_boost'] = False
+        
+        elif resembles == 'average':
+            # Looks average
+            if similarity >= 80:
+                result['bonus_points'] = 5
+                result['should_boost'] = False
+            elif similarity >= 65:
+                result['bonus_points'] = 3
+                result['should_boost'] = False
+            else:
+                result['bonus_points'] = 1
+                result['should_boost'] = False
+        
+        elif resembles == 'failing':
+            # Looks like a failure - penalize
+            result['bonus_points'] = -5
             result['should_boost'] = False
-        elif similarity >= 60:
-            result['bonus_points'] = 3
-            result['should_boost'] = False
+            logger.warning(f"[FLASHCARD] ⚠️ Chart resembles FAILING pattern!")
+        
         else:
-            result['bonus_points'] = 0
-            result['should_boost'] = False
+            # Unknown - modest bonus based on similarity
+            if similarity >= 75:
+                result['bonus_points'] = 5
+            elif similarity >= 60:
+                result['bonus_points'] = 2
+            else:
+                result['bonus_points'] = 0
         
-        result['reason'] = f'Similarity: {similarity}%'
+        result['reason'] = f'{resembles.upper()} pattern, {similarity}% match'
     else:
         result['reason'] = vision_result.get('error', 'Vision failed')
     
     return result
+
+
+# Legacy function for compatibility
+def get_flashcards_for_setup(setup_type: str, limit: int = 10) -> List[Dict]:
+    """Legacy function - now uses controlled diversity sampling internally."""
+    all_cards = get_all_flashcards_for_setup(setup_type)
+    return all_cards[:limit]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -546,14 +708,17 @@ def analyze_with_flashcards(
 
 if __name__ == '__main__':
     print("=" * 60)
-    print("FLASHCARD VISION AI v1.0 - TEST")
+    print("FLASHCARD VISION AI v2.0 - CONTROLLED DIVERSITY")
     print("=" * 60)
     
-    # Show flashcard counts
-    print("\nFlashcard Library:")
+    # Show flashcard counts by outcome
+    print("\nFlashcard Library (by outcome):")
     for setup in ['382', '50', '618', '786', 'Under-Fib']:
-        cards = get_flashcards_for_setup(setup)
-        print(f"  {setup}: {len(cards)} cards")
+        cards = get_all_flashcards_for_setup(setup)
+        high = len([c for c in cards if c['outcome'] >= 70])
+        mid = len([c for c in cards if 30 <= c['outcome'] < 70])
+        low = len([c for c in cards if c['outcome'] < 30])
+        print(f"  {setup}: {len(cards)} total ({high} HIGH, {mid} MID, {low} LOW)")
     
     # Show usage stats
     print("\nUsage Stats:")
@@ -562,9 +727,9 @@ if __name__ == '__main__':
     print(f"  Monthly: {stats['monthly_used']}/{stats['monthly_cap']}")
     print(f"  Total: {stats['total']}")
     
-    # Check if OpenAI key is set
-    if OPENAI_API_KEY:
-        print("\n✅ OpenAI API key configured")
-    else:
-        print("\n⚠️ OpenAI API key NOT configured")
-        print("   Set OPENAI_API_KEY in /opt/jayce/.env")
+    # Show sampling config
+    print("\nSampling Config:")
+    print(f"  Sample size: {SAMPLE_SIZE}")
+    print(f"  HIGH (>={HIGH_THRESHOLD}%): {HIGH_COUNT} cards")
+    print(f"  MID ({LOW_THRESHOLD}-{HIGH_THRESHOLD}%): {MID_COUNT} cards")
+    print(f"  LOW (<{LOW_THRESHOLD}%): {LOW_COUNT} cards")
