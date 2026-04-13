@@ -1,4 +1,5 @@
 import os
+from chart_annotator import annotate_chart
 from pathlib import Path
 import asyncio
 import logging
@@ -58,7 +59,8 @@ print("")
 
 # v4.1: Import WizTheory detection engines
 from engines import run_detection, format_engine_result_text, cleanup_engine_cooldowns
-from candle_provider import fetch_candles
+from candle_provider import fetch_candles, fetch_candles_dual, fetch_candles_birdeye_1m
+from cache_tiers import assess_token_tier, should_fetch_1m, get_tiered_cache, store_tiered_cache, get_tier_stats
 from daily_audit import track_tokens_scanned, track_candidates, track_vision_call, track_alert, save_daily_stats
 from hybrid_intake import run_hybrid_intake, stage2_metadata_filter
 from alert_tracker import log_alert
@@ -80,50 +82,81 @@ try:
     from flashcard_vision import analyze_with_flashcards, get_usage_stats
     from vision_audit import log_vision_call, update_outcome
     from setup_watch import check_setup_watch, format_setup_watch_message, clear_old_alerts
+    from whale_conviction import get_whale_conviction, format_whale_for_alert
+    from pre_alert import check_pre_alert, format_pre_alert_message
     PSEF_ENABLED = False  # Disabled - validators handle quality
 except ImportError as e:
     print(f"Warning: PSEF/Candle modules not loaded: {e}")
     PSEF_ENABLED = False
 
+def get_setup_config(setup_type: str) -> dict:
+    """Get TP time, trigger, and wiz note for each setup type."""
+    setup_map = {
+        '382': {
+            'tp_time': '34 min - 1 hr',
+            'trigger': '3-6% Above Fib',
+            'wiz_note': 'The .382 is a gift. Take what the market offers (20–40%) and respect structure.'
+        },
+        '50': {
+            'tp_time': '1 - 5 hrs',
+            'trigger': '5-6% Above Fib',
+            'wiz_note': 'The 50 shakes weak hands. Secure 30–60% and let structure decide the rest.'
+        },
+        '618': {
+            'tp_time': '1 - 24 hrs',
+            'trigger': '6-9% Above Fib',
+            'wiz_note': 'Price slows at 618. The real edge is securing 40–60% here 💰 Volume creeps in before expansion.'
+        },
+        '786': {
+            'tp_time': '30 min - 2 hrs',
+            'trigger': '6-10% Above Fib',
+            'wiz_note': 'Markets reverse on pain, not excitement. 786 is pain disguised as opportunity. Secure 50–75% on the bounce. Hold the rest if structure confirms 📈'
+        },
+        'under_fib': {
+            'tp_time': '1 - 6 hrs',
+            'trigger': '6% Above Nearest Wick',
+            'wiz_note': 'Like music 🎶 — price has to go off-beat before it can return to rhythm. Big moves start here, but securing is the edge 💯'
+        }
+    }
+    
+    # Normalize setup type
+    setup_key = setup_type.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace('+', '').replace('fz', '').replace('flip zone', '').strip()
+    
+    for key in setup_map:
+        if key in setup_key or setup_key in key:
+            return setup_map[key]
+    
+    return {
+        'tp_time': '1 - 4 hrs',
+        'trigger': '5-8% Above Fib',
+        'wiz_note': 'Trust the structure. Secure profits and let runners run.'
+    }
+
 def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Dict, 
                            vision_result: Dict = None) -> str:
-    """Format full WizTheory breakdown alert message."""
+    """Format full WizTheory alert message - NEW WIZARD FORMAT."""
     
     symbol = token.get('symbol', '???')
     setup_type = bangers_result.get('wiz_setup_type', 'Unknown')
     grade = bangers_result.get('grade', '?')
     score = bangers_result.get('score', 0)
     
-    # Get breakdown components
-    breakdown = bangers_result.get('breakdown', {})
-    
     # Impulse data
     impulse_data = impulse_result.get('impulse') or {}
     expansion_pct = impulse_data.get('expansion_pct', 0)
-    impulse_bonus = bangers_result.get('impulse_bonus', 0)
-    
-    # Structure
-    structure = bangers_result.get('structure', {})
-    struct_trend = structure.get('trend', 'UNKNOWN')
-    struct_grade = structure.get('grade', 'C')
-    struct_points = breakdown.get('structure', {}).get('points', 0)
     
     # RSI
     rsi_data = bangers_result.get('rsi', {})
-    rsi_label = rsi_data.get('mode') or rsi_data.get('memory_state', 'UNKNOWN')
-    rsi_points = breakdown.get('rsi_memory', {}).get('points', 0)
-    
-    # Candles
-    candle_data = bangers_result.get('candles', {})
-    candle_char = candle_data.get('recent_character') or candle_data.get('character', 'UNKNOWN')
-    candle_points = breakdown.get('candle_quality', {}).get('points', 0)
+    rsi_value = rsi_data.get('value', 0) or rsi_data.get('rsi', 50)
     
     # Vision
-    vision_similarity = 0
-    vision_bonus = 0
+    vision_pct = 0
     if vision_result and vision_result.get('ran_vision'):
-        vision_similarity = vision_result.get('similarity', 0)
-        vision_bonus = vision_result.get('bonus_points', 0)
+        vision_pct = vision_result.get('similarity', 0)
+    
+    # Whale
+    has_whale = token.get('whale_detected') or token.get('has_whale', False)
+    whale_text = "Yes" if has_whale else "No"
     
     # Levels
     flip_zone = impulse_result.get('flip_zone', {})
@@ -141,49 +174,34 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
         else:
             return f"${p:.10f}"
     
-    # Build impulse line
-    impulse_line = f"⚡ Impulse: {expansion_pct:.0f}% expansion"
-    if impulse_bonus > 0:
-        impulse_line += f" (+{impulse_bonus} bonus)"
-    
-    # Build vision line
-    vision_line = f"👁 Vision: {vision_similarity:.0f}% similarity"
-    if vision_bonus > 0:
-        vision_line += f" (+{vision_bonus} bonus)"
-    
-    # Get token address for links
+    # Get token address
     token_address = token.get('address') or token.get('token_address', '')
-    pair_address = token.get('pair_address', '')
     
-    message = f"""🚨 <b>WIZTHEORY ALERT</b>: ${symbol}
+    # Get setup-specific config
+    config = get_setup_config(setup_type)
+    
+    message = f"""🔮 <b>WIZTHEORY ALERT: ${symbol}</b>
 
-🧠 Setup: {setup_type} + Flip Zone
+🧙‍♂️ Setup: {setup_type} + Flip Zone
 🏆 Grade: {grade}
-📊 Score: {score}
+⏰ Avg TP: {config['tp_time']}
 
-━━━━━━━━━━━━━━━━━━━━
+✨ <b>CONFIRMATIONS</b> ✨
+⚡️ Breakout: {expansion_pct:.0f}%
+📈 RSI: {rsi_value:.0f}
+👀 Vision: {vision_pct:.0f}%
+🐋 Whale Detected: {whale_detected_text}
+🐳 Whale Conviction: {whale_conviction_text}
 
-📈 <b>Breakdown</b>
-
-{impulse_line}
-🧱 Structure: {struct_trend} ({struct_points}/30)
-🧠 RSI: {rsi_label} ({rsi_points}/8)
-🕯 Candles: {candle_char} ({candle_points}/15)
-{vision_line}
-
-━━━━━━━━━━━━━━━━━━━━
-
-📍 <b>Levels</b>
-
+🧙‍♂️ <b>Execution Map</b> 🧙‍♂️
+📍 Current Price: {fmt_price(current_price)}
 🎯 Entry Zone: {fmt_price(entry_zone)}
-💰 Current Price: {fmt_price(current_price)}
+💎 Trigger: {config['trigger']}
 
-━━━━━━━━━━━━━━━━━━━━
+✨ {config['wiz_note']}
 
-🔎 <b>Chart Links</b>
-
-📊 <a href="https://dexscreener.com/solana/{pair_address or token_address}">DexScreener</a>
-🛰 <a href="https://birdeye.so/token/{token_address}?chain=solana">Birdeye</a>"""
+📊 CA:
+<code>{token_address}</code>"""
     
     return message
 
@@ -308,7 +326,7 @@ HEARTBEAT_INTERVAL_MINUTES = int(os.getenv('HEARTBEAT_INTERVAL_MINUTES', 10))
 JAYCE_BOT_TOKEN = os.getenv('JAYCE_BOT_TOKEN', '8235602450:AAG9g__NmneEhBTTwcJgiQpqOwZere6FQc0')
 
 CHARTS_PER_SCAN = int(os.getenv('CHARTS_PER_SCAN', 70))
-MIN_MARKET_CAP = int(os.getenv('MIN_MARKET_CAP', 100000))
+MIN_MARKET_CAP = 0  # DISABLED
 MIN_LIQUIDITY = int(os.getenv('MIN_LIQUIDITY', 10000))
 MIN_COIN_AGE_HOURS = float(os.getenv('MIN_COIN_AGE_HOURS', 3))  # Minimum 3 hours old
 MIN_CANDLES = int(os.getenv('MIN_CANDLES', 36))  # 36 candles = 3 hours on 5M chart
@@ -357,9 +375,9 @@ SCANNER_PAUSE_FILE = Path("/opt/jayce/data/scanner_paused.flag")
 def is_scanner_paused():
     return SCANNER_PAUSE_FILE.exists()
 
-ENGINE_WEIGHT = float(os.getenv('ENGINE_WEIGHT', 0.4))
-VISION_WEIGHT = float(os.getenv('VISION_WEIGHT', 0.4))
-PATTERN_WEIGHT = float(os.getenv('PATTERN_WEIGHT', 0.2))
+ENGINE_WEIGHT = float(os.getenv('ENGINE_WEIGHT', 0.55))
+VISION_WEIGHT = float(os.getenv('VISION_WEIGHT', 0.20))
+PATTERN_WEIGHT = float(os.getenv('PATTERN_WEIGHT', 0.25))
 
 DEDUP_FORMING_HOURS = int(os.getenv('DEDUP_FORMING_HOURS', 3))
 DEDUP_VALID_HOURS = int(os.getenv('DEDUP_VALID_HOURS', 9))
@@ -1015,7 +1033,7 @@ def should_use_vision(token: dict) -> tuple:
 
 def pre_filter_token(token: dict) -> tuple:
     mc, liq = token.get('market_cap', 0), token.get('liquidity', 0)
-    if mc < MIN_MARKET_CAP: return (False, "MC too low")
+    # if mc < MIN_MARKET_CAP: return (False, "MC too low")  # DISABLED
     if liq < MIN_LIQUIDITY: return (False, "Liq too low")
     dex = token.get('dex', '').lower()
     if dex and dex not in ALLOWED_DEXES: return (False, f"DEX: {dex}")
@@ -1843,24 +1861,19 @@ async def get_extension_screenshot(pair_address: str) -> bytes:
 async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_address: str = None) -> tuple:
     if not pair_address: return None, None
     
-    # Try extension screenshot first (real DEX Screener capture)
-    ext_screenshot = await get_extension_screenshot(pair_address)
-    if ext_screenshot:
-        logger.info(f"📸 {symbol}: Using extension screenshot")
-        # Fetch candles using candle provider (Birdeye → GeckoTerminal fallback)
-        candles = await fetch_candles(pair_address, symbol, token_address)
-        return ext_screenshot, candles
+    # DISABLED: Extension screenshots (cluttered DexScreener pages)
+    # Using clean rendered charts instead (black background + candles only)
+    # ext_screenshot = await get_extension_screenshot(pair_address)
+    # if ext_screenshot:
+    #     logger.info(f"📸 {symbol}: Using extension screenshot")
+    #     candles = await fetch_candles(pair_address, symbol, token_address)
+    #     return ext_screenshot, candles
     
-    # Fallback to GeckoTerminal chart generation
-    await asyncio.sleep(3)  # Rate limit protection for GeckoTerminal
+    # Render clean chart from candle data
     try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pair_address}/ohlcv/minute?aggregate=5&limit=100")
-        if resp.status_code != 200: return None, None
-        ohlcv = resp.json().get('data', {}).get('attributes', {}).get('ohlcv_list', [])
-        if len(ohlcv) < 10: return None, None
-        
-        candles = sorted([{'ts': int(c[0]), 'o': float(c[1]), 'h': float(c[2]), 'l': float(c[3]), 'c': float(c[4]), 'v': float(c[5])} for c in ohlcv], key=lambda x: x['ts'])
+        candles = await fetch_candles(pair_address, symbol, token_address)
+        if not candles or len(candles) < 10:
+            return None, None
         
         # Scam filters
         vols = [c['v'] for c in candles if c['v'] > 0]
@@ -1872,32 +1885,79 @@ async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_ad
                     DAILY_METRICS['blocked_wash_trading'] += 1
                     return None, None
         
-        # Render chart
+        # Render chart with WizTheory annotations
         W, H = 1400, 700
-        img = Image.new('RGB', (W, H), (13, 17, 23))
-        draw = ImageDraw.Draw(img)
-        try: font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
-        except: font = ImageFont.load_default()
+        img = Image.new("RGB", (W, H), (13, 17, 23))
+        draw = ImageDraw.Draw(img, "RGBA")
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+            font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
+            font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
+        except:
+            font = ImageFont.load_default()
+            font_large = font
+            font_medium = font
         
         draw.text((60, 10), f"{symbol} · 5M", fill=(255,255,255), font=font)
         
-        highs, lows = [c['h'] for c in candles], [c['l'] for c in candles]
+        highs = [c["h"] for c in candles]
+        lows = [c["l"] for c in candles]
+        closes = [c["c"] for c in candles]
         price_max, price_min = max(highs), min(lows)
         price_range = price_max - price_min or price_max * 0.01
         
+        # Fib levels
+        fib_382 = price_max - (price_range * 0.382)
+        fib_50 = price_max - (price_range * 0.50)
+        fib_618 = price_max - (price_range * 0.618)
+        fib_786 = price_max - (price_range * 0.786)
+        expansion_pct = ((price_max - price_min) / price_min * 100) if price_min > 0 else 0
+        
+        def price_to_y(price):
+            return int(50 + (1 - (price - price_min) / price_range) * 590)
+        
+        CYAN = (0, 255, 255)
+        PURPLE = (180, 80, 220)
+        
+        # Draw fib lines
+        for name, price, col in [("382", fib_382, (255,150,80)), ("50", fib_50, (200,200,80)), ("618", fib_618, (80,150,255)), ("786", fib_786, (80,220,220))]:
+            y = price_to_y(price)
+            if 50 < y < 640:
+                draw.line([(60, y), (1340, y)], fill=col, width=1)
+                lbl = f"0.{name}" if name != "50" else "0.5"
+                draw.text((1345, y - 8), lbl, fill=col, font=font)
+        
+        # Draw flip zone
+        fz_top = price_to_y(fib_618 * 1.02)
+        fz_bottom = price_to_y(fib_618 * 0.98)
+        if 50 < fz_top < 640 and 50 < fz_bottom < 640:
+            draw.rectangle([(60, fz_top), (1340, fz_bottom)], fill=(180, 80, 220, 50), outline=PURPLE, width=2)
+            draw.text((70, (fz_top + fz_bottom) // 2 - 10), "FLIP ZONE", fill=PURPLE, font=font_medium)
+        
+        # Expansion label
+        # Profit label at top right
+        draw.text((1250, price_to_y(price_max) - 30), f"+{expansion_pct:.0f}%", fill=CYAN, font=font_large)
+        
+        # Draw candles
         n = len(candles)
-        for i, c in enumerate(candles):
-            x = 60 + int((i + 0.5) * 1280 / n)
-            color = (0, 200, 83) if c['c'] >= c['o'] else (255, 23, 68)
-            y_h = int(50 + (1 - (c['h'] - price_min) / price_range) * 590)
-            y_l = int(50 + (1 - (c['l'] - price_min) / price_range) * 590)
-            y_o = int(50 + (1 - (c['o'] - price_min) / price_range) * 590)
-            y_c = int(50 + (1 - (c['c'] - price_min) / price_range) * 590)
+        for idx, c in enumerate(candles):
+            x = 60 + int((idx + 0.5) * 1280 / n)
+            color = (0, 200, 83) if c["c"] >= c["o"] else (255, 23, 68)
+            y_h = price_to_y(c["h"])
+            y_l = price_to_y(c["l"])
+            y_o = price_to_y(c["o"])
+            y_c = price_to_y(c["c"])
             draw.line([(x, y_h), (x, y_l)], fill=color, width=1)
             draw.rectangle([(x-3, min(y_o,y_c)), (x+3, max(y_o,y_c)+1)], fill=color)
         
+        # Labels
+        # BREAKOUT label above flip zone with arrow pointing down
+        draw.text((80, fz_top - 40), "BREAKOUT", fill=CYAN, font=font_medium)
+        entry_y = price_to_y(closes[-1]) if closes else 300
+        if 50 < entry_y < 640:
+            pass  # ENTRY label removed
+        
         buf = BytesIO()
-        img.save(buf, format='PNG')
         return buf.getvalue(), candles
     except Exception as e:
         logger.error(f"❌ Chart error: {e}")
@@ -2156,64 +2216,143 @@ async def send_wiztheory_alert(token: dict, bangers_result: dict, impulse_result
         logger.error(f"❌ WIZTHEORY alert error: {e}")
         return False
 
+def get_setup_details(setup_type: str) -> dict:
+    """Get TP time, trigger, and wiz note for each setup type."""
+    setup_map = {
+        '382': {
+            'tp_time': '34 min - 1 hr',
+            'trigger': '3-6% Above Fib',
+            'wiz_note': 'The .382 is a gift. Take what the market offers (20–40%) and respect structure.'
+        },
+        '50': {
+            'tp_time': '1 - 5 hrs',
+            'trigger': '5-6% Above Fib',
+            'wiz_note': 'The 50 shakes weak hands. Secure 30–60% and let structure decide the rest.'
+        },
+        '618': {
+            'tp_time': '1 - 24 hrs',
+            'trigger': '6-9% Above Fib',
+            'wiz_note': 'Price slows at 618. The real edge is securing 40–60% here 💰 Volume creeps in before expansion.'
+        },
+        '786': {
+            'tp_time': '30 min - 2 hrs',
+            'trigger': '6-10% Above Fib',
+            'wiz_note': 'Markets reverse on pain, not excitement. 786 is pain disguised as opportunity. Secure 50–75% on the bounce. Hold the rest if structure confirms 📈'
+        },
+        'under_fib': {
+            'tp_time': '1 - 6 hrs',
+            'trigger': '6% Above Nearest Wick',
+            'wiz_note': 'Like music 🎶 — price has to go off-beat before it can return to rhythm. Big moves start here, but securing is the edge 💯'
+        }
+    }
+    
+    # Normalize setup type
+    setup_key = setup_type.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace('+', '').strip()
+    
+    # Try to find matching setup
+    for key in setup_map:
+        if key in setup_key or setup_key in key:
+            return setup_map[key]
+    
+    # Default fallback
+    return {
+        'tp_time': '1 - 4 hrs',
+        'trigger': '5-8% Above Fib',
+        'wiz_note': 'Trust the structure. Secure profits and let runners run.'
+    }
+
 async def send_alert(token: dict, vision_result: dict, chart_bytes: bytes, tier_name: str, tier_emoji: str, combined_score: float, engine_result: dict = None):
     try:
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         symbol = token.get('symbol', '???')
         address = token.get('address', '')
+        current_price = token.get('price', 0)
         
         # Use engine data if available
         if engine_result:
             setup_type = engine_result.get('engine_name', 'Unknown')
             grade = engine_result.get('grade', '?')
-            engine_score = engine_result.get('score', 0)
-            whale = '🐋' if engine_result.get('has_whale') else ''
-            engine_info = format_engine_result_text(engine_result)
+            breakout_pct = engine_result.get('impulse_pct', 0)
+            rsi = engine_result.get('rsi', 0)
+            entry_zone = engine_result.get('entry_range', 'N/A')
+            has_whale = engine_result.get('has_whale', False)
         else:
             setup_type = vision_result.get('setup_type', 'Unknown')
-            grade, engine_score, whale, engine_info = '?', 0, '', ''
+            grade = '?'
+            breakout_pct = 0
+            rsi = 0
+            entry_zone = 'N/A'
+            has_whale = False
         
-        confidence = vision_result.get('confidence', 0)
-        match_to_training = vision_result.get('match_to_training', 0)  # v4.1
-        mc = token.get('market_cap', 0)
-        liq = token.get('liquidity', 0)
-        h1 = token.get('price_change_1h', 0)
-        h24 = token.get('price_change_24h', 0)
+        vision_confidence = vision_result.get('confidence', 0)
         
-        # v4.1: Add flashcard match indicator
-        flashcard_indicator = ""
-        if match_to_training >= 80:
-            flashcard_indicator = "📚 STRONG MATCH"
-        elif match_to_training >= 60:
-            flashcard_indicator = "📖 Good Match"
-        elif match_to_training >= 40:
-            flashcard_indicator = "📄 Partial Match"
+        # 2-Layer Whale Conviction System
+        try:
+            whale_result = await get_whale_conviction(address, engine_result)
+            whale_detected_text, whale_conviction_text = format_whale_for_alert(whale_result)
+        except Exception as e:
+            logger.warning(f"Whale conviction check failed: {e}")
+            whale_detected_text = "No"
+            whale_conviction_text = "No"
         
-        msg = f"""🚨 <b>JAYCE ALERT — {symbol}</b> {tier_emoji} <b>{tier_name}</b> {whale}
+        # Get setup-specific details
+        setup_details = get_setup_details(setup_type)
+        tp_time = setup_details['tp_time']
+        trigger = setup_details['trigger']
+        wiz_note = setup_details['wiz_note']
+        
+        # Format current price
+        if current_price and current_price > 0:
+            if current_price < 0.0001:
+                price_str = f"${current_price:.10f}"
+            elif current_price < 1:
+                price_str = f"${current_price:.6f}"
+            else:
+                price_str = f"${current_price:.4f}"
+        else:
+            price_str = "N/A"
+        
+        msg = f"""🔮 <b>WIZTHEORY ALERT: ${symbol}</b>
 
-<b>Setup:</b> {setup_type}
-<b>Grade:</b> {grade} | <b>Score:</b> {combined_score:.0f}/100
-<b>Engine:</b> {engine_score} | <b>Vision:</b> {confidence}
-{f'<b>Training Match:</b> {match_to_training}% {flashcard_indicator}' if match_to_training else ''}
+🧙‍♂️ Setup: {setup_type} + Flip Zone
+🏆 Grade: {grade}
+⏰ Avg TP: {tp_time}
 
-💰 MC: ${mc:,.0f} | 💧 Liq: ${liq:,.0f}
-📈 1h: {h1:+.1f}% | 24h: {h24:+.1f}%
+✨ <b>CONFIRMATIONS</b> ✨
+⚡️ Breakout: {breakout_pct:.0f}%
+📈 RSI: {rsi:.0f}
+👀 Vision: {vision_confidence}%
+🐋 Whale Detected: {whale_detected_text}
+🐳 Whale Conviction: {whale_conviction_text}
 
-{engine_info}
+🧙‍♂️ <b>Execution Map</b> 🧙‍♂️
+📍 Current Price: {price_str}
+🎯 Entry Zone: {entry_zone}
+💎 Trigger: {trigger}
 
+✨ {wiz_note}
+
+📊 CA:
 <code>{address}</code>"""
 
         pair = token.get('pair_address', address)
-        keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("📊 DexScreener", url=f"https://dexscreener.com/solana/{pair}")]])
+        keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🦅 DexScreener", url=f"https://dexscreener.com/solana/{pair}")]])
         
         if chart_bytes:
+            # Annotate chart with WizTheory elements
+            if engine_result:
+                try:
+                    chart_bytes = annotate_chart(chart_bytes, engine_result, current_price)
+                except Exception as e:
+                    logger.warning(f"Chart annotation failed, using original: {e}")
+            
             await bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=chart_bytes, caption=msg, parse_mode=ParseMode.HTML, reply_markup=keyboard)
         else:
             await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=msg, parse_mode=ParseMode.HTML, reply_markup=keyboard)
         
         record_alert_sent(address, setup_type)
         DAILY_METRICS[f'{tier_name.lower()}_alerts'] += 1
-        logger.info(f"✅ Alert: {symbol} — {setup_type} — {tier_emoji} {tier_name} — Training Match: {match_to_training}%")
+        logger.info(f"🎯 WIZTHEORY Alert: {symbol} — {setup_type} — Grade: {grade} — Score: {combined_score:.0f}")
     except Exception as e:
         logger.error(f"❌ Alert error: {e}")
 
@@ -2267,13 +2406,168 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     if not chart_bytes: return False
     
     # ══════════════════════════════════════════════════════════════
-    # CANDLE COUNT FILTER — Need enough chart development
+    # DUAL TIMEFRAME ANALYSIS (SELECTIVE 1m ACCESS)
+    # 5m = broad structure scan for all tokens
+    # 1m = selective precision layer for high-relevance tokens only
     # ══════════════════════════════════════════════════════════════
-    if candles and len(candles) < MIN_CANDLES:
-        logger.info(f"📊 {symbol}: Not enough candles ({len(candles)} < {MIN_CANDLES}) — SKIPPED")
+    candles_5m = candles  # From screenshot_chart (5m)
+    candles_1m = None
+    
+    # Determine token tier and if 1m is warranted (TIERED CACHE SYSTEM)
+    token_tier, tier_reason = assess_token_tier(token, candles_5m)
+    use_1m, use_1m_reason = should_fetch_1m(token, candles_5m)
+    
+    # Log tier assignment for visibility
+    if token_tier == 1:
+        logger.debug(f"[{ENVIRONMENT}]    🔥 {symbol}: TIER 1 ({tier_reason}) - 1m enabled")
+    
+    # Legacy compatibility - keep these checks as fallback
+    # 1. Whale-priority token
+    if not use_1m and (token.get('whale_detected') or token.get('whale_priority')):
+        use_1m = True
+        use_1m_reason = 'whale_priority'
+    
+    # 2. Very fresh token (<2 hours old, structure forming quickly)
+    pair_created = token.get('pairCreatedAt', 0)
+    if pair_created:
+        try:
+            from datetime import datetime
+            age_hours = (datetime.now().timestamp() - (pair_created / 1000 if pair_created > 1e12 else pair_created)) / 3600
+            if age_hours < 2:
+                use_1m = True
+                use_1m_reason = f'fresh_token_{age_hours:.1f}h'
+        except:
+            pass
+    
+    # 3. Already classified as active setup candidate (from hybrid intake)
+    if token.get('passes_50fz_gate') or token.get('passes_underfib_gate'):
+        use_1m = True
+        use_1m_reason = 'active_setup_candidate'
+    
+    # 4. High hybrid score (near action)
+    hybrid_score = token.get('hybrid_score', 0) or token.get('score', 0)
+    if hybrid_score >= 100:
+        use_1m = True
+        use_1m_reason = f'high_score_{hybrid_score}'
+    
+    # 5. Near fib zone (check from 5m structure if available)
+    if candles_5m and len(candles_5m) >= 20:
+        try:
+            recent_close = float(candles_5m[-1].get('c', 0))
+            highs = [float(c.get('h', 0)) for c in candles_5m]
+            lows = [float(c.get('l', 0)) for c in candles_5m]
+            swing_high = max(highs) if highs else 0
+            swing_low = min(lows) if lows else 0
+            fib_range = swing_high - swing_low
+            
+            if fib_range > 0 and swing_high > 0:
+                # Calculate fib levels
+                fib_382 = swing_high - (fib_range * 0.382)
+                fib_50 = swing_high - (fib_range * 0.50)
+                fib_618 = swing_high - (fib_range * 0.618)
+                fib_786 = swing_high - (fib_range * 0.786)
+                
+                # Check if price is near any fib (within 5%)
+                for fib_name, fib_level in [('382', fib_382), ('50', fib_50), ('618', fib_618), ('786', fib_786)]:
+                    if fib_level > 0:
+                        distance_pct = abs(recent_close - fib_level) / fib_level * 100
+                        if distance_pct <= 5:
+                            use_1m = True
+                            use_1m_reason = f'near_fib_{fib_name}'
+                            break
+        except:
+            pass
+    
+    # 6. Showing exhaustion (price near recent high with momentum drop)
+    if candles_5m and len(candles_5m) >= 10:
+        try:
+            recent_high = max(float(c.get('h', 0)) for c in candles_5m[-10:])
+            current_price = float(candles_5m[-1].get('c', 0))
+            if recent_high > 0 and current_price > 0:
+                from_high_pct = ((recent_high - current_price) / recent_high) * 100
+                # Exhaustion = pulled back 5-20% from recent high
+                if 5 <= from_high_pct <= 20:
+                    use_1m = True
+                    use_1m_reason = f'exhaustion_{from_high_pct:.1f}pct'
+        except:
+            pass
+    
+    # Fetch 1m only if qualified
+    if use_1m:
+        candles_1m = await fetch_candles_birdeye_1m(token_address or pair_address, symbol, pair_address)
+        if candles_1m and len(candles_1m) >= 10:
+            logger.debug(f"[{ENVIRONMENT}]    📊 {symbol}: 1m enabled ({use_1m_reason})")
+    
+    has_5m = candles_5m and len(candles_5m) >= 20
+    has_1m = candles_1m and len(candles_1m) >= 20
+    detected_tf = None  # Which timeframe detected the setup
+    confluence = False  # True if both timeframes confirm
+    
+    # ══════════════════════════════════════════════════════════════
+    # CANDLE COUNT CHECK — Need data on at least one timeframe
+    # ══════════════════════════════════════════════════════════════
+    if not has_5m and not has_1m:
+        logger.info(f"📊 {symbol}: No candle data on either timeframe — SKIPPED")
         return False
     
-    # v4.1: Run WizTheory engine detection
+    # ══════════════════════════════════════════════════════════════
+    # BREAKOUT VALIDATION — Run on BOTH timeframes (same logic)
+    # ══════════════════════════════════════════════════════════════
+    from breakout_validator import validate_breakout
+    
+    breakout_5m = None
+    breakout_1m = None
+    
+    # Check 5m breakout
+    if has_5m:
+        breakout_5m = validate_breakout(candles_5m, symbol)
+    
+    # Check 1m breakout (same structural rules, faster detection)
+    if has_1m:
+        breakout_1m = validate_breakout(candles_1m, symbol)
+    
+    # Determine which timeframe(s) have valid breakout
+    valid_5m = breakout_5m and breakout_5m.get('valid', False)
+    valid_1m = breakout_1m and breakout_1m.get('valid', False)
+    
+    if not valid_5m and not valid_1m:
+        reason = breakout_5m.get('reason', 'Unknown') if breakout_5m else (breakout_1m.get('reason', 'Unknown') if breakout_1m else 'No data')
+        logger.info(f"[{ENVIRONMENT}]    ⏭️ {symbol}: No valid breakout on either TF - {reason}")
+        return False
+    
+    # Select primary candles and breakout result
+    if valid_5m and valid_1m:
+        # CONFLUENCE: Both timeframes confirm structure
+        confluence = True
+        candles = candles_5m  # Use 5m for cleaner structure
+        breakout_result = breakout_5m
+        detected_tf = 'BOTH'
+        logger.info(f"[{ENVIRONMENT}]    🎯 {symbol}: CONFLUENCE - Breakout on both 1m and 5m")
+    elif valid_1m:
+        # 1m detected first (faster)
+        candles = candles_1m
+        breakout_result = breakout_1m
+        detected_tf = '1m'
+        logger.info(f"[{ENVIRONMENT}]    📊 {symbol}: Breakout on 1m (faster detection)")
+    else:
+        # 5m only
+        candles = candles_5m
+        breakout_result = breakout_5m
+        detected_tf = '5m'
+    
+    # Store timeframe info for downstream logging
+    token['detected_tf'] = detected_tf
+    token['confluence'] = confluence
+    token['has_1m_data'] = has_1m
+    token['has_5m_data'] = has_5m
+    
+    # Store breakout data for downstream use
+    breakout_level = breakout_result['breakout_level']
+    breakout_expansion_pct = breakout_result['expansion_pct']
+    is_ath_break = breakout_result.get('ath_break', False)
+    is_major_high_break = breakout_result.get('major_high_break', False)
+    
+    # v4.1: Run WizTheory engine detection (only if breakout valid)
     engine_result = None
     detected_setup = None
     if candles and len(candles) >= 10:
@@ -2320,7 +2614,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     # ══════════════════════════════════════════════════════════════
     # STEP 1: IMPULSE DETECTOR (WizTheory Setup Detection)
     # ══════════════════════════════════════════════════════════════
-    impulse_result = detect_wiztheory_setup(analysis_candles)
+    impulse_result = detect_wiztheory_setup(analysis_candles, symbol)
     
     # Log impulse detection
     logger.info(f"[{ENVIRONMENT}]    📐 Impulse: {impulse_result.get('summary', 'No setup')}")
@@ -2365,8 +2659,25 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         logger.info(f"[{ENVIRONMENT}]    ⏭️ {symbol}: No WizTheory setup detected")
         return False
     
-    # Get setup type from impulse detector (382, 50, 618, 786, UNDER_FIB)
+    # Get setup type from impulse detector OR engine (382, 50, 618, 786, UNDER_FIB)
     wiz_setup_type = impulse_result.get('setup_type', None)
+    
+    # Fallback: use engine result if impulse detector didn't find setup type
+    if not wiz_setup_type and engine_result:
+        engine_name = engine_result.get('engine_name', '')
+        # Extract setup type from engine name (e.g., "618 + Flip Zone" -> "618")
+        if '382' in engine_name:
+            wiz_setup_type = '382'
+        elif '786' in engine_name:
+            wiz_setup_type = '786'
+        elif '618' in engine_name:
+            wiz_setup_type = '618'
+        elif '50' in engine_name:
+            wiz_setup_type = '50'
+        elif 'under' in engine_name.lower() or 'underfib' in engine_name.lower():
+            wiz_setup_type = 'UNDER_FIB'
+        else:
+            wiz_setup_type = engine_result.get('engine_id', None)
     impulse_data = impulse_result.get('impulse') or {}
     retrace_data = impulse_result.get('retrace') or {}
     
@@ -2376,28 +2687,48 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         logger.info(f"[{ENVIRONMENT}]    ⏭️ {symbol}: Retrace quality POOR - skipping")
         return False
     
-    # Check for setup failure conditions
+    # Check for setup failure conditions - CAUTION FLAG, not hard reject
+    setup_caution = False
+    caution_reason = ""
     if retrace_data.get('setup_failing', False):
         failure_reason = retrace_data.get('failure_reason', 'Unknown')
-        logger.info(f"[{ENVIRONMENT}]    ❌ {symbol}: Setup failing - {failure_reason}")
-        return False
+        # Selling pressure = caution flag (still alert but mark risky)
+        # RSI collapsed = hard reject (invalid structure)
+        if 'RSI collapsed' in failure_reason:
+            logger.info(f"[{ENVIRONMENT}]    ❌ {symbol}: Hard reject - {failure_reason}")
+            return False
+        else:
+            # Selling pressure - flag as caution but continue
+            setup_caution = True
+            caution_reason = failure_reason
+            logger.info(f"[{ENVIRONMENT}]    ⚠️ {symbol}: CAUTION - {failure_reason} (still evaluating)")
     
     # ══════════════════════════════════════════════════════════════
     # STEP 2: RUN FULL ANALYSIS PIPELINE
     # ══════════════════════════════════════════════════════════════
     
+    # Build engine_result with setup_type from impulse detector
+    combined_engine_result = engine_result.copy() if engine_result else {}
+    if wiz_setup_type:
+        combined_engine_result['engine_name'] = wiz_setup_type
+        combined_engine_result['setup_type'] = wiz_setup_type
+    if impulse_data.get('score'):
+        combined_engine_result['confidence'] = impulse_data.get('score', 0)
+    
     # Run the full BANGERS analysis pipeline
     bangers_result = run_bangers_analysis(
         candles=analysis_candles,
         psef_result=psef_result if psef_result else {'passed': True},
-        engine_result=engine_result,
-        flashcard_similarity=engine_result.get('confidence', 0) if engine_result else 0
+        engine_result=combined_engine_result if combined_engine_result else None,
+        flashcard_similarity=combined_engine_result.get('confidence', 0) if combined_engine_result else 0
     )
     
     # Enhance result with impulse data
     bangers_result['impulse'] = impulse_result
     bangers_result['wiz_setup_type'] = wiz_setup_type
     bangers_result['retrace_quality'] = retrace_quality
+    bangers_result['setup_caution'] = setup_caution
+    bangers_result['caution_reason'] = caution_reason
     
     # ══════════════════════════════════════════════════════════════
     # IMPULSE BONUS: Reward valid WizTheory impulse setups
@@ -2550,7 +2881,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     # STEP 3: FLASHCARD VISION AI (Only for scores 70+)
     # ══════════════════════════════════════════════════════════════
     vision_bonus = 0
-    vision_result = None
+    vision_result = {"is_setup": False, "confidence": 0, "match_to_training": 0, "ran_vision": False}
     
     # Use wiz_setup_type if available, otherwise fall back to engine detection
     vision_setup_type = wiz_setup_type
@@ -2657,6 +2988,25 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             
         except Exception as e:
             logger.warning(f"[{ENVIRONMENT}]    ⚠️ Runner intelligence error: {e}")
+    
+    # ALERT REJECTION LOGGING - Log when high-quality setups do NOT alert
+    if not bangers_result['should_alert']:
+        grade = bangers_result.get('grade', 'C')
+        score = bangers_result.get('score', 0)
+        # Log rejections for B+ or better setups (quality setups that didn't alert)
+        if grade in ['A+', 'A', 'B+'] or score >= 70:
+            rejection_reasons = []
+            if grade not in ['A', 'A+']:
+                rejection_reasons.append(f"Grade {grade} (need A/A+)")
+            if score < 80:
+                rejection_reasons.append(f"Score {score} (need 80+)")
+            if setup_caution:
+                rejection_reasons.append(f"Caution: {caution_reason}")
+            if retrace_quality == 'POOR':
+                rejection_reasons.append("Poor retrace quality")
+            
+            reason_str = " | ".join(rejection_reasons) if rejection_reasons else "Unknown"
+            logger.info(f"[{ENVIRONMENT}]    📋 ALERT REJECTED: {symbol} | {wiz_setup_type or 'Unknown'} | Grade {grade} | Score {score} | Reason: {reason_str}")
     
     if bangers_result['should_alert']:
         # WIZTHEORY BANGER FOUND - Send alert with full breakdown
@@ -3069,7 +3419,7 @@ async def scan_top_movers(browser_ctx):
     async def fetch_prescan_candles(pair_address: str, limit: int = 50):
         """Fetch limited candles for prescan analysis."""
         try:
-            from candle_provider import fetch_candles
+            from candle_provider import fetch_candles, fetch_candles_dual, fetch_candles_birdeye_1m
             # Find the token in our list to get symbol
             token = next((t for t in tokens if t.get('pair_address') == pair_address), {})
             symbol = token.get('symbol', '???')
@@ -3107,7 +3457,72 @@ async def scan_top_movers(browser_ctx):
     # ══════════════════════════════════════════════════════════════
     
     async def hybrid_fetch_candles(pair_address: str, symbol: str, token_address: str):
-        return await fetch_candles(pair_address, symbol, token_address)
+        # Find the token in our list to get full token info for tiered caching
+        token = next((t for t in tokens if t.get('pair_address') == pair_address or t.get('address') == token_address), {})
+        
+        # Debug: Check if token was found
+        if not token:
+            logger.debug(f"⚠️ {symbol}: Token not found in list for tier check")
+        
+        # Check tier for this token
+        tier, tier_reason = assess_token_tier(token)
+        cache_key = pair_address
+        
+        # Log tier assignment for all tokens (debug)
+        # Check what data we have
+        has_whale = token.get('whale_detected') or token.get('whale_priority')
+        has_score = token.get('hybrid_score', 0) or token.get('score', 0)
+        has_gate = token.get('passes_50fz_gate') or token.get('passes_underfib_gate')
+        
+        # Log first 5 tokens per cycle to see tier distribution
+        if not hasattr(hybrid_fetch_candles, '_log_count'):
+            hybrid_fetch_candles._log_count = 0
+        hybrid_fetch_candles._log_count += 1
+        
+        if hybrid_fetch_candles._log_count <= 5:
+            logger.info(f"📊 {symbol}: Tier {tier} ({tier_reason}) | score={has_score}")
+        
+        if tier == 1:
+            logger.info(f"🔥 {symbol}: TIER 1 ({tier_reason})")
+        
+        # Tier 3 (background): Use very aggressive cache (60 min)
+        if tier == 3:
+            if cache_key in CANDLE_CACHE:
+                cached = CANDLE_CACHE[cache_key]
+                age_sec = (datetime.now() - cached['fetched_at']).total_seconds()
+                if age_sec < 3600:  # 60 min for Tier 3
+                    return cached['candles']
+        
+        # Tier 2 (watchlist): Use longer cache (5 min)
+        elif tier == 2:
+            if cache_key in CANDLE_CACHE:
+                cached = CANDLE_CACHE[cache_key]
+                age_sec = (datetime.now() - cached['fetched_at']).total_seconds()
+                if age_sec < 300:  # 5 min for Tier 2
+                    return cached['candles']
+        
+        # Tier 1 (active edge): Use SHORT cache (90 sec for 5m data)
+        elif tier == 1:
+            if cache_key in CANDLE_CACHE:
+                cached = CANDLE_CACHE[cache_key]
+                age_sec = (datetime.now() - cached['fetched_at']).total_seconds()
+                if age_sec < 90:  # 90 sec max for Tier 1 (active edge)
+                    logger.info(f"📊 {symbol}: ✓ TIER1 CACHE ({len(cached['candles'])} candles, {age_sec:.0f}s old)")
+                    return cached['candles']
+                else:
+                    logger.info(f"📊 {symbol}: 🔥 TIER1 FRESH FETCH (cache {age_sec:.0f}s > 90s TTL)")
+        
+        # Fetch fresh data
+        candles = await fetch_candles(pair_address, symbol, token_address)
+        
+        # Store in cache with timestamp
+        if candles:
+            CANDLE_CACHE[cache_key] = {
+                'candles': candles,
+                'fetched_at': datetime.now()
+            }
+        
+        return candles
     
     # Run hybrid intake (Stages 2-3)
     hybrid_results = await run_hybrid_intake(
@@ -3290,7 +3705,7 @@ async def scan_top_movers(browser_ctx):
             if await process_token(token, browser_ctx, psef_result=psef_result, psef_candles=psef_candles):
                 alerts += 1
         except Exception as e:
-            log_error('other', f"Process token error: {e}")
+            import traceback; log_error("other", f"Process token error: {e}\n{traceback.format_exc()}")
         
         # Rate limit: 5 seconds between candle fetches
         await asyncio.sleep(5)

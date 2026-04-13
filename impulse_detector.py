@@ -1004,7 +1004,7 @@ def check_breakout_freshness(candles: List[dict], impulse, flip_zone) -> Dict:
     return result
 
 
-def detect_wiztheory_setup(candles: List[dict]) -> Dict:
+def detect_wiztheory_setup(candles: List[dict], symbol: str = "???") -> Dict:
     result = {
         'setup_detected': False,
         'setup_type': None,
@@ -1022,12 +1022,17 @@ def detect_wiztheory_setup(candles: List[dict]) -> Dict:
         result['summary'] = 'Not enough candles'
         return result
     
-    # CRITICAL: First verify there was a REAL breakout above previous resistance
-    # This prevents false positives from random fib retracements
-    breakout_anchor = find_real_breakout_anchor(candles)
-    if not breakout_anchor:
-        result['summary'] = 'No real breakout detected'
+    # BREAKOUT VALIDATION (REQUIRED)
+    # Must have historical breakout with 30%+ expansion
+    from breakout_validator import validate_breakout
+    breakout_result = validate_breakout(candles, symbol)
+    if not breakout_result['valid']:
+        result['summary'] = f"No valid breakout: {breakout_result['reason']}"
         return result
+    
+    # Store breakout info for impulse calculation
+    result['breakout_level'] = breakout_result['breakout_level']
+    result['expansion_from_breakout'] = breakout_result['expansion_pct']
     
     flip_zone = detect_flip_zone_origin(candles)
     if not flip_zone:

@@ -13,6 +13,7 @@ CORE CONCEPT: Continuation structures only
 """
 
 import logging
+from cache_tiers import assess_token_tier
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 
@@ -736,7 +737,7 @@ async def run_hybrid_intake(
             continue
         
         try:
-            # Fetch candles
+            # Fetch candles - tiered caching is handled in hybrid_fetch_candles
             candles = await fetch_candles_func(pair_address, symbol, token.get('address', ''))
             
             if candles and len(candles) >= 30:

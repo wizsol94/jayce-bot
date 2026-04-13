@@ -1,0 +1,32 @@
+# Environment
+.env
+venv/
+
+# Cache
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+
+# Databases
+*.db
+data/*.db
+data/*.lock
+
+# Screenshots and debug images
+*.png
+*.jpg
+!flashcards/**/*.jpg
+
+# Backups (keep only current code)
+*.backup
+*.backup_*
+*.save
+
+# Temp files
+*.zip
+
+# Other
+ystemctl status jayce-bot

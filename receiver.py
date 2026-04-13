@@ -214,6 +214,21 @@ def receive_whale():
     if not token_address and not pair_address:
         return jsonify({'error': 'Need token_address or pair_address'}), 400
     
+    # AUTO-FETCH pair_address if missing
+    if token_address and not pair_address:
+        try:
+            import httpx
+            resp = httpx.get(f'https://api.dexscreener.com/latest/dex/tokens/{token_address}', timeout=10)
+            if resp.status_code == 200:
+                pairs = resp.json().get('pairs', [])
+                sol_pairs = [p for p in pairs if p.get('chainId') == 'solana']
+                if sol_pairs:
+                    sol_pairs.sort(key=lambda x: float(x.get('liquidity', {}).get('usd', 0) or 0), reverse=True)
+                    pair_address = sol_pairs[0].get('pairAddress', '')
+                    print(f"   🔍 Auto-fetched pair_address for {symbol}: {pair_address[:20]}...")
+        except Exception as e:
+            print(f"   ⚠️ Could not auto-fetch pair_address: {e}")
+    
     try:
         conn = sqlite3.connect(QUEUE_DB)
         c = conn.cursor()

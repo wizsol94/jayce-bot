@@ -62,7 +62,7 @@ ENGINE_PARAMS = {
         'entry_buffer_max': 7,
         'invalidation_fib': 0.786,
         'cooldown_hours': 6,
-        'whale_required': True,  # Or 5+ flip zone rejections
+        'whale_required': False,  # NEVER required per WizTheory rules
         'grade_threshold': 70,
         'description': 'Golden ratio. Where value meets conviction.',
     },
@@ -75,13 +75,13 @@ ENGINE_PARAMS = {
         'entry_buffer_max': 9,
         'invalidation_fib': 0.786,
         'cooldown_hours': 8,
-        'whale_required': True,  # MANDATORY
+        'whale_required': False,  # NEVER required per WizTheory rules
         'grade_threshold': 75,
         'description': 'Final defense. Maximum pain = maximum R:R.',
     },
     'underfib': {
         'name': 'Under-Fib Flip Zone',
-        'retracement_min': 40,
+        'retracement_min': 55,  # Only 618/786 territory (removed under-382/under-50)
         'retracement_max': 85,
         'impulse_min': 60,
         'entry_buffer_min': 5,
@@ -109,16 +109,20 @@ ENGINE_COOLDOWNS: Dict[str, datetime] = {}
 
 
 def get_cooldown_key(token_address: str, engine_id: str) -> str:
-    return f"{token_address}:{engine_id}"
+    # Use token-only cooldown to allow setup evolution (382 → 618 → 786)
+    # Per WizTheory: These are ONE evolving structure, not separate setups
+    return f"{token_address}:STRUCTURE"
 
 
 def is_engine_on_cooldown(token_address: str, engine_id: str) -> bool:
-    """Check if specific engine is on cooldown for this token."""
+    """Check if token structure is on cooldown (allows setup evolution)."""
     key = get_cooldown_key(token_address, engine_id)
     if key not in ENGINE_COOLDOWNS:
         return False
     
-    cooldown_hours = ENGINE_PARAMS.get(engine_id, {}).get('cooldown_hours', 6)
+    # Use a single cooldown for structure (not per-engine)
+    # This allows 382 → 618 → 786 evolution without spam
+    cooldown_hours = 4  # Single cooldown period for all setup types
     cooldown_end = ENGINE_COOLDOWNS[key] + timedelta(hours=cooldown_hours)
     
     if datetime.now() < cooldown_end:
@@ -130,7 +134,7 @@ def is_engine_on_cooldown(token_address: str, engine_id: str) -> bool:
 
 
 def set_engine_cooldown(token_address: str, engine_id: str):
-    """Set cooldown for engine on this token."""
+    """Set cooldown for token structure (allows setup evolution)."""
     key = get_cooldown_key(token_address, engine_id)
     ENGINE_COOLDOWNS[key] = datetime.now()
 
