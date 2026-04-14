@@ -5146,5 +5146,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIl9WndeQ9XayUTi60aVdtqpp5RXiXQAAJ_DWsbJjnoRkliefV8gKSOAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 91",
     "trained_at": "2026-04-13T23:16:13.636101"
+  },
+  {
+    "chart_id": "618FZ-VAR-RUDI-1M-20260414-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "RUDI",
+    "timeframe": "1M",
+    "date": "2026-04-14",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAImbmndxxiTpFYz2ERtVJjVIBPpzi9JAAJCDGsb5hXwRsVBk-EAAdTYngEAAwIAA3cAAzsE",
+    "notes": "[VARIATION] WHALE CONVICTION RSI SPIKED 86",
+    "trained_at": "2026-04-14T05:41:33.743085"
   }
 ]
