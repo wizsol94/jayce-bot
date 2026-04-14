@@ -5164,5 +5164,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAImbmndxxiTpFYz2ERtVJjVIBPpzi9JAAJCDGsb5hXwRsVBk-EAAdTYngEAAwIAA3cAAzsE",
     "notes": "[VARIATION] WHALE CONVICTION RSI SPIKED 86",
     "trained_at": "2026-04-14T05:41:33.743085"
+  },
+  {
+    "chart_id": "50FZ-SNIFFER-1M-20260414-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "SNIFFER",
+    "timeframe": "1M",
+    "date": "2026-04-14",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAImg2nd096-0fiOWhWzjMUZ4og9pkRsAAJEDGsb5hXwRl50kZVDZ6LFAQADAgADdwADOwQ",
+    "notes": "WHALE CONVICTION RSI SPIKED 78",
+    "trained_at": "2026-04-14T05:46:14.252243"
   }
 ]
