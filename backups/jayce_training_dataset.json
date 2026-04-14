@@ -5182,5 +5182,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAImg2nd096-0fiOWhWzjMUZ4og9pkRsAAJEDGsb5hXwRl50kZVDZ6LFAQADAgADdwADOwQ",
     "notes": "WHALE CONVICTION RSI SPIKED 78",
     "trained_at": "2026-04-14T05:46:14.252243"
+  },
+  {
+    "chart_id": "382FZ-SLONK-1M-20260414-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "SLONK",
+    "timeframe": "1M",
+    "date": "2026-04-14",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAImsGnd7ZKd4DwezVkh6yWKc8CZCctLAAJIDGsb5hXwRvpnxzIURI_LAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 8",
+    "trained_at": "2026-04-14T07:33:10.192866"
   }
 ]
