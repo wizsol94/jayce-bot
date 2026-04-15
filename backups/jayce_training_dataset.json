@@ -5218,5 +5218,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAInxGnepBgTqzbT60kIKBnXitjwCoQvAAJWDGsb5hX4RluKEwW8RX1vAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 89",
     "trained_at": "2026-04-14T20:31:44.329451"
+  },
+  {
+    "chart_id": "382FZ-SPRINGULAR-1M-20260415-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "SPRINGULAR",
+    "timeframe": "1M",
+    "date": "2026-04-15",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 40,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIoQmne-BCm-EE3m5_CXt8bgBoCHZLOAAKDDGsb5hX4RsyZr7YHPig4AQADAgADdwADOwQ",
+    "notes": "RSI SPIKED 75 CLEAN STRUCTURE",
+    "trained_at": "2026-04-15T02:30:22.605081"
   }
 ]
