@@ -5254,5 +5254,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIpyWnf_PACLDS40y62LUILCD_8jfBKAAJRDGsbuZ8AAUeTiZ_wDxtv0gEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 83",
     "trained_at": "2026-04-15T21:03:27.201881"
+  },
+  {
+    "chart_id": "50FZ-TRIPLET-1H-20260417-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "TRIPLET",
+    "timeframe": "1H",
+    "date": "2026-04-17",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 35,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIrEmnivmLhaj5Ptq8cCa6IYXBvN2xtAAKHDWsbAp8QR9jIHiyZQVsaAQADAgADdwADOwQ",
+    "notes": "WHALE CONVICTION RSI SPIKED 84 CLEAN STRUCTURE DIVERGENCE",
+    "trained_at": "2026-04-17T23:14:04.910739"
   }
 ]
