@@ -5290,5 +5290,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIrI2nixErroiqiXpVtArSTIpM160BVAAKLDWsbAp8QR_66gP645jtqAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 81 CLEAN STRUCTURE",
     "trained_at": "2026-04-17T23:38:29.833850"
+  },
+  {
+    "chart_id": "786FZ-SOB-1M-20260418-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "SOB",
+    "timeframe": "1M",
+    "date": "2026-04-18",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIsH2nj7kiYyOkMC3hcG3lj-SuYaIZEAAISDGsbEichR8r-7z6GDXC8AQADAgADdwADOwQ",
+    "notes": "WHALE CONVICTION RSI SPIKED 77 CLEAN STRUCTURE",
+    "trained_at": "2026-04-18T20:49:35.209185"
   }
 ]
