@@ -5326,5 +5326,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIsImnlHoP8lEWJSp206C_qAAE-Cw5QbQACUQxrGxInKUcm1qYcHMY9LQEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 79 FUNNY MEME",
     "trained_at": "2026-04-19T18:45:27.581934"
+  },
+  {
+    "chart_id": "618FZ-ADHD-1M-20260419-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "ADHD",
+    "timeframe": "1M",
+    "date": "2026-04-19",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIsKWnlXgrBY9sWVhq7-50TJoJtkLjRAAJnDGsbEicpRwTbT6LW15GwAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 75",
+    "trained_at": "2026-04-19T22:58:39.558503"
   }
 ]
