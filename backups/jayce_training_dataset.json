@@ -5362,5 +5362,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIsNmnlsuWfNUiIP3sU_Wo8vCnJNixSAAJeDGsbeiUpR68qY9yN_ZUGAQADAgADdwADOwQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 84",
     "trained_at": "2026-04-20T05:01:04.454043"
+  },
+  {
+    "chart_id": "UFIB-KICAU-1M-20260420-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "KICAU",
+    "timeframe": "1M",
+    "date": "2026-04-20",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 65,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIs-GnmRr6CrZccK2ZbVHQyX4r_H1jUAALmC2sbeiUxR-RV3-WZEmNnAQADAgADdwADOwQ",
+    "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKD 82",
+    "trained_at": "2026-04-20T15:31:32.478907"
   }
 ]
