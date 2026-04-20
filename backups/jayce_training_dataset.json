@@ -5346,7 +5346,7 @@
     "trained_at": "2026-04-19T22:58:39.558503"
   },
   {
-    "chart_id": "382FZ-HIGHER-1M-20260420-001",
+    "chart_id": "382FZ-HIGHER-1M-20260420-002",
     "setup_name": "382 + Flip Zone",
     "canonical_key": "382_flip_zone",
     "token": "HIGHER",
@@ -5357,10 +5357,10 @@
     "rsi_behavior": "",
     "whale_conviction": false,
     "violent_mode": false,
-    "outcome_percentage": 70,
+    "outcome_percentage": 100,
     "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIsMGnlsLHKQuymadVUnjAWyy4IHzT-AAJZDGsbeiUpR60o1x44N-8KAQADAgADdwADOwQ",
-    "notes": "CLEAN STRUCTURE RSI SPIKED 84",
-    "trained_at": "2026-04-20T04:51:26.041872"
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIsNmnlsuWfNUiIP3sU_Wo8vCnJNixSAAJeDGsbeiUpR68qY9yN_ZUGAQADAgADdwADOwQ",
+    "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 84",
+    "trained_at": "2026-04-20T05:01:04.454043"
   }
 ]
