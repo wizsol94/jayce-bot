@@ -5398,5 +5398,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIuJ2nnGGW_loRxDAceHa9qIZrOU9JHAALmC2sbeiU5R9a_VKDP-D8wAQADAgADdwADOwQ",
     "notes": "RSI SPIKED 89 CLEAN STRUCTURE LOW VOLUME STILL VALID",
     "trained_at": "2026-04-21T06:26:28.056274"
+  },
+  {
+    "chart_id": "382FZ-RUDI-5M-20260421-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "RUDI",
+    "timeframe": "5M",
+    "date": "2026-04-21",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIuLmnnGoGrx9tglwJZy-1J0qNE2P4PAALsC2sbeiU5R6XO22GKhUF-AQADAgADdwADOwQ",
+    "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 85",
+    "trained_at": "2026-04-21T06:35:34.279047"
   }
 ]
