@@ -5416,5 +5416,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIuLmnnGoGrx9tglwJZy-1J0qNE2P4PAALsC2sbeiU5R6XO22GKhUF-AQADAgADdwADOwQ",
     "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 85",
     "trained_at": "2026-04-21T06:35:34.279047"
+  },
+  {
+    "chart_id": "618FZ-TERMINAL-1M-20260421-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "TERMINAL",
+    "timeframe": "1M",
+    "date": "2026-04-21",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 120,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIvE2nntoQn6FIbSytfahXN-objBOobAAKjDGsbtvhBR5HmbnZi15tFAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 82 FVS AT ENTRY",
+    "trained_at": "2026-04-21T17:40:49.443327"
   }
 ]
