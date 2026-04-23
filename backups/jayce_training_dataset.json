@@ -5452,5 +5452,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIw82npCUGFCrDCGifKjipdyXZ70CZLAALuC2sbtvhJR3oldMHQ6_LdAQADAgADdwADOwQ",
     "notes": "BULLISH STRUCTURE RSI SPIKED 85",
     "trained_at": "2026-04-22T17:45:42.192636"
+  },
+  {
+    "chart_id": "618FZ-CULT-1M-20260423-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "CULT",
+    "timeframe": "1M",
+    "date": "2026-04-23",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 88,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIx8WnqBldeqcuJTAABxjyEzo0MjIlaxQAC3AtrGwX1UUfDAczoT8q1rQEAAwIAA3cAAzsE",
+    "notes": "RSI SPIKED 80 CLEAN STRUCTURE",
+    "trained_at": "2026-04-23T11:46:29.890607"
   }
 ]
