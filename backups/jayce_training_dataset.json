@@ -5470,5 +5470,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIx8WnqBldeqcuJTAABxjyEzo0MjIlaxQAC3AtrGwX1UUfDAczoT8q1rQEAAwIAA3cAAzsE",
     "notes": "RSI SPIKED 80 CLEAN STRUCTURE",
     "trained_at": "2026-04-23T11:46:29.890607"
+  },
+  {
+    "chart_id": "786FZ-CATCOIN-1M-20260424-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "CATCOIN",
+    "timeframe": "1M",
+    "date": "2026-04-24",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIx9mnrhRt7QmUanzeg9fmXncyffBi1AALWDGsbBfVZR63DR33XCz0xAQADAgADdwADOwQ",
+    "notes": "RSI SPIKED 82 CLEAN STRUCTURE",
+    "trained_at": "2026-04-24T14:59:31.543070"
   }
 ]
