@@ -5524,5 +5524,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIx_2nsT5A5t9EQl_fjM3ygqca_hvb3AAIUDGsbGtRhRz4IC9naNEQNAQADAgADdwADOwQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 81",
     "trained_at": "2026-04-25T05:23:59.018640"
+  },
+  {
+    "chart_id": "382FZ-HOPE-1M-20260425-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "HOPE",
+    "timeframe": "1M",
+    "date": "2026-04-25",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyBGntFL1VWltAD0sj63zksYCfNDVvAALyC2sbGtRpRyJzq26tAWm4AQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 75",
+    "trained_at": "2026-04-25T19:24:10.719291"
   }
 ]
