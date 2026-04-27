@@ -5578,5 +5578,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyDGnvMTaanNaUQ8r7RwWPJCYRc_fCAAJnDWsbsrB5R5Rr9lMEAgvtAQADAgADdwADOwQ",
     "notes": "RSI SPIKED 82 CLEAN STRUCTURE FUNNY MEME AND FVG",
     "trained_at": "2026-04-27T09:50:21.068028"
+  },
+  {
+    "chart_id": "618FZ-SURVIVE-1M-20260427-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "SURVIVE",
+    "timeframe": "1M",
+    "date": "2026-04-27",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 250,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyE2nv7-eaN7uz6IYE5rWLklA2JvLLAAI2DGsbjD6BRwq8-fGak6z0AQADAgADdwADOwQ",
+    "notes": "RSI SPIKED 85 KOL ALERT CLEAN STRUCTURE",
+    "trained_at": "2026-04-27T23:23:23.429056"
   }
 ]
