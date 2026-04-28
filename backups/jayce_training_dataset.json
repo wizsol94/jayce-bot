@@ -5596,5 +5596,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyE2nv7-eaN7uz6IYE5rWLklA2JvLLAAI2DGsbjD6BRwq8-fGak6z0AQADAgADdwADOwQ",
     "notes": "RSI SPIKED 85 KOL ALERT CLEAN STRUCTURE",
     "trained_at": "2026-04-27T23:23:23.429056"
+  },
+  {
+    "chart_id": "UFIB-SCAM-1M-20260428-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "SCAM",
+    "timeframe": "1M",
+    "date": "2026-04-28",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 40,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyGGnwGI0UxYa8-99xxLvEtDu15hrvAAKJDGsbjD6BR_pL8FWMBsTpAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81",
+    "trained_at": "2026-04-28T02:17:26.185294"
   }
 ]
