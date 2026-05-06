@@ -5704,5 +5704,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyLGn7WdO6gOYxlSAR4kduo6jQEVQ5AAL1C2sbeVvZR6R02JKlkq18AQADAgADdwADOwQ",
     "notes": "[VARIATION] RSI SPIKED 80 CLEAN STRUCTURE",
     "trained_at": "2026-05-06T15:11:33.350944"
+  },
+  {
+    "chart_id": "618FZ-ALZHEIMERS-1M-20260506-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "ALZHEIMERS",
+    "timeframe": "1M",
+    "date": "2026-05-06",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 130,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyNWn7XNrRPY3xxO6EroAZjZVka9ymAAL4C2sbeVvZR5x60eTQNj-_AQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81",
+    "trained_at": "2026-05-06T15:23:34.714370"
   }
 ]
