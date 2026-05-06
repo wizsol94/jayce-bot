@@ -5722,5 +5722,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyNWn7XNrRPY3xxO6EroAZjZVka9ymAAL4C2sbeVvZR5x60eTQNj-_AQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 81",
     "trained_at": "2026-05-06T15:23:34.714370"
+  },
+  {
+    "chart_id": "786FZ-STACCANA-5M-20260506-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "STACCANA",
+    "timeframe": "5M",
+    "date": "2026-05-06",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 160,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyOGn7YmtoyEcNsHIl-QdfBxnx1CRuAAL8C2sbeVvZRwWYAY6e7P1YAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 82",
+    "trained_at": "2026-05-06T15:48:14.521062"
   }
 ]
