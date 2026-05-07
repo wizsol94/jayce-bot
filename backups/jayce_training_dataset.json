@@ -5740,5 +5740,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyOGn7YmtoyEcNsHIl-QdfBxnx1CRuAAL8C2sbeVvZRwWYAY6e7P1YAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 82",
     "trained_at": "2026-05-06T15:48:14.521062"
+  },
+  {
+    "chart_id": "382FZ-HANTA-5M-20260507-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "HANTA",
+    "timeframe": "5M",
+    "date": "2026-05-07",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 135,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyQGn8B8mttPlzt0yQugABOqd23SHZWQACvQtrG5bB4EcEdKLPYvJTIgEAAwIAA3cAAzsE",
+    "notes": "RSI SPIKED 79 CLEAN STRUCTURE",
+    "trained_at": "2026-05-07T03:33:07.128855"
   }
 ]
