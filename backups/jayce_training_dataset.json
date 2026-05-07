@@ -5758,5 +5758,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyQGn8B8mttPlzt0yQugABOqd23SHZWQACvQtrG5bB4EcEdKLPYvJTIgEAAwIAA3cAAzsE",
     "notes": "RSI SPIKED 79 CLEAN STRUCTURE",
     "trained_at": "2026-05-07T03:33:07.128855"
+  },
+  {
+    "chart_id": "618FZ-RATWIFMASK-1M-20260507-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "RATWIFMASK",
+    "timeframe": "1M",
+    "date": "2026-05-07",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 140,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAIyQ2n8TNFTwGVyuih9HMXwitEP1LZ8AAImDGsbJajgR3EsDyqFK7XdAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 77",
+    "trained_at": "2026-05-07T08:28:08.028579"
   }
 ]
