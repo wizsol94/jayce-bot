@@ -5812,5 +5812,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI0Jmn-GNRLnsQ7Wmrfl_mNa-2aJ9FXAAJHDGsbufrwRzEeT2nMm7KoAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 90",
     "trained_at": "2026-05-08T17:12:11.489211"
+  },
+  {
+    "chart_id": "50FZ-AMERICA-15M-20260508-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "AMERICA",
+    "timeframe": "15M",
+    "date": "2026-05-08",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 180,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAI0NWn-H1HBXvrehI1ggR1LwGIy1k5PAAJMDGsbufrwR7WhjIFm4kbMAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 83",
+    "trained_at": "2026-05-08T17:37:57.162420"
   }
 ]
