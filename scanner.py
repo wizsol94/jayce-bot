@@ -2182,6 +2182,20 @@ async def send_wiztheory_alert(token: dict, bangers_result: dict, impulse_result
         if was_alert_sent(address, f"WIZTHEORY_{setup_type}", ALERT_COOLDOWN_MINUTES / 60):
             return False
         
+        # Ticker collision check (Phase 1) — skip copycats if OG has active setup
+        try:
+            from ticker_collision import check_collision_and_route
+            _coll = await check_collision_and_route(
+                token,
+                bot=Bot(token=TELEGRAM_BOT_TOKEN),
+                chat_id=TELEGRAM_CHAT_ID,
+            )
+            if not _coll.get("should_fire_original", True):
+                logger.info(f"[COLLISION] Skipped {symbol} alert: {_coll.get('reason')}")
+                return False
+        except Exception as _coll_exc:
+            logger.warning(f"[COLLISION] Check failed for {symbol}, firing normally: {_coll_exc}")
+        
         # Build the full breakdown message
         caption = format_wiztheory_alert(token, bangers_result, impulse_result, vision_result)
         
@@ -2263,6 +2277,21 @@ def get_setup_details(setup_type: str) -> dict:
 
 async def send_alert(token: dict, vision_result: dict, chart_bytes: bytes, tier_name: str, tier_emoji: str, combined_score: float, engine_result: dict = None):
     try:
+        # Ticker collision check (Phase 1) — skip copycats if OG has active setup
+        try:
+            from ticker_collision import check_collision_and_route
+            _symbol_for_coll = token.get("symbol", "???")
+            _coll = await check_collision_and_route(
+                token,
+                bot=Bot(token=TELEGRAM_BOT_TOKEN),
+                chat_id=TELEGRAM_CHAT_ID,
+            )
+            if not _coll.get("should_fire_original", True):
+                logger.info(f"[COLLISION] Skipped {_symbol_for_coll} alert: {_coll.get('reason')}")
+                return
+        except Exception as _coll_exc:
+            logger.warning(f"[COLLISION] Check failed, firing normally: {_coll_exc}")
+        
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         symbol = token.get('symbol', '???')
         address = token.get('address', '')
