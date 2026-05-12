@@ -5884,5 +5884,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI57WoCEx_fk0aQ8rx5C0F-HeZEB_MIAAIsDGsbXxMQRKpxidNmwAEzAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 89",
     "trained_at": "2026-05-11T17:34:55.497098"
+  },
+  {
+    "chart_id": "382FZ-ROYALPOP-1M-20260512-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "ROYALPOP",
+    "timeframe": "1M",
+    "date": "2026-05-12",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 300,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAI7GWoC4wyLIt9AV10VdLwqukkLVZYEAAK3DGsbXxMQRDc9ttx7OhY_AQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 80 SOCIAL MEDIA VIRAL",
+    "trained_at": "2026-05-12T08:22:30.917509"
   }
 ]
