@@ -5938,5 +5938,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI98GoEx1bG84h-5MeEygy4wII-AAFi-wAC3wtrG57YIETmrQ4l-ko5bwEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 88",
     "trained_at": "2026-05-13T18:48:40.235050"
+  },
+  {
+    "chart_id": "50FZ-PAIN-5M-20260513-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "PAIN",
+    "timeframe": "5M",
+    "date": "2026-05-13",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAI992oEyOqdc8aBxvheHSdfBrH-jlC3AALhC2sbntggREp6LMoWXhMdAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 78 WICK ENTRY",
+    "trained_at": "2026-05-13T18:55:08.529819"
   }
 ]
