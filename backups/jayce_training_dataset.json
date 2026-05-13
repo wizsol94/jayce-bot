@@ -5920,5 +5920,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI8iWoD05_gRPk7zZ1q_QohUU8D3fwpAAKkC2sbntggRN9AswI38grAAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 80 WHALE CONVICTION",
     "trained_at": "2026-05-13T01:28:46.298152"
+  },
+  {
+    "chart_id": "UFIB-WORLDCUP-5M-20260513-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "WORLDCUP",
+    "timeframe": "5M",
+    "date": "2026-05-13",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 85,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAI98GoEx1bG84h-5MeEygy4wII-AAFi-wAC3wtrG57YIETmrQ4l-ko5bwEAAwIAA3cAAzsE",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 88",
+    "trained_at": "2026-05-13T18:48:40.235050"
   }
 ]
