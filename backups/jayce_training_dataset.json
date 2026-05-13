@@ -5902,5 +5902,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI7GWoC4wyLIt9AV10VdLwqukkLVZYEAAK3DGsbXxMQRDc9ttx7OhY_AQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 80 SOCIAL MEDIA VIRAL",
     "trained_at": "2026-05-12T08:22:30.917509"
+  },
+  {
+    "chart_id": "618FZ-GENZ-1M-20260513-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "GENZ",
+    "timeframe": "1M",
+    "date": "2026-05-13",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 70,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAI8iWoD05_gRPk7zZ1q_QohUU8D3fwpAAKkC2sbntggRN9AswI38grAAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 80 WHALE CONVICTION",
+    "trained_at": "2026-05-13T01:28:46.298152"
   }
 ]
