@@ -6010,5 +6010,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI-62oHt5fQWazjHNtb_aVcwpd7ZlJ1AAL5DGsblZFBREJAURviJSfwAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTRUE RSI SPIKED 82",
     "trained_at": "2026-05-16T00:17:57.461392"
+  },
+  {
+    "chart_id": "786FZ-CHEETO-1H-20260516-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "CHEETO",
+    "timeframe": "1H",
+    "date": "2026-05-16",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAI_ImoH5RQR-hYkHrcvpbGaBXGhvhGDAAIBDWsblZFBRHz3fWm2H3J7AQADAgADdwADOwQ",
+    "notes": "WHALE CONVICTION RSI SPIKED 81",
+    "trained_at": "2026-05-16T03:32:37.273839"
   }
 ]
