@@ -1,3 +1,4 @@
+# ALERT ROUTING APPLIED
 import os
 from chart_annotator import annotate_chart
 from pathlib import Path
@@ -410,6 +411,9 @@ ALLOWED_DEXES = {'pumpfun', 'pumpswap', 'raydium'}
 # ══════════════════════════════════════════════════════════════════════════════
 # v4.2: PERFORMANCE METRICS — Baseline tracking for Railway vs VPS comparison
 # ══════════════════════════════════════════════════════════════════════════════
+
+# Cache for hybrid intake candle fetches (was missing - caused Stage 3 to crash silently)
+CANDLE_CACHE: dict = {}
 
 DAILY_METRICS = {
     'date': None, 
@@ -2202,14 +2206,14 @@ async def send_wiztheory_alert(token: dict, bangers_result: dict, impulse_result
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         if chart_bytes:
             await bot.send_photo(
-                chat_id=FORMING_CHAT_ID or HEARTBEAT_CHAT_ID,
+                chat_id=TELEGRAM_CHAT_ID,
                 photo=chart_bytes,
                 caption=caption,
                 parse_mode=ParseMode.HTML
             )
         else:
             await bot.send_message(
-                chat_id=FORMING_CHAT_ID or HEARTBEAT_CHAT_ID,
+                chat_id=TELEGRAM_CHAT_ID,
                 text=caption,
                 parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True
@@ -2713,7 +2717,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             # Send Setup Watch alert
             try:
                 watch_message = format_setup_watch_message(watch_alert)
-                await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=watch_message, parse_mode=ParseMode.HTML)
+                await bot.send_message(chat_id=HEARTBEAT_CHAT_ID, text=watch_message, parse_mode=ParseMode.HTML)
                 logger.info(f"[{ENVIRONMENT}]    📨 Setup Watch alert sent for {symbol}")
             except Exception as e:
                 logger.error(f"[{ENVIRONMENT}]    ❌ Failed to send watch alert: {e}")
