@@ -5992,5 +5992,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI-XGoGU0Gv9iAfoUok4wksvxPakn0DAAKxC2sbaYs4RO143_7hL06cAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 91 DIVERGENCE",
     "trained_at": "2026-05-14T22:58:53.642451"
+  },
+  {
+    "chart_id": "786FZ-BURNIE-4H-20260516-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "BURNIE",
+    "timeframe": "4H",
+    "date": "2026-05-16",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAI-62oHt5fQWazjHNtb_aVcwpd7ZlJ1AAL5DGsblZFBREJAURviJSfwAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTRUE RSI SPIKED 82",
+    "trained_at": "2026-05-16T00:17:57.461392"
   }
 ]
