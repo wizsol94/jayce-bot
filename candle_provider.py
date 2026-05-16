@@ -1,3 +1,4 @@
+# RELIABILITY FIX APPLIED
 """
 CANDLE PROVIDER v1.1
 ====================
@@ -62,7 +63,73 @@ CACHE_TTL_PRIORITY = 2  # For Tier 1 priority tokens  # Reduced from 5 - selecti
 
 # Rate limiting
 BIRDEYE_CALLS_TODAY = 0
-BIRDEYE_DAILY_LIMIT = 5000  # Paid tier ($99/month = 500k CUs)
+BIRDEYE_DAILY_LIMIT = int(os.getenv('BIRDEYE_DAILY_CAP', '5000'))  # Configurable via .env
+
+# Reliability state (added by reliability fix)
+_BE_THRESH = {80: False, 90: False, 100: False}
+_GECKO_COOLDOWN_UNTIL = None
+_LAST_BE_CALL = 0.0
+_BE_THROTTLE_SEC = 0.2
+_GECKO_COOLDOWN_SECONDS = 60
+_LAST_SUMMARY_DATE = None
+_CALL_REASONS = {'birdeye_cap': 0, 'birdeye_non200': 0, 'gecko_429': 0,
+                 'gecko_non200': 0, 'both_failed': 0}
+
+def _send_owner_telegram(msg):
+    try:
+        import httpx as _hx
+        token = os.getenv('TELEGRAM_BOT_TOKEN', '')
+        chat = os.getenv('HEARTBEAT_CHAT_ID', '') or os.getenv('OWNER_USER_ID', '')
+        if not token or not chat:
+            return
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        _hx.post(url, json={'chat_id': chat, 'text': msg}, timeout=8)
+    except Exception as _e:
+        logger.warning(f"Owner Telegram send failed: {_e}")
+
+def _check_be_thresh():
+    global _BE_THRESH
+    if BIRDEYE_DAILY_LIMIT <= 0:
+        return
+    pct = (BIRDEYE_CALLS_TODAY / BIRDEYE_DAILY_LIMIT) * 100
+    for t in (80, 90, 100):
+        if pct >= t and not _BE_THRESH[t]:
+            _BE_THRESH[t] = True
+            msg = f"WARN Birdeye at {pct:.0f}% ({BIRDEYE_CALLS_TODAY}/{BIRDEYE_DAILY_LIMIT})"
+            logger.info(f"[BIRDEYE-LIMIT] {msg}")
+            if t >= 90:
+                _send_owner_telegram(msg)
+
+def _daily_rollover_check():
+    global _BE_THRESH, _CALL_REASONS, _LAST_SUMMARY_DATE
+    today = datetime.utcnow().date()
+    if _LAST_SUMMARY_DATE is None:
+        _LAST_SUMMARY_DATE = today
+        return
+    if today != _LAST_SUMMARY_DATE:
+        try:
+            summary = (
+                f"CANDLE DAILY SUMMARY (UTC {_LAST_SUMMARY_DATE})\n"
+                f"Birdeye: {PROVIDER_STATS.get('birdeye_success',0)} ok / "
+                f"{PROVIDER_STATS.get('birdeye_fail',0)} fail "
+                f"({BIRDEYE_CALLS_TODAY}/{BIRDEYE_DAILY_LIMIT})\n"
+                f"Gecko: {PROVIDER_STATS.get('gecko_success',0)} ok / "
+                f"{PROVIDER_STATS.get('gecko_fail',0)} fail\n"
+                f"Cache hits: {PROVIDER_STATS.get('cache_hits',0)}\n"
+                f"Skipped: {PROVIDER_STATS.get('skipped',0)}\n"
+                f"Reasons: BE_cap={_CALL_REASONS['birdeye_cap']} "
+                f"BE_non200={_CALL_REASONS['birdeye_non200']} "
+                f"GK_429={_CALL_REASONS['gecko_429']} "
+                f"both_failed={_CALL_REASONS['both_failed']}"
+            )
+            logger.info(f"[DAILY-SUMMARY] {summary}")
+            _send_owner_telegram(summary)
+        except Exception as _e:
+            logger.warning(f"Daily summary error: {_e}")
+        _BE_THRESH = {80: False, 90: False, 100: False}
+        for k in _CALL_REASONS:
+            _CALL_REASONS[k] = 0
+        _LAST_SUMMARY_DATE = today
 BIRDEYE_LAST_RESET = datetime.now().date()
 
 # Stats
@@ -165,7 +232,9 @@ async def fetch_candles_birdeye(token_address: str, symbol: str, pair_address: s
         return None
     
     if BIRDEYE_CALLS_TODAY >= BIRDEYE_DAILY_LIMIT:
-        logger.debug(f"📊 {symbol}: Birdeye daily limit reached ({BIRDEYE_CALLS_TODAY}/{BIRDEYE_DAILY_LIMIT})")
+        _CALL_REASONS['birdeye_cap'] += 1
+        _check_be_thresh()
+        logger.info(f"BIRDEYE-CAP {symbol}: cap reached ({BIRDEYE_CALLS_TODAY}/{BIRDEYE_DAILY_LIMIT}) - falling back to Gecko")
         return None
     
     if not token_address or len(token_address) < 30:
@@ -189,6 +258,7 @@ async def fetch_candles_birdeye(token_address: str, symbol: str, pair_address: s
             resp = await client.get(url, headers=headers)
         
         BIRDEYE_CALLS_TODAY += 1
+        _check_be_thresh()
         
         if resp.status_code == 200:
             data = resp.json()
@@ -212,7 +282,8 @@ async def fetch_candles_birdeye(token_address: str, symbol: str, pair_address: s
             else:
                 logger.debug(f"📊 {symbol}: Birdeye returned {len(items)} candles (need 10+)")
         else:
-            logger.debug(f"📊 {symbol}: Birdeye status {resp.status_code}")
+            _CALL_REASONS['birdeye_non200'] += 1
+            logger.info(f"BIRDEYE-NON200 {symbol}: status={resp.status_code}")
         
         PROVIDER_STATS['birdeye_fail'] += 1
         return None
@@ -230,12 +301,26 @@ async def fetch_candles_geckoterminal(pair_address: str, symbol: str) -> Optiona
     """
     if not pair_address or len(pair_address) < 30:
         return None
+    
+    global _GECKO_COOLDOWN_UNTIL
+    if _GECKO_COOLDOWN_UNTIL and datetime.now() < _GECKO_COOLDOWN_UNTIL:
+        remaining = (_GECKO_COOLDOWN_UNTIL - datetime.now()).total_seconds()
+        logger.debug(f"GECKO-COOLDOWN {symbol}: skipping ({remaining:.0f}s left)")
+        PROVIDER_STATS['gecko_fail'] += 1
+        return None
         
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             resp = await client.get(
                 f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pair_address}/ohlcv/minute?aggregate=5&limit=2016"
             )
+        
+        if resp.status_code == 429:
+            _GECKO_COOLDOWN_UNTIL = datetime.now() + timedelta(seconds=_GECKO_COOLDOWN_SECONDS)
+            _CALL_REASONS['gecko_429'] += 1
+            logger.info(f"GECKO-429 {symbol}: rate-limited, cooling {_GECKO_COOLDOWN_SECONDS}s")
+            PROVIDER_STATS['gecko_fail'] += 1
+            return None
         
         if resp.status_code == 200:
             ohlcv = resp.json().get('data', {}).get('attributes', {}).get('ohlcv_list', [])
@@ -270,6 +355,8 @@ async def fetch_candles(pair_address: str, symbol: str, token_address: str = Non
     # token_address can vary or be None, but pair_address is always consistent
     cache_key = pair_address
     
+    _daily_rollover_check()
+    
     # Check cache first
     cached = get_cached_candles(cache_key)
     if cached:
@@ -296,9 +383,19 @@ async def fetch_candles(pair_address: str, symbol: str, token_address: str = Non
             cache_candles(cache_key, candles)
             return candles
     
-    # All providers failed - graceful skip
+    # All providers failed - log exact reason chain
     PROVIDER_STATS['skipped'] += 1
-    logger.info(f"⏭️ {symbol}: No candle data available (skipped)")
+    _CALL_REASONS['both_failed'] += 1
+    be_capped = BIRDEYE_CALLS_TODAY >= BIRDEYE_DAILY_LIMIT
+    gk_cooling = _GECKO_COOLDOWN_UNTIL and datetime.now() < _GECKO_COOLDOWN_UNTIL
+    parts = []
+    if be_capped:
+        parts.append(f"BE-CAP({BIRDEYE_CALLS_TODAY}/{BIRDEYE_DAILY_LIMIT})")
+    if gk_cooling:
+        parts.append("GK-COOLDOWN")
+    if not parts:
+        parts.append("both-empty")
+    logger.info(f"NO-CANDLES {symbol}: {', '.join(parts)}")
     return None
 
 
@@ -347,6 +444,7 @@ async def fetch_candles_birdeye_1m(token_address: str, symbol: str, pair_address
             resp = await client.get(url, headers=headers)
         
         BIRDEYE_CALLS_TODAY += 1
+        _check_be_thresh()
         
         if resp.status_code == 200:
             data = resp.json()
