@@ -30,3 +30,15 @@ data/*.lock
 
 # Other
 ystemctl status jayce-bot
+
+# Backup files (created during safe edits)
+*.before_*
+*.backup
+*.bak
+
+# Runtime data files (rewritten by scanner constantly)
+data/daily_audit.json
+data/jayce_training_dataset.json
+
+# Local env backups (security: contains API keys)
+.env.before_*
