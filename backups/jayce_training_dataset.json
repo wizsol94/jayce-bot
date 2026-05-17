@@ -6082,5 +6082,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJBnGoKA9x3UqGAYAG1GRL2B9QXmwgzAAKEDGsbYAhRRFqLbvGgJ2jAAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 90 JAYCE BOT ALERT",
     "trained_at": "2026-05-17T18:07:52.288603"
+  },
+  {
+    "chart_id": "50FZ-WYNN-5M-20260517-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "WYNN",
+    "timeframe": "5M",
+    "date": "2026-05-17",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 70,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJBo2oKB8MMzP4LuVOChjjH1YCpndAyAAKJDGsbYAhRRGgV76ziVHYJAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 88",
+    "trained_at": "2026-05-17T18:26:32.639782"
   }
 ]
