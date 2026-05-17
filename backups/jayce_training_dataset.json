@@ -6028,5 +6028,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAI_ImoH5RQR-hYkHrcvpbGaBXGhvhGDAAIBDWsblZFBRHz3fWm2H3J7AQADAgADdwADOwQ",
     "notes": "WHALE CONVICTION RSI SPIKED 81",
     "trained_at": "2026-05-16T03:32:37.273839"
+  },
+  {
+    "chart_id": "618FZ-DOUDOU-1M-20260517-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "DOUDOU",
+    "timeframe": "1M",
+    "date": "2026-05-17",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 90,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAyEFAASzFZVhAAIN6moJUttROPrxbSFSPm91kHsKxReQAAKDDWsbK3NQRJyliD4k7q5bAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKE 83 JAYCE BOT ALERT",
+    "trained_at": "2026-05-17T06:35:51.062331"
   }
 ]
