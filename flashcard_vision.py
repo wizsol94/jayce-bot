@@ -1,3 +1,5 @@
+# LIVE CHART PNG FIX APPLIED
+# JPEG REVERT APPLIED
 # PNG MEDIA FIX APPLIED
 """
 FLASHCARD VISION AI v2.0 - CONTROLLED DIVERSITY SAMPLING
@@ -432,7 +434,7 @@ Return top 3 most similar references. Be honest - if it looks like a failing pat
         # Add system prompt
         claude_content.append({"type": "text", "text": system_prompt})
         
-        # Add live chart
+        # Add live chart (PNG - from screenshot_chart)
         claude_content.append({"type": "text", "text": f"\n\nLIVE CHART (analyzing for {setup_type} setup):"})
         claude_content.append({
             "type": "image",
@@ -451,7 +453,7 @@ Return top 3 most similar references. Be honest - if it looks like a failing pat
                 "type": "image",
                 "source": {
                     "type": "base64",
-                    "media_type": "image/png",
+                    "media_type": "image/jpeg",
                     "data": fc['b64']
                 }
             })
