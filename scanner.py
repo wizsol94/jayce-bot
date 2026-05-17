@@ -1,3 +1,6 @@
+# WHALE TEXT FIX APPLIED
+# CHART SAVE FIX APPLIED
+# CHART VISIBILITY APPLIED
 # ALERT ROUTING APPLIED
 import os
 from chart_annotator import annotate_chart
@@ -155,9 +158,17 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
     if vision_result and vision_result.get('ran_vision'):
         vision_pct = vision_result.get('similarity', 0)
     
-    # Whale
+    # Whale - detected status (from token data)
     has_whale = token.get('whale_detected') or token.get('has_whale', False)
-    whale_text = "Yes" if has_whale else "No"
+    whale_detected_text = "Yes" if has_whale else "No"
+    
+    # Whale conviction - from bangers_result if present, else safe default
+    _whale_data = bangers_result.get('whale_conviction') or {}
+    if isinstance(_whale_data, dict):
+        _conv_level = _whale_data.get('level') or _whale_data.get('conviction') or ''
+        whale_conviction_text = _conv_level if _conv_level else ("Yes" if has_whale else "No")
+    else:
+        whale_conviction_text = "Yes" if has_whale else "No"
     
     # Levels
     flip_zone = impulse_result.get('flip_zone', {})
@@ -434,6 +445,8 @@ DAILY_METRICS = {
     'blocked_spike_chop': 0,
     'blocked_too_new': 0, 
     'blocked_low_candles': 0,
+    'chart_render_failed': 0,
+    'chart_returned_none': 0,
     'flashcard_fetches': 0,
     # v4.2: Engine-specific detection counts
     'engine_382': 0,
@@ -1863,7 +1876,9 @@ async def get_extension_screenshot(pair_address: str) -> bytes:
 
 
 async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_address: str = None) -> tuple:
-    if not pair_address: return None, None
+    if not pair_address:
+        logger.info(f"[CHART-BLOCK] {symbol} (no_addr): NO-PAIR-ADDRESS [DIED BEFORE ENGINE]")
+        return None, None
     
     # DISABLED: Extension screenshots (cluttered DexScreener pages)
     # Using clean rendered charts instead (black background + candles only)
@@ -1877,6 +1892,9 @@ async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_ad
     try:
         candles = await fetch_candles(pair_address, symbol, token_address)
         if not candles or len(candles) < 10:
+            cnt = len(candles) if candles else 0
+            DAILY_METRICS['blocked_low_candles'] = DAILY_METRICS.get('blocked_low_candles', 0) + 1
+            logger.info(f"[CHART-BLOCK] {symbol} ({token_address[:20] if token_address else 'no_ca'}...): LOW-CANDLES count={cnt} needed=10 [DIED BEFORE ENGINE]")
             return None, None
         
         # Scam filters
@@ -1887,6 +1905,7 @@ async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_ad
                 vol_cv = ((sum((v - vol_mean)**2 for v in vols) / len(vols))**0.5) / vol_mean
                 if vol_cv < 0.5:
                     DAILY_METRICS['blocked_wash_trading'] += 1
+                    logger.info(f"[CHART-BLOCK] {symbol} ({token_address[:20] if token_address else 'no_ca'}...): WASH-TRADING vol_cv={vol_cv:.3f} threshold=0.5 candles={len(candles)} [DIED BEFORE ENGINE]")
                     return None, None
         
         # Render chart with WizTheory annotations
@@ -1962,8 +1981,11 @@ async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_ad
             pass  # ENTRY label removed
         
         buf = BytesIO()
+        img.save(buf, format='PNG')
         return buf.getvalue(), candles
     except Exception as e:
+        DAILY_METRICS['chart_render_failed'] = DAILY_METRICS.get('chart_render_failed', 0) + 1
+        logger.info(f"[CHART-BLOCK] {symbol} ({token_address[:20] if token_address else 'no_ca'}...): RENDER-ERROR exception={type(e).__name__}: {str(e)[:120]} [DIED BEFORE ENGINE]")
         logger.error(f"❌ Chart error: {e}")
         return None, None
 

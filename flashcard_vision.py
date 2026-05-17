@@ -1,3 +1,4 @@
+# PNG MEDIA FIX APPLIED
 """
 FLASHCARD VISION AI v2.0 - CONTROLLED DIVERSITY SAMPLING
 =========================================================
@@ -437,7 +438,7 @@ Return top 3 most similar references. Be honest - if it looks like a failing pat
             "type": "image",
             "source": {
                 "type": "base64",
-                "media_type": "image/jpeg",
+                "media_type": "image/png",
                 "data": live_b64
             }
         })
@@ -450,7 +451,7 @@ Return top 3 most similar references. Be honest - if it looks like a failing pat
                 "type": "image",
                 "source": {
                     "type": "base64",
-                    "media_type": "image/jpeg",
+                    "media_type": "image/png",
                     "data": fc['b64']
                 }
             })
