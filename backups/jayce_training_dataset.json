@@ -6046,5 +6046,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAyEFAASzFZVhAAIN6moJUttROPrxbSFSPm91kHsKxReQAAKDDWsbK3NQRJyliD4k7q5bAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKE 83 JAYCE BOT ALERT",
     "trained_at": "2026-05-17T06:35:51.062331"
+  },
+  {
+    "chart_id": "382FZ-MIRA-1M-20260517-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "MIRA",
+    "timeframe": "1M",
+    "date": "2026-05-17",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJBi2oJ-wtBWiL6RaGcSqab2otFDjHeAAJ8DGsbYAhRRE8QVIGqjh5dAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 83 HIGH VOLUME JAYCE BOT ALERT",
+    "trained_at": "2026-05-17T17:30:19.923310"
   }
 ]
