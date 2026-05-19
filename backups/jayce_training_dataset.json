@@ -6136,5 +6136,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJDLGoLs_W9BsGTuVOq6tE1BjalWahxAAIGDGsbFc9hRGIOV1TLCc8ZAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 89 JAYCE BOT ALERT",
     "trained_at": "2026-05-19T00:51:50.167738"
+  },
+  {
+    "chart_id": "786FZ-EMBRACE-5M-20260519-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "EMBRACE",
+    "timeframe": "5M",
+    "date": "2026-05-19",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJDUGoL0tqkH2XOxIq2fBCnkW6CE7QmAAISDGsbFc9hREuDwr0wO6ceAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 82 JAYCE BOT ALERT",
+    "trained_at": "2026-05-19T03:03:19.500185"
   }
 ]
