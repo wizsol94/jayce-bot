@@ -1,3 +1,4 @@
+# PRE-EXISTING BUGS FIX APPLIED
 # WHALE TEXT FIX APPLIED
 # CHART SAVE FIX APPLIED
 # CHART VISIBILITY APPLIED
@@ -445,6 +446,7 @@ DAILY_METRICS = {
     'blocked_spike_chop': 0,
     'blocked_too_new': 0, 
     'blocked_low_candles': 0,
+    'alerts_sent': 0,
     'chart_render_failed': 0,
     'chart_returned_none': 0,
     'flashcard_fetches': 0,
@@ -2739,6 +2741,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             # Send Setup Watch alert
             try:
                 watch_message = format_setup_watch_message(watch_alert)
+                bot = Bot(token=TELEGRAM_BOT_TOKEN)
                 await bot.send_message(chat_id=HEARTBEAT_CHAT_ID, text=watch_message, parse_mode=ParseMode.HTML)
                 logger.info(f"[{ENVIRONMENT}]    📨 Setup Watch alert sent for {symbol}")
             except Exception as e:
