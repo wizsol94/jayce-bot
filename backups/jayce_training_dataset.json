@@ -6154,5 +6154,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJDUGoL0tqkH2XOxIq2fBCnkW6CE7QmAAISDGsbFc9hREuDwr0wO6ceAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 82 JAYCE BOT ALERT",
     "trained_at": "2026-05-19T03:03:19.500185"
+  },
+  {
+    "chart_id": "618FZ-TOLYBOT-5M-20260519-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "TOLYBOT",
+    "timeframe": "5M",
+    "date": "2026-05-19",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJEQGoMmECrpH4WKgGbdweJJUXkxg3BAAI5DGsbFc9hRAEezgcIiufxAQADAgADdwADOwQ",
+    "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 90",
+    "trained_at": "2026-05-19T17:05:47.501538"
   }
 ]
