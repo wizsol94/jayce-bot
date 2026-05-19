@@ -6100,5 +6100,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJBo2oKB8MMzP4LuVOChjjH1YCpndAyAAKJDGsbYAhRRGgV76ziVHYJAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 88",
     "trained_at": "2026-05-17T18:26:32.639782"
+  },
+  {
+    "chart_id": "50FZ-WCLAW-30M-20260519-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "WCLAW",
+    "timeframe": "30M",
+    "date": "2026-05-19",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJDJmoLrf6zJbQ2kp5bWX1HG-iYg0LSAAIEDGsbFc9hRBVVyRpbb5kvAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE OLDER COIN RSI SPIKED 93",
+    "trained_at": "2026-05-19T00:25:59.193162"
   }
 ]
