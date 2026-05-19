@@ -1,3 +1,5 @@
+# SETUP CLASSIFIER REWRITE APPLIED
+# BAND FIRST FIX APPLIED
 """
 WIZTHEORY DETECTION ENGINES v4.0
 ================================
@@ -552,6 +554,329 @@ def score_to_grade(score: int) -> str:
 
 
 def determine_setup_by_body_acceptance(candles: List[dict], structure: dict) -> dict:
+    """
+    Wiz Theory Setup Classifier (REWRITE)
+
+    Priority hierarchy:
+      1. Flip zone alignment with fib level (PRIMARY identity)
+      2. Deepest wick retrace depth (confirms or emits mixed-depth warning)
+      3. Body acceptance retrace (further confirmation)
+      4. Boundary rule: prefer deeper fib only when FZ center genuinely closer
+      5. 382 special: wick-origin / left-side rejection / thin FZ allowed
+
+    Confidence (0-100, logging only):
+      - retrace alignment: 0-50
+      - FZ structure validity: 0-30
+      - body acceptance agreement: 0-20
+
+    Preserves OLD return contract:
+      recommended_setup, flip_zone_range, fib_overlaps, confidence, reason, debug
+    Adds new fields:
+      retrace_pct, body_retrace_pct, primary_path, wick_origin_detected,
+      left_side_rejection_detected, body_acceptance_match, boundary,
+      mixed_depth_warning
+    """
+    result = {
+        'recommended_setup': None,
+        'flip_zone_range': None,
+        'fib_overlaps': {},
+        'confidence': 0,
+        'reason': 'No flip zone detected',
+        'debug': [],
+        # new fields
+        'retrace_pct': 0.0,
+        'body_retrace_pct': 0.0,
+        'primary_path': None,
+        'wick_origin_detected': False,
+        'left_side_rejection_detected': False,
+        'body_acceptance_match': False,
+        'boundary': False,
+        'mixed_depth_warning': False,
+    }
+
+    if not candles or len(candles) < 20:
+        return result
+
+    swing_high = structure.get('swing_high', 0)
+    swing_low = structure.get('swing_low', 0)
+    fib_range = swing_high - swing_low
+
+    if fib_range <= 0 or swing_low <= 0:
+        return result
+
+    # ───────── fib levels (wick-based, per master rules)
+    fib_levels = {
+        '382': swing_high - (fib_range * 0.382),
+        '50':  swing_high - (fib_range * 0.50),
+        '618': swing_high - (fib_range * 0.618),
+        '786': swing_high - (fib_range * 0.786),
+    }
+
+    # ───────── official Wiz Theory retrace bands
+    #   382: 30-40%
+    #   50:  40-55%
+    #   618: 50-60%
+    #   786: 70-80%
+    # Boundary rule: deeper fib preferred only when FZ center genuinely closer
+
+    result['debug'].append(
+        f"Swing: low={swing_low:.8f} high={swing_high:.8f} range={fib_range:.8f}"
+    )
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 1: Deepest wick retrace (structural truth)
+    # ═════════════════════════════════════════════════════════════════
+    deepest_wick = min(float(c.get('l') or c.get('low') or swing_high) for c in candles[-50:])
+    wick_retrace_pct = ((swing_high - deepest_wick) / fib_range) * 100 if fib_range > 0 else 0
+    wick_retrace_pct = max(0.0, min(100.0, wick_retrace_pct))
+    result['retrace_pct'] = round(wick_retrace_pct, 1)
+    result['debug'].append(f"Deepest wick retrace: {wick_retrace_pct:.1f}%")
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 2: Detect FZ range from body-percentile (still useful signal)
+    # ═════════════════════════════════════════════════════════════════
+    recent = candles[-40:]
+    body_closes = []
+    for c in recent:
+        close = float(c.get('close') or c.get('c') or 0)
+        if 0 < close < swing_high:
+            body_closes.append(close)
+
+    fz_center = None
+    fz_low = fz_high = None
+    body_retrace_pct = 0.0
+
+    if len(body_closes) >= 5:
+        body_closes_sorted = sorted(body_closes)
+        p25 = body_closes_sorted[int(len(body_closes_sorted) * 0.25)]
+        p75 = body_closes_sorted[int(len(body_closes_sorted) * 0.75)]
+        buf = (p75 - p25) * 0.15
+        fz_low = p25 - buf
+        fz_high = p75 + buf
+        fz_center = (fz_low + fz_high) / 2.0
+        result['flip_zone_range'] = (fz_low, fz_high)
+        body_retrace_pct = ((swing_high - fz_center) / fib_range) * 100 if fib_range > 0 else 0
+        body_retrace_pct = max(0.0, min(100.0, body_retrace_pct))
+        result['body_retrace_pct'] = round(body_retrace_pct, 1)
+        result['debug'].append(
+            f"FZ from bodies: {fz_low:.8f}-{fz_high:.8f}, center={fz_center:.8f} ({body_retrace_pct:.1f}% retrace)"
+        )
+    else:
+        result['debug'].append("FZ from bodies: insufficient data, will rely on wick retrace")
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 3: Classify by BAND MEMBERSHIP (PRIMARY) — official Wiz Theory ranges
+    # ═════════════════════════════════════════════════════════════════
+    classify_retrace_pct = body_retrace_pct if fz_center is not None else wick_retrace_pct
+
+    # Official Wiz Theory bands
+    bands = {
+        '382': (30.0, 40.0),
+        '50':  (40.0, 55.0),
+        '618': (50.0, 60.0),
+        '786': (70.0, 80.0),
+    }
+    fib_order = ['382', '50', '618', '786']
+
+    # Distances kept for tie-breaking + confidence (NOT primary identity)
+    distances = {
+        '382': abs(classify_retrace_pct - 38.2),
+        '50':  abs(classify_retrace_pct - 50.0),
+        '618': abs(classify_retrace_pct - 61.8),
+        '786': abs(classify_retrace_pct - 78.6),
+    }
+    result['debug'].append(
+        f"Classify-retrace: {classify_retrace_pct:.1f}% (from {'FZ center' if fz_center is not None else 'wick'})"
+    )
+    result['debug'].append(
+        "Distances: " + " | ".join(f"{k}:{v:.1f}pts" for k, v in distances.items())
+    )
+
+    # Find which bands the retrace sits inside
+    matching = [name for name, (lo, hi) in bands.items() if lo <= classify_retrace_pct <= hi]
+
+    if len(matching) == 1:
+        # Clean single-band membership — definitive
+        primary = matching[0]
+        result['debug'].append(f"Band membership: {primary} (single band, clean)")
+    elif len(matching) >= 2:
+        # Genuine band overlap (e.g. 50-55% retrace lives in both 50 and 618)
+        result['boundary'] = True
+        primary = max(matching, key=lambda x: fib_order.index(x))  # deeper wins
+        result['debug'].append(
+            f"BAND OVERLAP {matching} — picking deeper: {primary}"
+        )
+    else:
+        # Retrace outside all bands (e.g. <30%, 60-70% gap, >80%)
+        # Fall back to nearest fib by distance
+        primary = min(distances, key=distances.get)
+        result['debug'].append(
+            f"No band match — nearest fib by distance: {primary} ({distances[primary]:.1f}pts away)"
+        )
+
+    primary_dist = distances[primary]
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 4: Edge-of-band boundary check — upgrade to deeper if FZ aligns
+    # ═════════════════════════════════════════════════════════════════
+    # If retrace sits within 2% of the UPPER edge of its band AND FZ alignment
+    # clearly favors the deeper adjacent band, upgrade to deeper.
+    if not result['boundary']:
+        primary_band = bands.get(primary)
+        if primary_band:
+            band_lo, band_hi = primary_band
+            distance_to_upper_edge = abs(classify_retrace_pct - band_hi)
+            if distance_to_upper_edge <= 2.0:
+                # Find the next deeper band
+                cur_idx = fib_order.index(primary)
+                if cur_idx + 1 < len(fib_order):
+                    deeper = fib_order[cur_idx + 1]
+                    if distances[deeper] < distances[primary]:
+                        result['boundary'] = True
+                        result['debug'].append(
+                            f"EDGE-BOUNDARY: {primary} retrace {classify_retrace_pct:.1f}% within 2pts of "
+                            f"upper edge ({band_hi}%) AND FZ closer to {deeper} ({distances[deeper]:.1f}pts vs "
+                            f"{distances[primary]:.1f}pts) — upgrading to {deeper}"
+                        )
+                        primary = deeper
+                        primary_dist = distances[primary]
+
+    result['recommended_setup'] = primary
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 5: Mixed-depth warning (wick vs FZ alignment disagree)
+    # ═════════════════════════════════════════════════════════════════
+    band_for = {
+        '382': (30, 40),
+        '50':  (40, 55),
+        '618': (50, 60),
+        '786': (70, 80),
+    }
+    band_low, band_high = band_for[primary]
+    wick_in_band = (band_low <= wick_retrace_pct <= band_high)
+    if not wick_in_band and fz_center is not None:
+        result['mixed_depth_warning'] = True
+        result['debug'].append(
+            f"WARN mixed-depth: wick={wick_retrace_pct:.1f}% outside {primary} band ({band_low}-{band_high}%), "
+            f"but FZ aligns with {primary}"
+        )
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 6: 382 special path — wick-origin / left-side rejection
+    # ═════════════════════════════════════════════════════════════════
+    fib_382 = fib_levels['382']
+    tol_382 = fib_382 * 0.03  # ±3%
+    wick_origin = False
+    left_side_rejection = False
+
+    # Current pullback wick check (last 40 candles)
+    for i, c in enumerate(candles[-40:]):
+        c_low = float(c.get('l') or c.get('low') or 0)
+        if abs(c_low - fib_382) <= tol_382:
+            # confirm breakout: next 10 candles, price moves >=5% above wick low
+            idx_global = len(candles) - 40 + i
+            future = candles[idx_global+1: idx_global+11]
+            if future:
+                max_high = max(float(fc.get('h') or fc.get('high') or 0) for fc in future)
+                if c_low > 0 and (max_high - c_low) / c_low >= 0.05:
+                    wick_origin = True
+                    break
+
+    # Left-side rejection: earlier candles wicked at 0.382 and price later respected it
+    if not wick_origin and len(candles) > 50:
+        earlier = candles[:-40]
+        for c in earlier[-30:]:  # look at the 30 candles just before the current 40
+            c_high = float(c.get('h') or c.get('high') or 0)
+            c_low = float(c.get('l') or c.get('low') or 0)
+            if (abs(c_high - fib_382) <= tol_382) or (abs(c_low - fib_382) <= tol_382):
+                left_side_rejection = True
+                break
+
+    result['wick_origin_detected'] = wick_origin
+    result['left_side_rejection_detected'] = left_side_rejection
+    if primary == '382':
+        result['primary_path'] = 'wick_origin' if (wick_origin or left_side_rejection) else 'thin_fz_only'
+    else:
+        result['primary_path'] = 'thick_fz'
+
+    if primary == '382' and (wick_origin or left_side_rejection):
+        result['debug'].append(
+            f"382 path: wick_origin={wick_origin} left_side_rejection={left_side_rejection}"
+        )
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 7: Body acceptance agreement check
+    # ═════════════════════════════════════════════════════════════════
+    body_match = False
+    if fz_center is not None:
+        body_band = band_for[primary]
+        body_match = (body_band[0] <= body_retrace_pct <= body_band[1])
+    result['body_acceptance_match'] = body_match
+    if fz_center is not None and not body_match:
+        result['debug'].append(
+            f"WARN body acceptance disagrees: body_retrace={body_retrace_pct:.1f}% outside {primary} band"
+        )
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 8: Confidence (logging only, not used to silence alerts)
+    # ═════════════════════════════════════════════════════════════════
+    # Component A: retrace alignment (0-50)
+    align_score = max(0, 50 - int(primary_dist * 2.5))
+    align_score = min(50, align_score)
+
+    # Component B: FZ structure validity (0-30)
+    fz_score = 0
+    if primary == '382':
+        if wick_origin or left_side_rejection:
+            fz_score = 30
+        elif fz_center is not None:
+            fz_score = 15
+    else:
+        if fz_center is not None:
+            fz_score = 30
+
+    # Component C: body acceptance agreement (0-20)
+    body_score = 20 if body_match else (10 if fz_center is not None else 0)
+
+    confidence = align_score + fz_score + body_score
+    result['confidence'] = min(100, confidence)
+    result['debug'].append(
+        f"Confidence={result['confidence']} (align={align_score}, fz={fz_score}, body={body_score})"
+    )
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 9: Populate fib_overlaps for downstream logging compatibility
+    # ═════════════════════════════════════════════════════════════════
+    for fib_name in ['382', '50', '618', '786']:
+        d = distances[fib_name]
+        pseudo_overlap = max(0, 100 - int(d * 4))
+        result['fib_overlaps'][fib_name] = {
+            'overlap_pct': pseudo_overlap,
+            'fib_zone': None,
+            'fib_level': fib_levels[fib_name],
+        }
+
+    # ═════════════════════════════════════════════════════════════════
+    # STEP 10: Build human-readable reason
+    # ═════════════════════════════════════════════════════════════════
+    parts = []
+    parts.append(f"FZ aligns with {primary} (dist {primary_dist:.1f}pts)")
+    parts.append(f"wick retrace {wick_retrace_pct:.1f}%")
+    if fz_center is not None:
+        parts.append(f"body retrace {body_retrace_pct:.1f}%")
+    if result['mixed_depth_warning']:
+        parts.append("MIXED-DEPTH (wick vs FZ disagree)")
+    if result['boundary']:
+        parts.append("BOUNDARY-DEEPER-PICKED")
+    if primary == '382':
+        if wick_origin: parts.append("382 wick-origin ✓")
+        if left_side_rejection: parts.append("382 left-side-rejection ✓")
+    result['reason'] = " | ".join(parts)
+
+    return result
+
+
+def determine_setup_by_body_acceptance_OLD(candles: List[dict], structure: dict) -> dict:
     """
     Determine the real tradeable setup type by analyzing where candle BODIES are accepting.
     

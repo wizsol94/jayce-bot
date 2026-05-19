@@ -1,3 +1,4 @@
+# VISION RELIABILITY APPLIED
 # LIVE CHART PNG FIX APPLIED
 # JPEG REVERT APPLIED
 # PNG MEDIA FIX APPLIED
@@ -42,8 +43,99 @@ USAGE_FILE = "/opt/jayce/data/vision_usage.json"
 ROTATION_FILE = "/opt/jayce/data/flashcard_rotation.json"
 
 # Budget limits
-DAILY_CAP = 50
-MONTHLY_CAP = 1000
+DAILY_CAP = int(os.getenv('VISION_DAILY_CAP', '50'))
+
+# ═══════════════════════════════════════════════════════════════════
+# RELIABILITY STATE (added by reliability patch)
+# ═══════════════════════════════════════════════════════════════════
+_VISION_THRESH = {80: False, 90: False, 100: False}
+_VISION_LAST_SUMMARY_DATE = None
+_VISION_SUCCESS_COUNT = 0
+_VISION_SIM_TOTAL = 0.0
+_VISION_SIM_SAMPLES = 0
+_VISION_SKIPPED_CAP = 0
+_VISION_COST_PER_CALL = 0.025  # rough Sonnet 4 with images, USD
+
+def _send_owner_telegram_vision(msg):
+    """Fire-and-forget owner Telegram via existing creds."""
+    try:
+        import httpx as _hx
+        token = os.getenv('TELEGRAM_BOT_TOKEN', '')
+        chat = os.getenv('HEARTBEAT_CHAT_ID', '') or os.getenv('OWNER_USER_ID', '')
+        if not token or not chat:
+            return
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        _hx.post(url, json={'chat_id': chat, 'text': msg}, timeout=8)
+    except Exception:
+        pass
+
+def _check_vision_threshold():
+    """Fire INFO log + Telegram at 80/90/100% daily cap (once each)."""
+    global _VISION_THRESH
+    try:
+        usage = load_usage()
+        today = str(date.today())
+        if usage.get('daily', {}).get('date') != today:
+            return
+        used = usage['daily']['count']
+        if DAILY_CAP <= 0:
+            return
+        pct = (used / DAILY_CAP) * 100
+        for t in (80, 90, 100):
+            if pct >= t and not _VISION_THRESH[t]:
+                _VISION_THRESH[t] = True
+                msg = f"WARN Vision at {pct:.0f}% ({used}/{DAILY_CAP})"
+                logger.info(f"[VISION-BUDGET] {msg}")
+                if t >= 90:
+                    _send_owner_telegram_vision(msg)
+    except Exception as _e:
+        logger.warning(f"Vision threshold check error: {_e}")
+
+def _vision_daily_rollover():
+    """On new UTC day: log + Telegram daily summary, reset counters."""
+    global _VISION_THRESH, _VISION_LAST_SUMMARY_DATE
+    global _VISION_SUCCESS_COUNT, _VISION_SIM_TOTAL, _VISION_SIM_SAMPLES, _VISION_SKIPPED_CAP
+    today = date.today()
+    if _VISION_LAST_SUMMARY_DATE is None:
+        _VISION_LAST_SUMMARY_DATE = today
+        return
+    if today != _VISION_LAST_SUMMARY_DATE:
+        try:
+            usage = load_usage()
+            calls = usage.get('daily', {}).get('count', 0)
+            avg_sim = (_VISION_SIM_TOTAL / _VISION_SIM_SAMPLES) if _VISION_SIM_SAMPLES else 0
+            est_cost = calls * _VISION_COST_PER_CALL
+            summary = (
+                f"VISION DAILY SUMMARY (UTC {_VISION_LAST_SUMMARY_DATE})\n"
+                f"Calls used: {calls}/{DAILY_CAP}\n"
+                f"Successful (>0%): {_VISION_SUCCESS_COUNT}\n"
+                f"Skipped (cap): {_VISION_SKIPPED_CAP}\n"
+                f"Avg similarity: {avg_sim:.1f}%\n"
+                f"Est cost: ${est_cost:.2f}"
+            )
+            logger.info(f"[VISION-DAILY-SUMMARY] {summary}")
+            _send_owner_telegram_vision(summary)
+        except Exception as _e:
+            logger.warning(f"Vision daily summary error: {_e}")
+        _VISION_THRESH = {80: False, 90: False, 100: False}
+        _VISION_SUCCESS_COUNT = 0
+        _VISION_SIM_TOTAL = 0.0
+        _VISION_SIM_SAMPLES = 0
+        _VISION_SKIPPED_CAP = 0
+        _VISION_LAST_SUMMARY_DATE = today
+
+def record_vision_similarity(similarity_pct):
+    """Call from scanner when a Vision result returns - tracks success + avg."""
+    global _VISION_SUCCESS_COUNT, _VISION_SIM_TOTAL, _VISION_SIM_SAMPLES
+    try:
+        if similarity_pct and similarity_pct > 0:
+            _VISION_SUCCESS_COUNT += 1
+            _VISION_SIM_TOTAL += float(similarity_pct)
+            _VISION_SIM_SAMPLES += 1
+    except Exception:
+        pass
+
+MONTHLY_CAP = int(os.getenv('VISION_MONTHLY_CAP', '1000'))
 MIN_SCORE_GATE = 60
 
 # Controlled Diversity Sampling
@@ -108,10 +200,12 @@ def check_budget() -> Tuple[bool, str]:
         save_usage(usage)
     
     if usage['daily']['count'] >= DAILY_CAP:
-        return False, f"Daily cap reached ({DAILY_CAP})"
+        global _VISION_SKIPPED_CAP
+        _VISION_SKIPPED_CAP += 1
+        return False, f"[VISION-BUDGET-CAP] Daily cap reached ({usage['daily']['count']}/{DAILY_CAP})"
     
     if usage['monthly']['count'] >= MONTHLY_CAP:
-        return False, f"Monthly cap reached ({MONTHLY_CAP})"
+        return False, f"[VISION-BUDGET-CAP] Monthly cap reached ({usage['monthly']['count']}/{MONTHLY_CAP})"
     
     return True, "OK"
 
@@ -131,6 +225,8 @@ def increment_usage():
     usage['total'] += 1
     
     save_usage(usage)
+    _check_vision_threshold()
+    _vision_daily_rollover()
     return usage
 
 
