@@ -6118,5 +6118,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJDJmoLrf6zJbQ2kp5bWX1HG-iYg0LSAAIEDGsbFc9hRBVVyRpbb5kvAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE OLDER COIN RSI SPIKED 93",
     "trained_at": "2026-05-19T00:25:59.193162"
+  },
+  {
+    "chart_id": "618FZ-TBH-5M-20260519-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "TBH",
+    "timeframe": "5M",
+    "date": "2026-05-19",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 70,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJDLGoLs_W9BsGTuVOq6tE1BjalWahxAAIGDGsbFc9hRGIOV1TLCc8ZAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 89 JAYCE BOT ALERT",
+    "trained_at": "2026-05-19T00:51:50.167738"
   }
 ]
