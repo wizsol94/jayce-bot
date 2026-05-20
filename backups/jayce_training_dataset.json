@@ -6120,24 +6120,6 @@
     "trained_at": "2026-05-19T00:25:59.193162"
   },
   {
-    "chart_id": "618FZ-TBH-5M-20260519-001",
-    "setup_name": "618 + Flip Zone",
-    "canonical_key": "618_flip_zone",
-    "token": "TBH",
-    "timeframe": "5M",
-    "date": "2026-05-19",
-    "fib_depth": "618",
-    "structure_state": "Trained",
-    "rsi_behavior": "",
-    "whale_conviction": false,
-    "violent_mode": false,
-    "outcome_percentage": 70,
-    "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJDLGoLs_W9BsGTuVOq6tE1BjalWahxAAIGDGsbFc9hRGIOV1TLCc8ZAQADAgADdwADOwQ",
-    "notes": "CLEAN STRUCTURE RSI SPIKED 89 JAYCE BOT ALERT",
-    "trained_at": "2026-05-19T00:51:50.167738"
-  },
-  {
     "chart_id": "786FZ-EMBRACE-5M-20260519-001",
     "setup_name": "786 + Flip Zone",
     "canonical_key": "786_flip_zone",
@@ -6172,5 +6154,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJEQGoMmECrpH4WKgGbdweJJUXkxg3BAAI5DGsbFc9hRAEezgcIiufxAQADAgADdwADOwQ",
     "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 90",
     "trained_at": "2026-05-19T17:05:47.501538"
+  },
+  {
+    "chart_id": "618FZ-TBH-15M-20260520-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "TBH",
+    "timeframe": "15M",
+    "date": "2026-05-20",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 250,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJE7GoNIqZowtPYdvRk_SLBqleOLpfEAAJTDGsbFc9pRC3ttScxfmYPAQADAgADdwADOwQ",
+    "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 89",
+    "trained_at": "2026-05-20T02:56:17.508420"
   }
 ]
