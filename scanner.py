@@ -1,3 +1,4 @@
+# MATCHER SHADOW MODE APPLIED
 # PRE-EXISTING BUGS FIX APPLIED
 # WHALE TEXT FIX APPLIED
 # CHART SAVE FIX APPLIED
@@ -2771,6 +2772,30 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             wiz_setup_type = 'UNDER_FIB'
         else:
             wiz_setup_type = engine_result.get('engine_id', None)
+
+    # ══════════════════════════════════════════════════════════════
+    # SETUP MATCHER — SHADOW MODE (Phase 2)
+    # Logs matcher verdict alongside existing pipeline. NO gating yet.
+    # Fail-safe: any exception is caught and ignored — alert flow continues.
+    # ══════════════════════════════════════════════════════════════
+    if wiz_setup_type and chart_bytes:
+        try:
+            from setup_matcher_adapter import match_setup, format_for_log
+            _matcher_result = match_setup(chart_bytes, wiz_setup_type, top_n=5)
+            if _matcher_result.get('success'):
+                logger.info(f"[{ENVIRONMENT}]    {format_for_log(_matcher_result)}")
+                token['matcher_result'] = _matcher_result
+                DAILY_METRICS['matcher_calls'] = DAILY_METRICS.get('matcher_calls', 0) + 1
+                # Log top 3 matches for visibility
+                for i, m in enumerate(_matcher_result.get('top_matches', [])[:3], 1):
+                    logger.info(f"[{ENVIRONMENT}]      Match {i}: {m['name']} → {m['similarity_pct']}% ({m['source']})")
+            else:
+                logger.info(f"[{ENVIRONMENT}]    [MATCHER] skip: {_matcher_result.get('error', 'unknown')}")
+                DAILY_METRICS['matcher_errors'] = DAILY_METRICS.get('matcher_errors', 0) + 1
+        except Exception as _matcher_exc:
+            logger.warning(f"[{ENVIRONMENT}]    [MATCHER] exception (non-fatal): {_matcher_exc}")
+            DAILY_METRICS['matcher_errors'] = DAILY_METRICS.get('matcher_errors', 0) + 1
+
     impulse_data = impulse_result.get('impulse') or {}
     retrace_data = impulse_result.get('retrace') or {}
     
