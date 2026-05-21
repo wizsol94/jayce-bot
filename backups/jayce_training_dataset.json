@@ -6172,5 +6172,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJE7GoNIqZowtPYdvRk_SLBqleOLpfEAAJTDGsbFc9pRC3ttScxfmYPAQADAgADdwADOwQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 89",
     "trained_at": "2026-05-20T02:56:17.508420"
+  },
+  {
+    "chart_id": "382FZ-WYNN-5M-20260521-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "WYNN",
+    "timeframe": "5M",
+    "date": "2026-05-21",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 35,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJGiWoOgnPtaRlcNBwgl7ylr3DNXQvFAAK3DGsb7oxxRP0O-79OsohwAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 83",
+    "trained_at": "2026-05-21T03:57:03.019067"
   }
 ]
