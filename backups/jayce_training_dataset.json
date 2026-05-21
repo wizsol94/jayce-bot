@@ -6190,5 +6190,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJGiWoOgnPtaRlcNBwgl7ylr3DNXQvFAAK3DGsb7oxxRP0O-79OsohwAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 83",
     "trained_at": "2026-05-21T03:57:03.019067"
+  },
+  {
+    "chart_id": "786FZ-AOC-5M-20260521-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "AOC",
+    "timeframe": "5M",
+    "date": "2026-05-21",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 130,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJGkGoOhYPZ3Tp4yx7MrRcDf0ZE59VgAAK4DGsb7oxxRCVnmcZCDM9MAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 79",
+    "trained_at": "2026-05-21T04:10:06.083576"
   }
 ]
