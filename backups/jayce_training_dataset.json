@@ -6174,24 +6174,6 @@
     "trained_at": "2026-05-20T02:56:17.508420"
   },
   {
-    "chart_id": "382FZ-WYNN-5M-20260521-001",
-    "setup_name": "382 + Flip Zone",
-    "canonical_key": "382_flip_zone",
-    "token": "WYNN",
-    "timeframe": "5M",
-    "date": "2026-05-21",
-    "fib_depth": "382",
-    "structure_state": "Trained",
-    "rsi_behavior": "",
-    "whale_conviction": false,
-    "violent_mode": false,
-    "outcome_percentage": 35,
-    "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJGiWoOgnPtaRlcNBwgl7ylr3DNXQvFAAK3DGsb7oxxRP0O-79OsohwAQADAgADdwADOwQ",
-    "notes": "CLEAN STRUCTURE RSI SPIKED 83",
-    "trained_at": "2026-05-21T03:57:03.019067"
-  },
-  {
     "chart_id": "786FZ-AOC-5M-20260521-001",
     "setup_name": "786 + Flip Zone",
     "canonical_key": "786_flip_zone",
@@ -6208,5 +6190,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJGkGoOhYPZ3Tp4yx7MrRcDf0ZE59VgAAK4DGsb7oxxRCVnmcZCDM9MAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 79",
     "trained_at": "2026-05-21T04:10:06.083576"
+  },
+  {
+    "chart_id": "382FZ-WYNN-5M-20260521-002",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "WYNN",
+    "timeframe": "5M",
+    "date": "2026-05-21",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 65,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJGxGoOsoiwneJnN6JJGiAmDZNRFQoFAAI7DGsb7ox5RLbpmVQ6hs_0AQADAgADdwADOwQ",
+    "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 83",
+    "trained_at": "2026-05-21T07:22:45.440680"
   }
 ]
