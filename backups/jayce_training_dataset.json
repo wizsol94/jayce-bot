@@ -6208,5 +6208,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJGxGoOsoiwneJnN6JJGiAmDZNRFQoFAAI7DGsb7ox5RLbpmVQ6hs_0AQADAgADdwADOwQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 83",
     "trained_at": "2026-05-21T07:22:45.440680"
+  },
+  {
+    "chart_id": "618FZ-GAM-5M-20260521-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "GAM",
+    "timeframe": "5M",
+    "date": "2026-05-21",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJHZmoPQNUPRAj_VeNOksunz_Wh1S4-AAJiDGsb7ox5RDDnLQE7N4yVAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 90",
+    "trained_at": "2026-05-21T17:29:19.612818"
   }
 ]
