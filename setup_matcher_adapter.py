@@ -1,3 +1,4 @@
+# UNDERFIB ALIAS FIX APPLIED
 #!/usr/bin/env python3
 """
 Setup Matcher Adapter — bridges Jayce's engine to the WizTheory ChartSetupMatcher.
@@ -85,6 +86,7 @@ SETUP_ALIASES = {
     '786': '786', '786 + flip zone': '786', '786fz': '786',
     'underfib': 'underfib', 'under-fib': 'underfib', 'under-fib flip zone': 'underfib',
     'uf': 'underfib', 'ufib': 'underfib', 'under_fib': 'underfib',
+    'under fib': 'underfib', 'under fib flip zone': 'underfib',
 }
 
 IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
