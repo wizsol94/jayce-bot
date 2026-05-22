@@ -6244,5 +6244,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJJHWoQtmkQzu6miSMyhp5kDh-wx1yJAAJIDGsb5k6IRM0a7mF6dCRuAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 80",
     "trained_at": "2026-05-22T20:03:12.657720"
+  },
+  {
+    "chart_id": "UFIB-YUNC-1M-20260522-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "YUNC",
+    "timeframe": "1M",
+    "date": "2026-05-22",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 120,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJJQGoQ1OQ6hpsptP64KTQhTDv3YD2JAAJtDGsb5k6IRKymtFd822QUAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 90",
+    "trained_at": "2026-05-22T22:14:03.986964"
   }
 ]
