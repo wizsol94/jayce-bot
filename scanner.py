@@ -1,3 +1,4 @@
+# FZ RENDERING PATCH APPLIED
 # DEXSCREENER BUTTON PATCH APPLIED
 # NONETYPE FLIPZONE FIX APPLIED
 # VISION FALLBACK PATCH APPLIED
@@ -1900,6 +1901,119 @@ async def get_extension_screenshot(pair_address: str) -> bytes:
     return None
 
 
+def redraw_chart_with_setup_fz(candles: list, setup_type: str, symbol: str) -> bytes:
+    """
+    Render a chart with FZ band at the CORRECT fib level for the given setup.
+    Used to replace chart_bytes RIGHT BEFORE sending to Telegram, so the user
+    sees a chart consistent with the alert's setup type.
+
+    setup_type: '382' | '50' | '618' | '786' | 'UNDER_FIB' | 'underfib'
+
+    Returns: PNG bytes (or None on failure)
+    """
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        from io import BytesIO
+
+        if not candles or len(candles) < 10:
+            return None
+
+        # Render chart with WizTheory annotations
+        W, H = 1400, 700
+        img = Image.new("RGB", (W, H), (13, 17, 23))
+        draw = ImageDraw.Draw(img, "RGBA")
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+            font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
+            font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
+        except:
+            font = ImageFont.load_default()
+            font_large = font
+            font_medium = font
+
+        draw.text((60, 10), f"{symbol} · 5M", fill=(255,255,255), font=font)
+
+        highs = [c["h"] for c in candles]
+        lows  = [c["l"] for c in candles]
+        price_max, price_min = max(highs), min(lows)
+        price_range = price_max - price_min or price_max * 0.01
+
+        fib_382 = price_max - (price_range * 0.382)
+        fib_50  = price_max - (price_range * 0.50)
+        fib_618 = price_max - (price_range * 0.618)
+        fib_786 = price_max - (price_range * 0.786)
+        expansion_pct = ((price_max - price_min) / price_min * 100) if price_min > 0 else 0
+
+        def price_to_y(price):
+            return int(50 + (1 - (price - price_min) / price_range) * 590)
+
+        CYAN   = (0, 255, 255)
+        PURPLE = (180, 80, 220)
+
+        # Draw fib lines
+        for name, price, col in [("382", fib_382, (255,150,80)), ("50", fib_50, (200,200,80)), ("618", fib_618, (80,150,255)), ("786", fib_786, (80,220,220))]:
+            y = price_to_y(price)
+            if 50 < y < 640:
+                draw.line([(60, y), (1340, y)], fill=col, width=1)
+                lbl = f"0.{name}" if name != "50" else "0.5"
+                draw.text((1345, y - 8), lbl, fill=col, font=font)
+
+        # Normalize setup type
+        st = (setup_type or "").strip().upper()
+        if st in ("UNDER_FIB", "UNDERFIB", "UF", "UFIB"):
+            # UF zone is BELOW 0.786 (approximate at 0.85 fib for visual)
+            fz_anchor = price_max - (price_range * 0.85)
+            band_label = "FLIP ZONE (Under-Fib)"
+        elif st == "382":
+            fz_anchor = fib_382
+            band_label = "FLIP ZONE (.382)"
+        elif st == "50":
+            fz_anchor = fib_50
+            band_label = "FLIP ZONE (.50)"
+        elif st == "786":
+            fz_anchor = fib_786
+            band_label = "FLIP ZONE (.786)"
+        else:
+            # Default / 618 / unknown
+            fz_anchor = fib_618
+            band_label = "FLIP ZONE (.618)"
+
+        fz_top    = price_to_y(fz_anchor * 1.02)
+        fz_bottom = price_to_y(fz_anchor * 0.98)
+        if 50 < fz_top < 640 and 50 < fz_bottom < 640:
+            draw.rectangle([(60, fz_top), (1340, fz_bottom)], fill=(180, 80, 220, 50), outline=PURPLE, width=2)
+            draw.text((70, (fz_top + fz_bottom) // 2 - 10), band_label, fill=PURPLE, font=font_medium)
+
+        # Profit label at top right
+        draw.text((1250, price_to_y(price_max) - 30), f"+{expansion_pct:.0f}%", fill=CYAN, font=font_large)
+
+        # Draw candles
+        n = len(candles)
+        for idx, c in enumerate(candles):
+            x = 60 + int((idx + 0.5) * 1280 / n)
+            color = (0, 200, 83) if c["c"] >= c["o"] else (255, 23, 68)
+            y_h = price_to_y(c["h"])
+            y_l = price_to_y(c["l"])
+            y_o = price_to_y(c["o"])
+            y_c = price_to_y(c["c"])
+            draw.line([(x, y_h), (x, y_l)], fill=color, width=1)
+            body_top = min(y_o, y_c)
+            body_bot = max(y_o, y_c)
+            cw = max(1, int(1280 / n / 2))
+            draw.rectangle([(x - cw, body_top), (x + cw, body_bot)], fill=color)
+
+        if 50 < price_to_y(price_max) < 640:
+            draw.text((80, price_to_y(price_max) - 40), "BREAKOUT", fill=CYAN, font=font_medium)
+
+        buf = BytesIO()
+        img.save(buf, format='PNG', optimize=True)
+        return buf.getvalue()
+    except Exception as e:
+        import logging as _log
+        _log.getLogger(__name__).warning(f"redraw_chart_with_setup_fz failed for {symbol}: {e}")
+        return None
+
+
 async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_address: str = None) -> tuple:
     if not pair_address:
         logger.info(f"[CHART-BLOCK] {symbol} (no_addr): NO-PAIR-ADDRESS [DIED BEFORE ENGINE]")
@@ -3220,8 +3334,22 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         # Remove from watchlist if it was there
         remove_from_watchlist(token.get('pair_address', ''))
         
+        # Regenerate chart with FZ band at the CORRECT fib level for this setup type.
+        # The original screenshot_chart always draws FZ at 0.618 regardless of setup.
+        # This corrected version is what gets sent to Telegram (matcher/Vision still
+        # use the original chart_bytes for their analysis).
+        _telegram_chart_bytes = chart_bytes
+        try:
+            if wiz_setup_type and candles:
+                _corrected = redraw_chart_with_setup_fz(candles, wiz_setup_type, symbol)
+                if _corrected:
+                    _telegram_chart_bytes = _corrected
+                    logger.info(f"[{ENVIRONMENT}]    [CHART-FZ] Redrew FZ at {wiz_setup_type} level for Telegram")
+        except Exception as _redraw_exc:
+            logger.warning(f"[{ENVIRONMENT}]    [CHART-FZ] Redraw failed (using original): {_redraw_exc}")
+
         # Send alert with full WizTheory breakdown
-        await send_wiztheory_alert(token, bangers_result, impulse_result, vision_result, chart_bytes)
+        await send_wiztheory_alert(token, bangers_result, impulse_result, vision_result, _telegram_chart_bytes)
         DAILY_METRICS['alerts_sent'] += 1
         return True
     else:
