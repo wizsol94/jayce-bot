@@ -6280,5 +6280,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJJfmoRBYiuXph0CmYZ2NvqOuXW1OBlAAKVDGsb5k6IRLysq3TUuzFxAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE FUNNY MEME RSI SPIKED 91",
     "trained_at": "2026-05-23T01:41:14.541971"
+  },
+  {
+    "chart_id": "50FZ-401K-1M-20260523-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "401K",
+    "timeframe": "1M",
+    "date": "2026-05-23",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 30,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJJnWoRG8-zTshqbk-T-V79sIf3C-0VAAKdDGsb5k6IRBZybdVCZHqhAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 82 JAYCE ALERT",
+    "trained_at": "2026-05-23T03:16:39.631028"
   }
 ]
