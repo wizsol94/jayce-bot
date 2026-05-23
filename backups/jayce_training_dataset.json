@@ -6298,5 +6298,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJJnWoRG8-zTshqbk-T-V79sIf3C-0VAAKdDGsb5k6IRBZybdVCZHqhAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 82 JAYCE ALERT",
     "trained_at": "2026-05-23T03:16:39.631028"
+  },
+  {
+    "chart_id": "382FZ-POKE-5M-20260523-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "POKE",
+    "timeframe": "5M",
+    "date": "2026-05-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJKfWoRzLz70X4xskivUtrVufdzkC-6AAJUDGsbwe-QRC9vFkKPypW4AQADAgADdwADOwQ",
+    "notes": "RSI SPIKED 85 CLEAN STRUCTURE JAYCE ALERT",
+    "trained_at": "2026-05-23T15:51:16.715138"
   }
 ]
