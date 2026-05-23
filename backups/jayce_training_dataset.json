@@ -6316,5 +6316,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJKfWoRzLz70X4xskivUtrVufdzkC-6AAJUDGsbwe-QRC9vFkKPypW4AQADAgADdwADOwQ",
     "notes": "RSI SPIKED 85 CLEAN STRUCTURE JAYCE ALERT",
     "trained_at": "2026-05-23T15:51:16.715138"
+  },
+  {
+    "chart_id": "382FZ-ENHA-5M-20260523-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "ENHA",
+    "timeframe": "5M",
+    "date": "2026-05-23",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJKh2oR0Ok-GMjvCkBNT2liNgPJ4Tg-AAJVDGsbwe-QRD62Yud2r14vAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 73",
+    "trained_at": "2026-05-23T16:08:47.010496"
   }
 ]
