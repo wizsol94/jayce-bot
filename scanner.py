@@ -1,3 +1,4 @@
+# VISION FALLBACK PATCH APPLIED
 # MATCHER SHADOW MODE APPLIED
 # PRE-EXISTING BUGS FIX APPLIED
 # WHALE TEXT FIX APPLIED
@@ -194,12 +195,31 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
     # Get setup-specific config
     config = get_setup_config(setup_type)
     
+    # Vision Fallback transparency (Option C)
+    _vf = bangers_result.get('vision_fallback') or {}
+    if _vf.get('used') and _vf.get('tier') in ('ALLOWED', 'CAUTION'):
+        _vf_label = "⚠️ VISION FALLBACK (CAUTION)" if _vf.get('tier') == 'CAUTION' else "🔮 VISION FALLBACK"
+        _vf_q = _vf.get('quality', '?')
+        _vf_c = _vf.get('confidence', '?')
+        _vf_top = _vf.get('top_pct', 0)
+        _vf_top_matches = _vf.get('top_matches', [])
+        _vf_match_line = ""
+        if _vf_top_matches:
+            _vf_match_line = f"\n🎯 Top Match: {_vf_top_matches[0].get('name', '?')}"
+        vision_fallback_section = f"""
+{_vf_label}
+🔮 Matcher Fallback: {_vf_top}% — Quality {_vf_q} / {_vf_c}{_vf_match_line}
+👁️ Vision: SKIPPED — daily cap
+"""
+    else:
+        vision_fallback_section = ""
+
     message = f"""🔮 <b>WIZTHEORY ALERT: ${symbol}</b>
 
 🧙‍♂️ Setup: {setup_type} + Flip Zone
 🏆 Grade: {grade}
 ⏰ Avg TP: {config['tp_time']}
-
+{vision_fallback_section}
 ✨ <b>CONFIRMATIONS</b> ✨
 ⚡️ Breakout: {expansion_pct:.0f}%
 📈 RSI: {rsi_value:.0f}
@@ -3079,7 +3099,48 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
                 # Update should_alert
                 bangers_result['should_alert'] = bangers_result['grade'] in ['A', 'A+'] and new_score >= 80
             else:
-                logger.info(f"[{ENVIRONMENT}]    👁️ Vision skipped: {vision_result.get('reason', 'unknown')}")
+                _vision_skip_reason = vision_result.get('reason', 'unknown')
+                logger.info(f"[{ENVIRONMENT}]    👁️ Vision skipped: {_vision_skip_reason}")
+
+                # ════════════════════════════════════════════════════════
+                # VISION FALLBACK — matcher as confidence floor (Option C)
+                # Only fires when Vision skipped specifically due to budget cap.
+                # ════════════════════════════════════════════════════════
+                if 'VISION-BUDGET-CAP' in str(_vision_skip_reason):
+                    _mr = token.get('matcher_result') or {}
+                    if _mr.get('success'):
+                        _q = _mr.get('structure_quality', 'D')
+                        _c = _mr.get('pattern_confidence', 'LOW')
+                        _top = _mr.get('top_match_pct', 0)
+                        _avg = _mr.get('avg_similarity_pct', 0)
+                        if _q in ('A', 'B') and _c == 'HIGH':
+                            logger.info(f"[{ENVIRONMENT}]    [VISION-FALLBACK] {symbol}: matcher Quality {_q} {_c} ({_top}%) → ALLOWED")
+                            bangers_result['vision_fallback'] = {
+                                'used': True, 'tier': 'ALLOWED',
+                                'quality': _q, 'confidence': _c,
+                                'top_pct': _top, 'avg_pct': _avg,
+                                'top_matches': _mr.get('top_matches', [])[:3],
+                            }
+                        elif _q == 'C' and _c in ('MEDIUM', 'HIGH'):
+                            logger.info(f"[{ENVIRONMENT}]    [VISION-FALLBACK CAUTION] {symbol}: matcher Quality {_q} {_c} ({_top}%) → ALLOWED WITH CAUTION")
+                            bangers_result['vision_fallback'] = {
+                                'used': True, 'tier': 'CAUTION',
+                                'quality': _q, 'confidence': _c,
+                                'top_pct': _top, 'avg_pct': _avg,
+                                'top_matches': _mr.get('top_matches', [])[:3],
+                            }
+                        else:
+                            logger.info(f"[{ENVIRONMENT}]    [VISION-FALLBACK REJECT] {symbol}: matcher Quality {_q} {_c} ({_top}%) → REJECTED (no visual confirmation)")
+                            bangers_result['should_alert'] = False
+                            bangers_result['vision_fallback'] = {
+                                'used': True, 'tier': 'REJECT',
+                                'quality': _q, 'confidence': _c,
+                                'top_pct': _top, 'avg_pct': _avg,
+                            }
+                    else:
+                        logger.info(f"[{ENVIRONMENT}]    [VISION-FALLBACK REJECT] {symbol}: no matcher result available → REJECTED")
+                        bangers_result['should_alert'] = False
+                        bangers_result['vision_fallback'] = {'used': True, 'tier': 'REJECT', 'reason': 'no_matcher_result'}
                 
         except Exception as e:
             logger.error(f"[{ENVIRONMENT}]    👁️ Vision error: {e}")
