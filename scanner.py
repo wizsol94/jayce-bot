@@ -1,3 +1,4 @@
+# DEXSCREENER BUTTON PATCH APPLIED
 # NONETYPE FLIPZONE FIX APPLIED
 # VISION FALLBACK PATCH APPLIED
 # MATCHER SHADOW MODE APPLIED
@@ -2249,13 +2250,20 @@ async def send_wiztheory_alert(token: dict, bangers_result: dict, impulse_result
         # Build the full breakdown message
         caption = format_wiztheory_alert(token, bangers_result, impulse_result, vision_result)
         
+        # DexScreener inline button (prefer pair_address, fallback to token address)
+        _dex_addr = token.get('pair_address') or address
+        _keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton("🦅 View on DexScreener", url=f"https://dexscreener.com/solana/{_dex_addr}")
+        ]])
+        
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         if chart_bytes:
             await bot.send_photo(
                 chat_id=TELEGRAM_CHAT_ID,
                 photo=chart_bytes,
                 caption=caption,
-                parse_mode=ParseMode.HTML
+                parse_mode=ParseMode.HTML,
+                reply_markup=_keyboard
             )
         else:
             await bot.send_message(
