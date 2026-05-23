@@ -1,3 +1,4 @@
+# NONETYPE FLIPZONE FIX APPLIED
 # VISION FALLBACK PATCH APPLIED
 # MATCHER SHADOW MODE APPLIED
 # PRE-EXISTING BUGS FIX APPLIED
@@ -174,8 +175,8 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
         whale_conviction_text = "Yes" if has_whale else "No"
     
     # Levels
-    flip_zone = impulse_result.get('flip_zone', {})
-    entry_zone = flip_zone.get('origin', 0)
+    flip_zone = impulse_result.get('flip_zone') or {}
+    entry_zone = flip_zone.get('origin', 0) if isinstance(flip_zone, dict) else 0
     current_price = token.get('price', 0)
     
     # Format price helper
