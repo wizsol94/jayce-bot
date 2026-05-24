@@ -1,3 +1,6 @@
+# ENGINE OVERRIDE BACKFILL APPLIED
+# PEAK RSI LOOKUP V2 APPLIED
+# PEAK RSI CAPTION PATCH APPLIED
 # FZ RENDERING PATCH APPLIED
 # DEXSCREENER BUTTON PATCH APPLIED
 # NONETYPE FLIPZONE FIX APPLIED
@@ -155,7 +158,33 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
     impulse_data = impulse_result.get('impulse') or {}
     expansion_pct = impulse_data.get('expansion_pct', 0)
     
-    # RSI
+    # RSI - Peak RSI (breakout strength signature, WizTheory convention)
+    # Lookup order (graceful fallback):
+    #   1. impulse_result.impulse.breakout_peak_rsi  (impulse_detector.py path)
+    #   2. impulse_result.structure.breakout_peak_rsi (engines.py path)
+    #   3. bangers_result.rsi.breakout_peak_rsi      (alt path)
+    #   4. 'N/A' (computation unavailable or zero)
+    _peak_rsi = 0
+    try:
+        # Primary: impulse_detector.py output
+        _impulse_data = impulse_result.get('impulse') or {}
+        if isinstance(_impulse_data, dict):
+            _peak_rsi = _impulse_data.get('breakout_peak_rsi', 0) or 0
+        # Fallback 1: engines.py analyze_structure output
+        if not _peak_rsi:
+            _structure = impulse_result.get('structure') or {}
+            if isinstance(_structure, dict):
+                _peak_rsi = _structure.get('breakout_peak_rsi', 0) or 0
+        # Fallback 2: bangers_result rsi data
+        if not _peak_rsi:
+            _rsi_data = bangers_result.get('rsi', {}) or {}
+            if isinstance(_rsi_data, dict):
+                _peak_rsi = _rsi_data.get('breakout_peak_rsi', 0) or 0
+    except Exception:
+        _peak_rsi = 0
+    peak_rsi_display = f"{int(_peak_rsi)}" if _peak_rsi >= 1 else "N/A"
+    
+    # Legacy current-RSI variable (kept for any other consumers)
     rsi_data = bangers_result.get('rsi', {})
     rsi_value = rsi_data.get('value', 0) or rsi_data.get('rsi', 50)
     
@@ -225,7 +254,7 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
 {vision_fallback_section}
 ✨ <b>CONFIRMATIONS</b> ✨
 ⚡️ Breakout: {expansion_pct:.0f}%
-📈 RSI: {rsi_value:.0f}
+🔥 Peak RSI: {peak_rsi_display}
 👀 Vision: {vision_pct:.0f}%
 🐋 Whale Detected: {whale_detected_text}
 🐳 Whale Conviction: {whale_conviction_text}
@@ -3097,6 +3126,48 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             bangers_result['grade'] = engine_grade
             bangers_result['should_alert'] = new_score >= 80
             bangers_result['engine_override'] = True
+            
+            # ════════════════════════════════════════════════════════════════
+            # ENGINE OVERRIDE BACKFILL
+            # When override fires, impulse_result is empty/partial because
+            # impulse_detector returned setup_detected=False. Backfill the
+            # missing fields from engine_result so format_wiztheory_alert
+            # displays real values instead of N/A everywhere.
+            # ════════════════════════════════════════════════════════════════
+            try:
+                # Backfill impulse_result['impulse'] sub-dict
+                if not impulse_result.get('impulse'):
+                    impulse_result['impulse'] = {}
+                _imp = impulse_result['impulse']
+                
+                # expansion_pct ← engine_result['impulse_pct']
+                if not _imp.get('expansion_pct'):
+                    _imp['expansion_pct'] = engine_result.get('impulse_pct', 0) or 0
+                
+                # score ← engine_result['score']
+                if not _imp.get('score'):
+                    _imp['score'] = engine_result.get('score', 0) or 0
+                
+                # breakout_peak_rsi ← engine_result.structure.breakout_peak_rsi
+                # (engines.py patch from earlier already computes this)
+                if not _imp.get('breakout_peak_rsi'):
+                    _eng_structure = engine_result.get('structure') or {}
+                    if isinstance(_eng_structure, dict):
+                        _imp['breakout_peak_rsi'] = _eng_structure.get('breakout_peak_rsi', 0) or 0
+                
+                # Backfill flip_zone.origin ← engine_result['entry_zone']
+                if not impulse_result.get('flip_zone'):
+                    impulse_result['flip_zone'] = {}
+                _fz = impulse_result['flip_zone']
+                if isinstance(_fz, dict) and not _fz.get('origin'):
+                    _entry_zone = engine_result.get('entry_zone', 0)
+                    # entry_zone may be a number OR a string like "0.00012 - 0.00014" range
+                    if isinstance(_entry_zone, (int, float)) and _entry_zone > 0:
+                        _fz['origin'] = _entry_zone
+                
+                logger.info(f"[{ENVIRONMENT}]    [OVERRIDE-BACKFILL] expansion={_imp.get('expansion_pct')}% peak_rsi={_imp.get('breakout_peak_rsi')} entry={_fz.get('origin')}")
+            except Exception as _bf_exc:
+                logger.warning(f"[{ENVIRONMENT}]    [OVERRIDE-BACKFILL] Failed: {_bf_exc}")
     
     # Boost or downgrade based on impulse quality
     impulse_score = impulse_data.get('score', 0)

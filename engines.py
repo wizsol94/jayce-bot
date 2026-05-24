@@ -1,3 +1,4 @@
+# PEAK RSI PATCH APPLIED
 # SETUP CLASSIFIER REWRITE APPLIED
 # BAND FIRST FIX APPLIED
 """
@@ -330,6 +331,32 @@ def analyze_structure(candles: List[dict]) -> Optional[dict]:
     # RSI
     rsi = calculate_rsi(closes)
     
+    # ═══════════════════════════════════════════════════════════════
+    # BREAKOUT PEAK RSI (strength signature for WizTheory setups)
+    # ═══════════════════════════════════════════════════════════════
+    # Tracks the highest RSI hit during the impulse expansion phase
+    # (from swing_low through swing_high).
+    #
+    # WizTheory interpretation: 70-90 typical for valid setups.
+    # High peak RSI = real momentum entered move, retraces to FZ
+    # likely to push back to high or higher.
+    #
+    # This is a CONFIRMATION FIELD only — not a gate, not scored.
+    # Displayed in alerts so trader can interpret breakout strength.
+    # ═══════════════════════════════════════════════════════════════
+    breakout_peak_rsi = 0
+    try:
+        if swing_high_idx > swing_low_idx and swing_high_idx > 14:
+            # Walk from swing_low_idx to swing_high_idx, compute RSI at each candle.
+            # Take the max — that's the peak RSI during the expansion.
+            for i in range(max(swing_low_idx, 14), swing_high_idx + 1):
+                rsi_at_i = calculate_rsi(closes[:i+1])
+                if rsi_at_i > breakout_peak_rsi:
+                    breakout_peak_rsi = rsi_at_i
+    except Exception:
+        # Graceful failure — alert will show N/A
+        breakout_peak_rsi = 0
+    
     # RSI divergence check (price lower low, RSI higher low)
     rsi_divergence = False
     if len(closes) >= 20:
@@ -373,6 +400,7 @@ def analyze_structure(candles: List[dict]) -> Optional[dict]:
         'volume_expanding': volume_expanding,
         'volume_contracting': volume_contracting,
         'rsi': rsi,
+        'breakout_peak_rsi': breakout_peak_rsi,
         'rsi_divergence': rsi_divergence,
         'green_candles': green_candles,
         'red_candles': red_candles,

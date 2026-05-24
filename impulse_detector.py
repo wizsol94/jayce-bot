@@ -1,3 +1,4 @@
+# PEAK RSI IMPULSE DETECTOR PATCH APPLIED
 """
 WIZTHEORY IMPULSE DETECTOR v1.0
 ===============================
@@ -74,6 +75,7 @@ class ImpulseLeg:
     high_index: int
     impulse_score: int
     valid: bool
+    breakout_peak_rsi: float = 0.0  # WizTheory strength signature (70-90 typical)
 
 
 @dataclass
@@ -491,6 +493,24 @@ def measure_expansion(candles: List[dict], flip_zone: FlipZone) -> Optional[Impu
     
     impulse_score = calculate_impulse_score(candles, flip_zone, breakout_high, expansion_pct)
     
+    # ═══════════════════════════════════════════════════════════════
+    # BREAKOUT PEAK RSI (strength signature)
+    # Walk from breakout candle through expansion high, find max RSI.
+    # WizTheory: peak RSI 70-90 = strong setup, likely to revisit highs.
+    # Display-only, not a gate.
+    # ═══════════════════════════════════════════════════════════════
+    breakout_peak_rsi = 0.0
+    try:
+        if high_index > breakout_idx and high_index < len(candles):
+            for i in range(breakout_idx, high_index + 1):
+                _rsi_list = calculate_rsi(candles[:i + 1])
+                if _rsi_list and len(_rsi_list) > 0:
+                    _rsi_at_i = _rsi_list[-1]
+                    if _rsi_at_i > breakout_peak_rsi:
+                        breakout_peak_rsi = _rsi_at_i
+    except Exception:
+        breakout_peak_rsi = 0.0
+    
     return ImpulseLeg(
         zone_origin=zone_origin,
         breakout_high=breakout_high,
@@ -499,7 +519,8 @@ def measure_expansion(candles: List[dict], flip_zone: FlipZone) -> Optional[Impu
         breakout_index=breakout_idx,
         high_index=high_index,
         impulse_score=impulse_score,
-        valid=impulse_score >= 40
+        valid=impulse_score >= 40,
+        breakout_peak_rsi=round(breakout_peak_rsi, 1)
     )
 
 
@@ -1087,7 +1108,8 @@ def detect_wiztheory_setup(candles: List[dict], symbol: str = "???") -> Dict:
         'breakout_high': impulse.breakout_high,
         'expansion_low': impulse.expansion_low,
         'expansion_pct': impulse.expansion_pct,
-        'score': impulse.impulse_score
+        'score': impulse.impulse_score,
+        'breakout_peak_rsi': impulse.breakout_peak_rsi
     }
     result['fib_levels'] = setup.fib_levels
     result['retrace'] = retrace
