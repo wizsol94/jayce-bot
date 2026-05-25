@@ -1,3 +1,4 @@
+# ENGINE OVERRIDE BACKFILL V2 APPLIED
 # ENGINE OVERRIDE BACKFILL APPLIED
 # PEAK RSI LOOKUP V2 APPLIED
 # PEAK RSI CAPTION PATCH APPLIED
@@ -3128,46 +3129,77 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             bangers_result['engine_override'] = True
             
             # ════════════════════════════════════════════════════════════════
-            # ENGINE OVERRIDE BACKFILL
-            # When override fires, impulse_result is empty/partial because
-            # impulse_detector returned setup_detected=False. Backfill the
-            # missing fields from engine_result so format_wiztheory_alert
-            # displays real values instead of N/A everywhere.
+            # ENGINE OVERRIDE BACKFILL v2 — corrected field mapping
+            #
+            # Sources verified from engines.py:1722-1747 result dict:
+            #   - engine_result.entry_price (single float)
+            #   - engine_result.swing_high / swing_low (impulse bounds)
+            #   - NO engine_result.structure (not attached by run_detection)
+            #   - NO engine_result.entry_zone (correct field is entry_price)
+            #   - engine_result.impulse_pct = total swing_low→high (NOT meaningful expansion%)
+            #
+            # Correct sources:
+            #   - expansion_pct: validate_breakout(candles, symbol) inline call
+            #   - breakout_peak_rsi: compute inline using swing_high/low indices
+            #   - entry_zone: engine_result.entry_price
             # ════════════════════════════════════════════════════════════════
             try:
-                # Backfill impulse_result['impulse'] sub-dict
+                # Source 1: Real expansion% from breakout_validator
+                _real_expansion = 0
+                try:
+                    from breakout_validator import validate_breakout as _vb
+                    _bk = _vb(candles, symbol)
+                    if _bk and _bk.get('valid'):
+                        _real_expansion = _bk.get('expansion_pct', 0) or 0
+                except Exception:
+                    _real_expansion = 0
+                
+                # Source 2: Peak RSI inline across impulse leg
+                _peak_rsi = 0.0
+                try:
+                    from engines import calculate_rsi as _calc_rsi
+                    _sh = engine_result.get('swing_high', 0) or 0
+                    _sl = engine_result.get('swing_low', 0) or 0
+                    if _sh > 0 and _sl > 0 and candles:
+                        _highs = [c.get('h', 0) for c in candles]
+                        _lows = [c.get('l', 0) for c in candles]
+                        _sh_idx = _highs.index(_sh) if _sh in _highs else -1
+                        _sl_idx = _lows.index(_sl) if _sl in _lows else -1
+                        if _sh_idx > _sl_idx >= 0 and _sh_idx > 14:
+                            _closes = [c.get('c', 0) for c in candles]
+                            for _i in range(max(_sl_idx, 14), _sh_idx + 1):
+                                _r = _calc_rsi(_closes[:_i + 1])
+                                if _r > _peak_rsi:
+                                    _peak_rsi = _r
+                except Exception:
+                    _peak_rsi = 0.0
+                
+                # Source 3: Entry zone from engine_result.entry_price
+                _entry = engine_result.get('entry_price', 0) or 0
+                
+                # Backfill impulse_result['impulse'] sub-dict (only if missing)
                 if not impulse_result.get('impulse'):
                     impulse_result['impulse'] = {}
                 _imp = impulse_result['impulse']
                 
-                # expansion_pct ← engine_result['impulse_pct']
                 if not _imp.get('expansion_pct'):
-                    _imp['expansion_pct'] = engine_result.get('impulse_pct', 0) or 0
-                
-                # score ← engine_result['score']
+                    _imp['expansion_pct'] = round(_real_expansion, 2)
+                if not _imp.get('breakout_peak_rsi'):
+                    _imp['breakout_peak_rsi'] = round(_peak_rsi, 1)
                 if not _imp.get('score'):
                     _imp['score'] = engine_result.get('score', 0) or 0
                 
-                # breakout_peak_rsi ← engine_result.structure.breakout_peak_rsi
-                # (engines.py patch from earlier already computes this)
-                if not _imp.get('breakout_peak_rsi'):
-                    _eng_structure = engine_result.get('structure') or {}
-                    if isinstance(_eng_structure, dict):
-                        _imp['breakout_peak_rsi'] = _eng_structure.get('breakout_peak_rsi', 0) or 0
-                
-                # Backfill flip_zone.origin ← engine_result['entry_zone']
+                # Backfill flip_zone.origin from entry_price (only if missing)
                 if not impulse_result.get('flip_zone'):
                     impulse_result['flip_zone'] = {}
                 _fz = impulse_result['flip_zone']
                 if isinstance(_fz, dict) and not _fz.get('origin'):
-                    _entry_zone = engine_result.get('entry_zone', 0)
-                    # entry_zone may be a number OR a string like "0.00012 - 0.00014" range
-                    if isinstance(_entry_zone, (int, float)) and _entry_zone > 0:
-                        _fz['origin'] = _entry_zone
+                    if isinstance(_entry, (int, float)) and _entry > 0:
+                        _fz['origin'] = _entry
                 
-                logger.info(f"[{ENVIRONMENT}]    [OVERRIDE-BACKFILL] expansion={_imp.get('expansion_pct')}% peak_rsi={_imp.get('breakout_peak_rsi')} entry={_fz.get('origin')}")
+                logger.info(f"[{ENVIRONMENT}]    [OVERRIDE-BACKFILL v2] expansion={_real_expansion:.1f}% peak_rsi={_peak_rsi:.1f} entry={_entry}")
             except Exception as _bf_exc:
-                logger.warning(f"[{ENVIRONMENT}]    [OVERRIDE-BACKFILL] Failed: {_bf_exc}")
+                logger.warning(f"[{ENVIRONMENT}]    [OVERRIDE-BACKFILL v2] Failed: {_bf_exc}")
     
     # Boost or downgrade based on impulse quality
     impulse_score = impulse_data.get('score', 0)
