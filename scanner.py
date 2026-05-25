@@ -1,3 +1,4 @@
+# UNDERFIB PROPAGATION APPLIED
 # ENGINE OVERRIDE BACKFILL V2 APPLIED
 # ENGINE OVERRIDE BACKFILL APPLIED
 # PEAK RSI LOOKUP V2 APPLIED
@@ -152,6 +153,13 @@ def format_wiztheory_alert(token: Dict, bangers_result: Dict, impulse_result: Di
     
     symbol = token.get('symbol', '???')
     setup_type = bangers_result.get('wiz_setup_type', 'Unknown')
+    # Pretty label for Under-Fib variants (full WizTheoryLabs naming)
+    if setup_type in ('UNDER_618', 'UNDER-618', 'UNDER618'):
+        setup_type = 'Under-618'
+    elif setup_type in ('UNDER_786', 'UNDER-786', 'UNDER786'):
+        setup_type = 'Under-786'
+    elif setup_type in ('UNDER_FIB', 'UNDERFIB', 'UF'):
+        setup_type = 'Under-Fib'
     grade = bangers_result.get('grade', '?')
     score = bangers_result.get('score', 0)
     
@@ -1990,10 +1998,49 @@ def redraw_chart_with_setup_fz(candles: list, setup_type: str, symbol: str) -> b
 
         # Normalize setup type
         st = (setup_type or "").strip().upper()
-        if st in ("UNDER_FIB", "UNDERFIB", "UF", "UFIB"):
-            # UF zone is BELOW 0.786 (approximate at 0.85 fib for visual)
-            fz_anchor = price_max - (price_range * 0.85)
-            band_label = "FLIP ZONE (Under-Fib)"
+        if st in ("UNDER_FIB", "UNDERFIB", "UF", "UFIB", "UNDER_618", "UNDER-618", "UNDER618", "UNDER_786", "UNDER-786", "UNDER786"):
+            # Try to read real destination_zone + gate_fib (propagated from validator)
+            # Falls back to approximate 0.85 fib only if propagation failed
+            _ufib_dest_val = 0
+            _ufib_gate_val = ''
+            try:
+                # impulse_result is in enclosing scope via the call site
+                import inspect as _ins
+                _outer = _ins.currentframe().f_back.f_locals if _ins.currentframe().f_back else {}
+                _ir = _outer.get('impulse_result') or _outer.get('_telegram_chart_bytes_impulse_result') or {}
+                if isinstance(_ir, dict):
+                    _ufib_dest_val = float(_ir.get('underfib_destination_zone', 0) or 0)
+                    _ufib_gate_val = str(_ir.get('underfib_gate_fib', '') or '')
+            except Exception:
+                _ufib_dest_val = 0
+                _ufib_gate_val = ''
+            
+            # Setup type explicit override beats inspection
+            if st in ("UNDER_618", "UNDER-618", "UNDER618"):
+                _ufib_gate_val = '618'
+            elif st in ("UNDER_786", "UNDER-786", "UNDER786"):
+                _ufib_gate_val = '786'
+            
+            # Decide anchor: real destination_zone if available, else approximate
+            if _ufib_dest_val > 0:
+                fz_anchor = _ufib_dest_val
+            elif _ufib_gate_val == '618':
+                # Approximate Under-618: midway between 0.618 and 0.786
+                fz_anchor = price_max - (price_range * 0.70)
+            elif _ufib_gate_val == '786':
+                # Approximate Under-786: below 0.786 toward 0.85
+                fz_anchor = price_max - (price_range * 0.85)
+            else:
+                # Generic UF fallback
+                fz_anchor = price_max - (price_range * 0.85)
+            
+            # Label based on gate_fib
+            if _ufib_gate_val == '618':
+                band_label = "FLIP ZONE (Under-618)"
+            elif _ufib_gate_val == '786':
+                band_label = "FLIP ZONE (Under-786)"
+            else:
+                band_label = "FLIP ZONE (Under-Fib)"
         elif st == "382":
             fz_anchor = fib_382
             band_label = "FLIP ZONE (.382)"
@@ -2942,7 +2989,14 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         elif '50' in engine_name:
             wiz_setup_type = '50'
         elif 'under' in engine_name.lower() or 'underfib' in engine_name.lower():
-            wiz_setup_type = 'UNDER_FIB'
+            # Distinguish Under-618 vs Under-786 using gate_fib from validator
+            _ufib_gate_for_setup = str(engine_result.get('underfib_gate_fib', '') or '')
+            if _ufib_gate_for_setup == '618':
+                wiz_setup_type = 'UNDER_618'
+            elif _ufib_gate_for_setup == '786':
+                wiz_setup_type = 'UNDER_786'
+            else:
+                wiz_setup_type = 'UNDER_FIB'
         else:
             wiz_setup_type = engine_result.get('engine_id', None)
 
@@ -3176,6 +3230,16 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
                 
                 # Source 3: Entry zone from engine_result.entry_price
                 _entry = engine_result.get('entry_price', 0) or 0
+                
+                # Source 4: Under-Fib specific propagation (only meaningful for UF setups)
+                _ufib_dest = engine_result.get('underfib_destination_zone', 0) or 0
+                _ufib_gate = engine_result.get('underfib_gate_fib', '') or ''
+                _ufib_subtype_str = engine_result.get('underfib_subtype', '') or ''
+                if _ufib_dest > 0 or _ufib_gate or _ufib_subtype_str:
+                    impulse_result['underfib_destination_zone'] = _ufib_dest
+                    impulse_result['underfib_gate_fib'] = _ufib_gate
+                    impulse_result['underfib_subtype'] = _ufib_subtype_str
+                    logger.info(f"[{ENVIRONMENT}]    [UFIB-BACKFILL] dest={_ufib_dest:.10f} gate={_ufib_gate} subtype={_ufib_subtype_str}")
                 
                 # Backfill impulse_result['impulse'] sub-dict (only if missing)
                 if not impulse_result.get('impulse'):

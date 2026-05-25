@@ -1,3 +1,4 @@
+# UNDERFIB PROPAGATION APPLIED
 # PEAK RSI PATCH APPLIED
 # SETUP CLASSIFIER REWRITE APPLIED
 # BAND FIRST FIX APPLIED
@@ -1642,7 +1643,12 @@ def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
                     continue
                 
                 fib_above = validation.fib_level_above
+                # Capture Under-Fib specific fields for downstream propagation
+                _ufib_destination_zone = float(getattr(validation, 'destination_zone', 0) or 0)
+                _ufib_gate_fib = str(getattr(validation, 'gate_fib', fib_above) or fib_above)
+                _ufib_subtype = str(getattr(validation, 'underfib_subtype', '') or f"Under-Fib {fib_above}")
                 logger.info(f"   ✅ {symbol}: Under-Fib (below {fib_above}) Stage {validation.stage} [{validation.stage_label}]")
+                logger.info(f"   [UFIB-PROP] destination_zone={_ufib_destination_zone:.10f} gate={_ufib_gate_fib} subtype={_ufib_subtype}")
                 
                 score = validation.final_score
                 grade = validation.final_grade
@@ -1742,6 +1748,10 @@ def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
             'swing_high': structure['swing_high'],
             'swing_low': structure['swing_low'],
             'description': params['description'],
+            # Under-Fib propagation (only meaningful when engine_id == 'underfib')
+            'underfib_destination_zone': locals().get('_ufib_destination_zone', 0.0),
+            'underfib_gate_fib': locals().get('_ufib_gate_fib', ''),
+            'underfib_subtype': locals().get('_ufib_subtype', ''),
         }
         
         results.append(result)
