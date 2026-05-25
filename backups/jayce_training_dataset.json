@@ -6352,5 +6352,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJNmGoUdjx8zIaO7qkZHkoDRiftiF2XAALlC2sb6f2gRI_jy0VakvgLAQADAgADdwADOwQ",
     "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 85",
     "trained_at": "2026-05-25T16:18:39.369249"
+  },
+  {
+    "chart_id": "618FZ-TRALALERO-5M-20260525-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "TRALALERO",
+    "timeframe": "5M",
+    "date": "2026-05-25",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 150,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJNwGoUkvCz05UL7xJOtfv1F5z06lyYAALsC2sb6f2gRPHFStehrwTBAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 76",
+    "trained_at": "2026-05-25T18:21:16.890440"
   }
 ]
