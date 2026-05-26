@@ -6442,5 +6442,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPlGoWHfi0JKqgAAG_T26uGAyryiAczQACEA1rG7cHsEQTzQ9xbiduKQEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 80 JAYCE BOT ALERT",
     "trained_at": "2026-05-26T22:27:14.393523"
+  },
+  {
+    "chart_id": "786FZ-GOONC-1M-20260526-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "GOONC",
+    "timeframe": "1M",
+    "date": "2026-05-26",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 300,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPl2oWIBCV6983W6ucgQW_zFD7feAwAAITDWsbtwewRK7ZvETZRf82AQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 95",
+    "trained_at": "2026-05-26T22:35:19.631137"
   }
 ]
