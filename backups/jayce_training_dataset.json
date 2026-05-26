@@ -6406,5 +6406,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJOYWoVG9PifZ_5YrQK6TnzveK5-oxNAALUC2sb6f2oRCi9h7mD76igAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 85 DIVERGENCE",
     "trained_at": "2026-05-26T04:07:13.296068"
+  },
+  {
+    "chart_id": "UFIB-CHUBBYELEPHANT-1M-20260526-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "CHUBBYELEPHANT",
+    "timeframe": "1M",
+    "date": "2026-05-26",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 75,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPh2oWGRQbLdXuCi2JIvnLn6iRcvp3AAILDWsbtwewROliaY2chqsiAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 85",
+    "trained_at": "2026-05-26T22:05:59.073823"
   }
 ]
