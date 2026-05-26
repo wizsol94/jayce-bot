@@ -1,3 +1,4 @@
+# SPRINT A APPLIED
 """
 HUNTER MODE - Early Alert Detection System
 
@@ -130,7 +131,8 @@ def detect_expansion_exhaustion(candles: List[Dict], structure: Dict) -> Dict:
         
         # Determine if exhaustion is detected
         result['exhaustion_score'] = min(100, exhaustion_score)
-        result['exhaustion_detected'] = exhaustion_score >= 40
+        # SPRINT A: threshold raised 40 -> 55 (tighter 382/50 quality)
+        result['exhaustion_detected'] = exhaustion_score >= 55
         result['exhaustion_type'] = exhaustion_signals[0] if exhaustion_signals else None
         
         if result['exhaustion_detected']:
