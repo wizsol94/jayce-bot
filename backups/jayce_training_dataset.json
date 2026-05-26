@@ -6478,5 +6478,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPnmoWIlEpquqmFJdEDW9cIt4nkCn6AAIUDWsbtwewRLv9cGKFLKOHAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 91",
     "trained_at": "2026-05-26T22:45:13.837535"
+  },
+  {
+    "chart_id": "50FZ-CHUBBYELEPHANT-1M-20260526-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "CHUBBYELEPHANT",
+    "timeframe": "1M",
+    "date": "2026-05-26",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 180,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPpmoWJsnLmefqlds9ChZdQC9c9ByvAAIREGsbtwe4RPOMsD0XVL2IAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI 78",
+    "trained_at": "2026-05-26T23:04:16.090504"
   }
 ]
