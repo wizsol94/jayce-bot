@@ -6424,5 +6424,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPh2oWGRQbLdXuCi2JIvnLn6iRcvp3AAILDWsbtwewROliaY2chqsiAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 85",
     "trained_at": "2026-05-26T22:05:59.073823"
+  },
+  {
+    "chart_id": "382FZ-GLASSES-1M-20260526-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "GLASSES",
+    "timeframe": "1M",
+    "date": "2026-05-26",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPlGoWHfi0JKqgAAG_T26uGAyryiAczQACEA1rG7cHsEQTzQ9xbiduKQEAAwIAA3cAAzsE",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 80 JAYCE BOT ALERT",
+    "trained_at": "2026-05-26T22:27:14.393523"
   }
 ]
