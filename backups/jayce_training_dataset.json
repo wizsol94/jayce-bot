@@ -6388,5 +6388,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJNyWoUltk1s_DWY_m0Z0bsPHIJbaTMAALtC2sb6f2gRHyY1UcPtCL7AQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 85",
     "trained_at": "2026-05-25T18:38:10.451993"
+  },
+  {
+    "chart_id": "50FZ-SQUIRE-15M-20260526-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "SQUIRE",
+    "timeframe": "15M",
+    "date": "2026-05-26",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJOYWoVG9PifZ_5YrQK6TnzveK5-oxNAALUC2sb6f2oRCi9h7mD76igAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 85 DIVERGENCE",
+    "trained_at": "2026-05-26T04:07:13.296068"
   }
 ]
