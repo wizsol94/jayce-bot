@@ -6480,7 +6480,7 @@
     "trained_at": "2026-05-26T22:45:13.837535"
   },
   {
-    "chart_id": "50FZ-CHUBBYELEPHANT-1M-20260526-001",
+    "chart_id": "50FZ-CHUBBYELEPHANT-1M-20260526-002",
     "setup_name": "50 + Flip Zone",
     "canonical_key": "50_flip_zone",
     "token": "CHUBBYELEPHANT",
@@ -6493,8 +6493,8 @@
     "violent_mode": false,
     "outcome_percentage": 180,
     "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPpmoWJsnLmefqlds9ChZdQC9c9ByvAAIREGsbtwe4RPOMsD0XVL2IAQADAgADdwADOwQ",
-    "notes": "CLEAN STRUCTURE RSI 78",
-    "trained_at": "2026-05-26T23:04:16.090504"
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPsWoWLKU2MhtADzwvG4ufOnwBOrE6AAIXEGsbtwe4RPcu70tykA-hAQADAgADdwADOwQ",
+    "notes": "[OVERRIDE] CLEAN STRUCTURE RSI 78",
+    "trained_at": "2026-05-26T23:29:06.750685"
   }
 ]
