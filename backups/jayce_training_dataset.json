@@ -6496,5 +6496,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJPsWoWLKU2MhtADzwvG4ufOnwBOrE6AAIXEGsbtwe4RPcu70tykA-hAQADAgADdwADOwQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI 78",
     "trained_at": "2026-05-26T23:29:06.750685"
+  },
+  {
+    "chart_id": "786FZ-VAR-THECHUBBYELEPHANT-1M-20260527-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "THECHUBBYELEPHANT",
+    "timeframe": "1M",
+    "date": "2026-05-27",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 230,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJQU2oWtX-Mcn87aotVer-Tx4uTFo5TAAJBEGsbtwe4RKNiFdILxYE4AQADAgADdwADOwQ",
+    "notes": "[VARIATION] CLEAN STRUCTURE RSI SPIKED 85",
+    "trained_at": "2026-05-27T09:13:39.663952"
   }
 ]
