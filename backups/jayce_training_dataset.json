@@ -6568,5 +6568,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJQ92oXOYew_V4zUJlGs6v7e7pFDBlRAAJ3DGsbtwfAREOm5J0Np2VkAQADAgADdwADOwQ",
     "notes": "[VARIATION] CLEAN STRUCTURE RSI SPIKED 76",
     "trained_at": "2026-05-27T18:36:30.738834"
+  },
+  {
+    "chart_id": "382FZ-UFC250-1M-20260528-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "UFC250",
+    "timeframe": "1M",
+    "date": "2026-05-28",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 30,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJRmmoXx5nZO81lnMfX7CWqh9dWvToYAALJDGsb3OK5RKnsrSjWHcqLAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 89 NOKOLS",
+    "trained_at": "2026-05-28T04:45:23.046437"
   }
 ]
