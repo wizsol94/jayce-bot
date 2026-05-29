@@ -6604,5 +6604,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJSn2oYrC6l1PGKciUMkW4454l4aAUBAAI-DGsb3OLBREj_xfBUi3HfAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 79",
     "trained_at": "2026-05-28T20:57:44.673562"
+  },
+  {
+    "chart_id": "618FZ-FOID-1M-20260529-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "FOID",
+    "timeframe": "1M",
+    "date": "2026-05-29",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 120,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJTDWoZDJdptvteybsbKRmBRaSRNRtmAAJHDGsbZaTJROYEx3SoWaWUAQADAgADdwADOwQ",
+    "notes": "RSI SPIKED 85 CLEAN STRUCTURE",
+    "trained_at": "2026-05-29T03:49:35.556945"
   }
 ]
