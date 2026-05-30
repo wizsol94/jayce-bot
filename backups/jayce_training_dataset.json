@@ -6658,5 +6658,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJT4WoZvOYTAAGzHhj4MIewY1aW-jAW9gACagxrG2n90URaDGvao8mT3QEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 88 WHALE CONVICTION",
     "trained_at": "2026-05-29T16:21:33.269318"
+  },
+  {
+    "chart_id": "382FZ-PACK-1M-20260530-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "PACK",
+    "timeframe": "1M",
+    "date": "2026-05-30",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJU2WoalarUZ5CDF4wipsS4EAoJ3CJBAAKsDWsbaf3RROSAcs9jBt1pAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 82",
+    "trained_at": "2026-05-30T07:46:23.624704"
   }
 ]
