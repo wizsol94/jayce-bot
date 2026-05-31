@@ -6676,5 +6676,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJU2WoalarUZ5CDF4wipsS4EAoJ3CJBAAKsDWsbaf3RROSAcs9jBt1pAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 82",
     "trained_at": "2026-05-30T07:46:23.624704"
+  },
+  {
+    "chart_id": "50FZ-MOMO-1M-20260531-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "MOMO",
+    "timeframe": "1M",
+    "date": "2026-05-31",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJV-GobkQGNvKR1qrXVwi-8wz9mL0VAAAKqDGsbaf3ZRA8psTkYKPuuAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 88",
+    "trained_at": "2026-05-31T01:38:57.798527"
   }
 ]
