@@ -6694,5 +6694,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJV-GobkQGNvKR1qrXVwi-8wz9mL0VAAAKqDGsbaf3ZRA8psTkYKPuuAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 88",
     "trained_at": "2026-05-31T01:38:57.798527"
+  },
+  {
+    "chart_id": "382FZ-DATA-1M-20260602-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "DATA",
+    "timeframe": "1M",
+    "date": "2026-06-02",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 30,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJZ8mofB1rSPP7FvW369njiolXCn-3gAAL1C2sbuWUAAUUO54QZPn4yvQEAAwIAA3cAAzsE",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 89 OLDER COIN",
+    "trained_at": "2026-06-02T16:40:26.745843"
   }
 ]
