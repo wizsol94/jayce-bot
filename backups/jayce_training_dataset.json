@@ -6712,5 +6712,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJZ8mofB1rSPP7FvW369njiolXCn-3gAAL1C2sbuWUAAUUO54QZPn4yvQEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 89 OLDER COIN",
     "trained_at": "2026-06-02T16:40:26.745843"
+  },
+  {
+    "chart_id": "50FZ-DATBIHGAH-5M-20260602-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "DATBIHGAH",
+    "timeframe": "5M",
+    "date": "2026-06-02",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 130,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJZ_WofCRHeS51ZplFufhaS-hYWGZuaAAL2C2sbuWUAAUV0bt04Su2T-AEAAwIAA3cAAzsE",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81",
+    "trained_at": "2026-06-02T16:47:54.281775"
   }
 ]
