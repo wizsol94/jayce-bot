@@ -6748,5 +6748,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJaT2ofUk1R06P2J8b2sD3kHotNI86rAAIVDGsbuWUAAUWPaCEF-1GUQwEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 86 WHALE CONVICTION GOOD TECH GAME",
     "trained_at": "2026-06-02T22:00:24.543068"
+  },
+  {
+    "chart_id": "618FZ-FINE-1M-20260603-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "FINE",
+    "timeframe": "1M",
+    "date": "2026-06-03",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJazGofv21lJ5_LuriFD78H5GOBoNyIAAJmDGsbSrkAAUW5UjPNgUnP8wEAAwIAA3cAAzsE",
+    "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 86",
+    "trained_at": "2026-06-03T05:46:12.461397"
   }
 ]
