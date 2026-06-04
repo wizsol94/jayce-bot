@@ -54,14 +54,14 @@ If no → defer until baseline data exists.
 - **Verification:** Forced rotation succeeded; scanner kept writing within seconds post-rotation; logrotate.timer active, next trigger Fri 2026-06-05 00:00 UTC
 - **Commit hash:** bf864ef (rebased to cea9916)
 
-### ⬜ 2. Watchdog coverage extension to jayce-bot + jayce-receiver
+### ✅ 2. Watchdog coverage extension to jayce-bot + jayce-receiver
 - **Audit reference:** 9.G
 - **Risk:** Zero
 - **Purpose:** Cover the 2 services currently unmonitored (only scanner + scraper monitored)
 - **Implementation notes:** Same systemd active check + log silence pattern as existing watchdog
-- **Date completed:** _____
-- **Verification:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-05-30
+- **Verification:** bash -n passed; manual run produced no false restarts; all 4 services confirmed active post-patch; cron schedule (*/10) preserved; backup preserved at watchdog.sh.bak.pre-1A2
+- **Commit hash:** 9814e4c
 
 ## Tier 1.B — Dead Code Removal
 
