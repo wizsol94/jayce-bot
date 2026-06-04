@@ -65,14 +65,14 @@ If no → defer until baseline data exists.
 
 ## Tier 1.B — Dead Code Removal
 
-### ⬜ 3. Fix/remove `should_realer` typo at scanner.py:89
+### ✅ 3. Fix/remove `should_realer` typo at scanner.py:89
 - **Audit reference:** 8.B
 - **Risk:** Low (already dead)
 - **Decision:** Remove entirely OR fix typo (audit recommends removal)
-- **Date completed:** _____
-- **Verification:** _____
-- **Commit hash:** _____
-
+- **Date completed:** 2026-05-30
+- **Verification:** ast.parse syntax check passed both files; zero remaining should_realert references in codebase; active imports (grade_setup, quick_grade_summary) still resolve; jayce-scanner remained active throughout; A+ alert fired during verification confirming system normal
+- **Commit hash:** b8e8481
+- **🚨 AUDIT CORRECTION:** Audit finding 8.B claimed the function was dead due to a typo ('should_realer' missing final 't') at scanner.py:89. At execution time, the typo was NOT present — the import was correctly spelled 'should_realert'. The function was still genuinely dead (defined, imported, never called), so the cleanup remained valid. This is the first instance of verify-before-execute discipline catching an inaccurate audit claim. The audit constitution remains sealed; corrections live here in the execution log.
 ### ⬜ 4. Remove `determine_setup_by_body_acceptance_OLD`
 - **Audit reference:** 3.B
 - **Location:** engines.py:908
