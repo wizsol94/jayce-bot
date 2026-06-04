@@ -45,14 +45,14 @@ If no → defer until baseline data exists.
 
 ## Tier 1.A — Operational Safety
 
-### ⬜ 1. logrotate config for /opt/jayce/logs/*.log
+### ✅ 1. logrotate config for /opt/jayce/logs/*.log
 - **Audit reference:** 9.B + 9.H
 - **Risk:** Zero
 - **Purpose:** Prevent disk fill (currently 700MB+ logs growing unbounded)
 - **Implementation notes:** Standard logrotate pattern, 100MB max, 5 rotations, daily compression
-- **Date completed:** _____
-- **Verification:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-05-30
+- **Verification:** Forced rotation succeeded; scanner kept writing within seconds post-rotation; logrotate.timer active, next trigger Fri 2026-06-05 00:00 UTC
+- **Commit hash:** bf864ef (rebased to cea9916)
 
 ### ⬜ 2. Watchdog coverage extension to jayce-bot + jayce-receiver
 - **Audit reference:** 9.G
