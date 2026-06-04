@@ -89,12 +89,14 @@ If no → defer until baseline data exists.
 - **Verification:** ast.parse passed; 786 logic appears exactly once after removal (was 2, now 1); Block C default-pass logic preserved (CRITICAL); hybrid_intake imports cleanly; jayce-scanner stayed active; 19 lines/890 chars removed
 - **Commit hash:** ec1484f
 - **🚨 CRITICAL AUDIT CORRECTION:** Audit claimed THREE duplicates (lines 612, 632, 666). Verification revealed only TWO blocks are actual duplicates (Block A 611-628 and Block B 630-647, byte-identical). The 'third' block at line 656-657 is NOT a duplicate — it is required default-pass logic for non-786-territory tokens (matches the same pattern used for 382/50/618/underfib gates). Blindly following the audit and removing Block C would have caused a real production regression: the 786 gate would have rejected all non-786 setups instead of letting them pass through. This is the SECOND instance of verify-before-execute discipline catching an audit error — but the FIRST instance where the audit's error would have caused a real production bug. Item 3's audit correction was cosmetic (typo claim); this one was material (would have broken alerts).
-### ⬜ 6. Remove 786 violent mode RSI<35 override
+### ✅ 6. Remove 786 violent mode RSI<35 override
 - **Audit reference:** 6.F
 - **Location:** engines.py:1370-1376
 - **Risk:** Low (unreachable code path due to whale_required=False)
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-04
+- **Verification:** ast.parse passed; unique signature impulse_pct>=150+rsi<35 fully removed; live RSI<35 scoring at line 486 preserved; live violent mode SCORING (rsi<30+volume_contracting) preserved; 618 whale-bypass branch preserved; outer whale_required guard preserved; import engines clean; jayce-scanner stayed active (1954 tokens scanned in cycle); 7 lines/327 chars removed
+- **Commit hash:** 3e510b0 (rebased to 788d68a)
+- **🔍 DEFERRED OBSERVATION:** Verification revealed the entire CHECK 4 whale_required guard block is currently unreachable for ALL engines (382, 50, 618, 786, underfib) because ENGINE_PARAMS has whale_required=False for every engine. Only the 786 branch was removed per audit 6.F scope. Broader cleanup deliberately deferred to avoid scope creep — whale_required architecture may be intentionally preserved for future re-enabling. Logged for separate consideration during Tier 2 architectural review.
 
 ### ⬜ 7. Remove MIN_MARKET_CAP=0 dead checks
 - **Audit reference:** 1.C
