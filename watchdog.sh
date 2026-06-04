@@ -54,6 +54,29 @@ check_scraper() {
     fi
 }
 
+
+check_bot() {
+    local active
+    active=$(systemctl is-active jayce-bot)
+    if [ "$active" != "active" ]; then
+        log "[BOT] systemd says: $active. Restarting."
+        systemctl restart jayce-bot
+        return
+    fi
+}
+
+check_receiver() {
+    local active
+    active=$(systemctl is-active jayce-receiver)
+    if [ "$active" != "active" ]; then
+        log "[RECEIVER] systemd says: $active. Restarting."
+        systemctl restart jayce-receiver
+        return
+    fi
+}
+
 check_scanner
 check_scraper
+check_bot
+check_receiver
 
