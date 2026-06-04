@@ -86,7 +86,7 @@ try:
     from candle_intelligence import analyze_candles, get_candle_summary, detect_flip_zones
     from structure_engine import analyze_structure
     from rsi_memory import analyze_rsi_full, analyze_rsi
-    from setup_grader import grade_setup, quick_grade_summary, should_realert
+    from setup_grader import grade_setup, quick_grade_summary
     from bangers_pipeline import run_bangers_analysis, format_alert_message
     from impulse_detector import detect_wiztheory_setup
     from chart_intelligence import analyze_chart_intelligence, analyze_chart_intelligence_with_prime, check_prime_setup_condition, analyze_pullback_quality, detect_setup_maturity, analyze_momentum_behavior, analyze_full_intelligence

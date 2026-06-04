@@ -301,18 +301,6 @@ def grade_setup(
     
     return result
 
-def should_realert(previous_grade: str, new_grade: str) -> bool:
-    """
-    Check if we should re-alert for this token.
-    Only re-alert if grade improved.
-    """
-    grade_rank = {'A+': 5, 'A': 4, 'B+': 3, 'B': 2, 'C': 1, 'D': 0}
-    
-    prev_rank = grade_rank.get(previous_grade, 0)
-    new_rank = grade_rank.get(new_grade, 0)
-    
-    return new_rank > prev_rank
-
 # ══════════════════════════════════════════════════════════════════════════════
 # QUICK GRADE (for visibility logging)
 # ══════════════════════════════════════════════════════════════════════════════
