@@ -1192,13 +1192,6 @@ def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
                 else:
                     logger.debug(f"   {engine_name}: Whale required but not detected")
                     continue
-            # .786 has stricter requirements
-            elif engine_id == '786':
-                if impulse_pct >= 150 and structure['rsi'] < 35:
-                    pass  # Violent mode override
-                else:
-                    logger.debug(f"   {engine_name}: Whale REQUIRED for .786")
-                    continue
             else:
                 continue
         
