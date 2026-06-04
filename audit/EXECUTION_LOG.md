@@ -73,12 +73,13 @@ If no → defer until baseline data exists.
 - **Verification:** ast.parse syntax check passed both files; zero remaining should_realert references in codebase; active imports (grade_setup, quick_grade_summary) still resolve; jayce-scanner remained active throughout; A+ alert fired during verification confirming system normal
 - **Commit hash:** b8e8481
 - **🚨 AUDIT CORRECTION:** Audit finding 8.B claimed the function was dead due to a typo ('should_realer' missing final 't') at scanner.py:89. At execution time, the typo was NOT present — the import was correctly spelled 'should_realert'. The function was still genuinely dead (defined, imported, never called), so the cleanup remained valid. This is the first instance of verify-before-execute discipline catching an inaccurate audit claim. The audit constitution remains sealed; corrections live here in the execution log.
-### ⬜ 4. Remove `determine_setup_by_body_acceptance_OLD`
+### ✅ 4. Remove `determine_setup_by_body_acceptance_OLD`
 - **Audit reference:** 3.B
 - **Location:** engines.py:908
 - **Risk:** Low (never called)
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-05-30
+- **Verification:** ast.parse passed; zero _OLD or calculate_overlap references remain; live function (line 585) intact; import engines clean; jayce-scanner stayed active; 175 lines/7061 chars removed; audit finding 3.B confirmed accurate this time
+- **Commit hash:** 02b82b2
 
 ### ⬜ 5. Remove triple-duplicate 786 gate block
 - **Audit reference:** 1.B + 3.F
