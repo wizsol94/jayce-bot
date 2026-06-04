@@ -627,25 +627,6 @@ def stage3_mini_structure_check(
         else:
             reasons.append('786_NO_BREAK')
     
-    # 786+FZ Gate: 70-80% retracement + breakout + flip zone + STRONG expansion (>=100%)
-    is_786_territory = 68 <= retracement_pct <= 82
-    passes_786fz_gate = False
-    
-    if is_786_territory:
-        # 786 requires very strong expansion (>=100% breakout)
-        expansion_check = max(breakout_pct, impulse_pct) if breakout_pct > 0 else impulse_pct
-        very_strong_expansion = expansion_check >= 100
-        
-        if (ath_breakout or major_high_break) and has_valid_flip_zone and very_strong_expansion:
-            passes_786fz_gate = True
-            reasons.append('786FZ_GATE_PASS')
-        elif (ath_breakout or major_high_break) and has_valid_flip_zone:
-            reasons.append(f'786_WEAK_EXP_{expansion_check:.0f}%')
-        elif ath_breakout or major_high_break:
-            reasons.append('786_NO_FZ')
-        else:
-            reasons.append('786_NO_BREAK')
-    
     # If not in territory, default pass for other engines
     if not is_382_territory:
         passes_382fz_gate = True
