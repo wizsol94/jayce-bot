@@ -81,13 +81,14 @@ If no → defer until baseline data exists.
 - **Verification:** ast.parse passed; zero _OLD or calculate_overlap references remain; live function (line 585) intact; import engines clean; jayce-scanner stayed active; 175 lines/7061 chars removed; audit finding 3.B confirmed accurate this time
 - **Commit hash:** 02b82b2
 
-### ⬜ 5. Remove triple-duplicate 786 gate block
+### ✅ 5. Remove triple-duplicate 786 gate block
 - **Audit reference:** 1.B + 3.F
 - **Location:** hybrid_intake.py (lines 612, 632, 666)
 - **Risk:** Low (keep one, remove two)
-- **Date completed:** _____
-- **Commit hash:** _____
-
+- **Date completed:** 2026-05-30
+- **Verification:** ast.parse passed; 786 logic appears exactly once after removal (was 2, now 1); Block C default-pass logic preserved (CRITICAL); hybrid_intake imports cleanly; jayce-scanner stayed active; 19 lines/890 chars removed
+- **Commit hash:** ec1484f
+- **🚨 CRITICAL AUDIT CORRECTION:** Audit claimed THREE duplicates (lines 612, 632, 666). Verification revealed only TWO blocks are actual duplicates (Block A 611-628 and Block B 630-647, byte-identical). The 'third' block at line 656-657 is NOT a duplicate — it is required default-pass logic for non-786-territory tokens (matches the same pattern used for 382/50/618/underfib gates). Blindly following the audit and removing Block C would have caused a real production regression: the 786 gate would have rejected all non-786 setups instead of letting them pass through. This is the SECOND instance of verify-before-execute discipline catching an audit error — but the FIRST instance where the audit's error would have caused a real production bug. Item 3's audit correction was cosmetic (typo claim); this one was material (would have broken alerts).
 ### ⬜ 6. Remove 786 violent mode RSI<35 override
 - **Audit reference:** 6.F
 - **Location:** engines.py:1370-1376
