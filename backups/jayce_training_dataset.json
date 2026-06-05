@@ -6766,5 +6766,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJazGofv21lJ5_LuriFD78H5GOBoNyIAAJmDGsbSrkAAUW5UjPNgUnP8wEAAwIAA3cAAzsE",
     "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 86",
     "trained_at": "2026-06-03T05:46:12.461397"
+  },
+  {
+    "chart_id": "382FZ-LAYOFF-1H-20260605-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "LAYOFF",
+    "timeframe": "1H",
+    "date": "2026-06-05",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJd5GoidowBtFTU_vRGVjUDNjntvlTOAAJBDGsbdVcQRcunvu8lAroZAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 82",
+    "trained_at": "2026-06-05T07:11:42.427064"
   }
 ]
