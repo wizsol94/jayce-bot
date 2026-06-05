@@ -98,12 +98,17 @@ If no → defer until baseline data exists.
 - **Commit hash:** 3e510b0 (rebased to 788d68a)
 - **🔍 DEFERRED OBSERVATION:** Verification revealed the entire CHECK 4 whale_required guard block is currently unreachable for ALL engines (382, 50, 618, 786, underfib) because ENGINE_PARAMS has whale_required=False for every engine. Only the 786 branch was removed per audit 6.F scope. Broader cleanup deliberately deferred to avoid scope creep — whale_required architecture may be intentionally preserved for future re-enabling. Logged for separate consideration during Tier 2 architectural review.
 
-### ⬜ 7. Remove MIN_MARKET_CAP=0 dead checks
+### ✅ 7. Remove MIN_MARKET_CAP=0 dead checks
 - **Audit reference:** 1.C
 - **Locations:** scanner.py lines 1249, 1322, 1371, 1499
 - **Risk:** Low
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-05
+- **Verification:** ast.parse passed; 2 dead lines removed (line 1117 commented-out + line 1499 standalone no-op); 3 compound checks preserved at lines 1248/1321/1370 (LIVE liquidity filtering intact); MIN_MARKET_CAP=0 constant preserved at line 404; 5 liq < MIN_LIQUIDITY references intact; jayce-scanner stayed active (696 tokens scanned during cycle); 2 lines/132 chars removed
+- **Commit hash:** 74d7f18
+- **🚨 MATERIAL AUDIT CORRECTION:** Audit claimed 4 dead checks (lines 1249/1322/1371/1499). Verification revealed only HALF were dead — lines 1249/1322/1371 are COMPOUND checks containing live liq < MIN_LIQUIDITY filtering ($10K minimum). Blind removal would have deleted live liquidity filtering = real production regression. Third instance of verify-before-execute catching an audit error (Item 3: cosmetic; Item 5: material; Item 7: material). Pattern is now clear: audit is a strong roadmap but never gospel.
+- **🔍 DEFERRED OBSERVATIONS (2):**
+  - (1) MIN_MARKET_CAP=0 at scanner.py:404 OVERRIDES .env value of 100000. Config drift: scanner-disabled while dexscreener_fetcher.py, token_validator.py, quiet_movers.py still enforce MIN_MARKET_CAP=100000. Future decision needed.
+  - (2) Market-cap filtering architecture currently disabled but preserved. apply_patches.py records this was deliberate ("DISABLED - valid setups at any market cap"). Future decision needed: re-enable filtering OR fully remove the architecture in a dedicated Tier 2/config cleanup decision.
 
 ### ⬜ 8. Remove ENGINE_PARAMS.cooldown_hours field
 - **Audit reference:** 6.D
