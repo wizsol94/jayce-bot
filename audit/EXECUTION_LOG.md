@@ -110,11 +110,18 @@ If no → defer until baseline data exists.
   - (1) MIN_MARKET_CAP=0 at scanner.py:404 OVERRIDES .env value of 100000. Config drift: scanner-disabled while dexscreener_fetcher.py, token_validator.py, quiet_movers.py still enforce MIN_MARKET_CAP=100000. Future decision needed.
   - (2) Market-cap filtering architecture currently disabled but preserved. apply_patches.py records this was deliberate ("DISABLED - valid setups at any market cap"). Future decision needed: re-enable filtering OR fully remove the architecture in a dedicated Tier 2/config cleanup decision.
 
-### ⬜ 8. Remove ENGINE_PARAMS.cooldown_hours field
+### 🟡 8. Remove ENGINE_PARAMS.cooldown_hours field [DEFERRED]
 - **Audit reference:** 6.D
 - **Risk:** Low (hardcoded 4h in is_engine_on_cooldown ignores it anyway)
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Decision date:** 2026-06-05
+- **Status:** DEFERRED (not closed via code removal)
+- **Audit accuracy:** Audit finding 6.D is technically ACCURATE — the cooldown_hours field is currently unused under the live hardcoded 4h implementation.
+- **Reason for deferral:** Field is dormant config, not true dead code. Encodes doctrinally-aligned per-engine cooldown intent: 382=4h, 50=6h, 618=6h, 786=8h, underfib=6h. These values are not arbitrary — they represent WizTheory setup-specific cooldown philosophy.
+- **Historical evidence (smoking gun):** /opt/jayce/backups/wiztheory_hunter_mode_20260317_100142/engines.py:121 shows the field was ONCE LIVE via cooldown_hours = ENGINE_PARAMS.get(engine_...). Field was orphaned when cooldown logic was later simplified to hardcoded 4h. Removing now destroys recoverable architectural intent.
+- **Precedent:** Same logic as Item #7 preserving MIN_MARKET_CAP=0 constant for future configurability.
+- **Verification queries run (read-only):** 8 diagnostics confirmed (1) field exists in all 5 engine configs, (2) zero external references in active codebase, (3) hardcoded 4h overrides all per-engine values, (4) historical backup proves prior live use.
+- **Future decision belongs in Tier 1.D (Cooldown Evolution Fix):** When Tier 1.D executes, explicit decision required: (a) keep hardcoded 4h forever and let field remain dormant config, OR (b) restore per-engine durations by reading params[cooldown_hours] in is_engine_on_cooldown. Either choice is valid; the decision needs the full context of how the cooldown bug is being fixed.
+- **Methodology insight:** Items #3-#7 verified dead code that was safely removable. Item #8 establishes the DORMANT CONFIG pattern — items where audit accuracy is technical but removal would destroy future value. New 🟡 DEFERRED status: "Audit finding verified, but execution intentionally postponed because the code still contains architectural value or future design intent."
 
 ### ⬜ 9. Hunter Mode Signal 5 removal
 - **Audit reference:** 4.C + 5.B
