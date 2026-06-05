@@ -1114,7 +1114,6 @@ def should_use_vision(token: dict) -> tuple:
 
 def pre_filter_token(token: dict) -> tuple:
     mc, liq = token.get('market_cap', 0), token.get('liquidity', 0)
-    # if mc < MIN_MARKET_CAP: return (False, "MC too low")  # DISABLED
     if liq < MIN_LIQUIDITY: return (False, "Liq too low")
     dex = token.get('dex', '').lower()
     if dex and dex not in ALLOWED_DEXES: return (False, f"DEX: {dex}")
@@ -1496,7 +1495,6 @@ async def fetch_top_movers_api_fallback() -> list:
                             addr = pair.get('baseToken', {}).get('address', '')
                             if not addr or addr in seen: continue
                             mc = float(pair.get('marketCap', 0) or 0)
-                            if mc < MIN_MARKET_CAP: continue
                             liq = float(pair.get('liquidity', {}).get('usd', 0) or 0)
                             if liq < MIN_LIQUIDITY: continue
                             seen.add(addr)
