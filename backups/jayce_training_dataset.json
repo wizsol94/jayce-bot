@@ -6820,5 +6820,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJefGoi8XYPjL_de78fkjTIwYGjsKitAAK8C2sbdVcYRZmRH7nFh8qbAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 83",
     "trained_at": "2026-06-05T15:56:07.479287"
+  },
+  {
+    "chart_id": "786FZ-HONTER-30M-20260606-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "HONTER",
+    "timeframe": "30M",
+    "date": "2026-06-06",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 175,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJgImokaM2FKLxgfG56Zgq99qBGh-sGAAJXDGsb710oRRQQ-JKPlAISAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 89",
+    "trained_at": "2026-06-06T18:37:25.898522"
   }
 ]
