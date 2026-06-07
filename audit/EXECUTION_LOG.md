@@ -148,13 +148,17 @@ If no → defer until baseline data exists.
 
 ## Tier 1.C — Observability Instrumentation (PREREQUISITE TO TIER 2)
 
-### ⬜ 11. ENGINE OVERRIDE rate counter
+### ✅ 11. ENGINE OVERRIDE rate counter
 - **Audit reference:** 9.J (gap), 6.C (mechanism)
 - **Location:** scanner.py:3183 (after engine_override = True)
 - **Implementation:** `DAILY_METRICS['engine_overrides'] += 1`
 - **Purpose:** Quantify pipeline disagreement
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-07
+- **Verification:** ast.parse passed (176 top-level statements); 4 atomic changes verified in correct positions (DAILY_METRICS init, reset_metrics dict branch, counter increment block, cycle log extension); ENGINE OVERRIDE decision logic untouched (8 invariants checked); jayce-scanner restarted cleanly; CYCLE #1 post-restart completed without errors; cycle log now shows: 📊 Scanned: 40 | Engines: 0 | Vision: 0 | Flashcards: 0 | Alerts: 0 | Overrides: 0; no tracebacks during validation; file size growth +896 chars
+- **Commit hash:** 4d0248f
+- **CRITICAL PATCH DETAIL:** Reset logic in reset_metrics_if_new_day required an additional dict-handling branch ("elif isinstance(DAILY_METRICS[key], dict): DAILY_METRICS[key] = {}"). Without this, midnight reset would overwrite dict counters to 0 (integer) and crash on next increment with TypeError. This is now part of the Tier 1.C pattern for any future dict-based counters.
+- **NEW METHODOLOGY NOTE (Tier 1.C):** Observability items require service restart to validate. Disk-level syntax verification is insufficient because counters only prove themselves when live code is loaded. Established pattern: AST validation → systemctl restart → wait for cycle log → verify new format → THEN commit. This adds ~30-60 seconds to each Tier 1.C item compared to Tier 1.B but provides operational confidence before commit.
+- **TIER TRANSITION MARKED:** Item #11 is the first Tier 1.C item. Tier 1.B was pure cleanup (removing dead/duplicate code, defensive coding). Tier 1.C is additive instrumentation. Same execution discipline, different work texture: no removal, no behavior change, only measurement. Required to gather baseline data before Tier 1.D cooldown evolution fix.
 
 ### ⬜ 12. Stale-breakout rejection counter
 - **Audit reference:** 4.A + 9.J
