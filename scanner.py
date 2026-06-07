@@ -972,7 +972,7 @@ async def download_telegram_image(file_id: str) -> bytes:
                     buf = BytesIO()
                     img.save(buf, format='PNG', optimize=True)
                     return buf.getvalue()
-                except:
+                except Exception:
                     return file_resp.content
     except Exception as e:
         logger.error(f"❌ Telegram image download error: {e}")
@@ -1467,7 +1467,7 @@ async def scrape_token_list(page, seen: set, source: str) -> list:
                 count += 1
                 logger.info(f"   👀 {symbol} ({source})")
                 
-            except:
+            except Exception:
                 continue
                 
     except Exception as e:
@@ -1558,7 +1558,7 @@ async def fetch_token_data(token_address: str) -> dict:
                     'age_hours': age_hours,
                     'pair_created_at': pair_created,
                 }
-    except: pass
+    except Exception: pass
     return {}
 
 
@@ -1702,7 +1702,7 @@ async def fetch_combined_tokens():
                             all_tokens[addr] = {'address': addr, 'pair_address': p.get('pairAddress', ''), 'symbol': p.get('baseToken', {}).get('symbol', '???'), 'source': 'DEX_SEARCH', 'dex': dex, 'price_change_1h': float(p.get('priceChange', {}).get('h1', 0) or 0), 'market_cap': float(p.get('marketCap', 0) or 0), 'liquidity': float(p.get('liquidity', {}).get('usd', 0) or 0)}
                             source_counts['DEX_SEARCH'] += 1
                 await asyncio.sleep(0.2)
-            except: pass
+            except Exception: pass
         logger.info(f"[{ENVIRONMENT}]    DEX Search: {source_counts['DEX_SEARCH']}")
         await asyncio.sleep(0.3)
         try:
@@ -1789,7 +1789,7 @@ async def scrape_dexscreener_tokens(browser_ctx, limit: int = 150) -> list:
         # Wait for the table to load
         try:
             await page.wait_for_selector('a[href*="/solana/"]', timeout=15000)
-        except:
+        except Exception:
             logger.warning(f"[{ENVIRONMENT}]    ⚠️ No tokens found on page, trying alternative selector")
         
         await asyncio.sleep(2)
@@ -1840,7 +1840,7 @@ async def scrape_dexscreener_tokens(browser_ctx, limit: int = 150) -> list:
                 })
                 source_counts['TRENDING'] += 1
                 logger.info(f"[{ENVIRONMENT}]    👀 {symbol} (TRENDING)")
-            except:
+            except Exception:
                 continue
         
         logger.info(f"[{ENVIRONMENT}]    ✅ Found {source_counts['TRENDING']} tokens from Trending")
@@ -1864,7 +1864,7 @@ async def scrape_dexscreener_tokens(browser_ctx, limit: int = 150) -> list:
                         tokens.append({'pair_address': pair_address, 'symbol': symbol, 'source': '5M_VOL', 'address': '', 'dex': 'unknown'})
                         source_counts['5M_VOL'] += 1
                         logger.info(f"[{ENVIRONMENT}]    👀 {symbol} (5M_VOL)")
-                    except:
+                    except Exception:
                         continue
                 logger.info(f"[{ENVIRONMENT}]    ✅ Found {source_counts['5M_VOL']} tokens from 5M Volume")
         except Exception as e:
@@ -1889,7 +1889,7 @@ async def scrape_dexscreener_tokens(browser_ctx, limit: int = 150) -> list:
                         tokens.append({'pair_address': pair_address, 'symbol': symbol, 'source': '1H_VOL', 'address': '', 'dex': 'unknown'})
                         source_counts['1H_VOL'] += 1
                         logger.info(f"[{ENVIRONMENT}]    👀 {symbol} (1H_VOL)")
-                    except:
+                    except Exception:
                         continue
                 logger.info(f"[{ENVIRONMENT}]    ✅ Found {source_counts['1H_VOL']} tokens from 1H Volume")
         except Exception as e:
@@ -1962,7 +1962,7 @@ def redraw_chart_with_setup_fz(candles: list, setup_type: str, symbol: str) -> b
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
             font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
             font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
-        except:
+        except Exception:
             font = ImageFont.load_default()
             font_large = font
             font_medium = font
@@ -2130,7 +2130,7 @@ async def screenshot_chart(pair_address: str, symbol: str, browser_ctx, token_ad
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
             font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
             font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
-        except:
+        except Exception:
             font = ImageFont.load_default()
             font_large = font
             font_medium = font
@@ -2312,7 +2312,7 @@ async def analyze_chart_with_flashcards(image_bytes: bytes, symbol: str, setup_n
         
         try:
             return json.loads(text)
-        except:
+        except Exception:
             import re
             m = re.search(r'\{.*\}', text, re.DOTALL)
             return json.loads(m.group()) if m else {'is_setup': False}
@@ -2355,7 +2355,7 @@ RESPOND IN JSON: {"is_setup": true/false, "setup_type": "...", "confidence": 0-1
         
         try: 
             return json.loads(text)
-        except:
+        except Exception:
             import re
             m = re.search(r'\{.*\}', text, re.DOTALL)
             return json.loads(m.group()) if m else {'is_setup': False}
@@ -2469,7 +2469,7 @@ async def send_wiztheory_alert(token: dict, bangers_result: dict, impulse_result
         # Update Vision audit outcome
         try:
             update_outcome(symbol, setup_type, 'alerted')
-        except:
+        except Exception:
             pass
         
         return True
@@ -2696,7 +2696,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         try:
             from datetime import datetime
             coin_age_hours = (datetime.now().timestamp() - (pair_created / 1000 if pair_created > 1e12 else pair_created)) / 3600
-        except:
+        except Exception:
             pass
     
     whale_conviction = token.get('whale_conviction', False) or token.get('whale_detected', False)
@@ -2745,7 +2745,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             if age_hours < 2:
                 use_1m = True
                 use_1m_reason = f'fresh_token_{age_hours:.1f}h'
-        except:
+        except Exception:
             pass
     
     # 3. Already classified as active setup candidate (from hybrid intake)
@@ -2784,7 +2784,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
                             use_1m = True
                             use_1m_reason = f'near_fib_{fib_name}'
                             break
-        except:
+        except Exception:
             pass
     
     # 6. Showing exhaustion (price near recent high with momentum drop)
@@ -2798,7 +2798,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
                 if 5 <= from_high_pct <= 20:
                     use_1m = True
                     use_1m_reason = f'exhaustion_{from_high_pct:.1f}pct'
-        except:
+        except Exception:
             pass
     
     # Fetch 1m only if qualified
@@ -3524,7 +3524,7 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         # Update Vision audit outcome as rejected
         try:
             update_outcome(symbol, wiz_setup_type or 'unknown', 'rejected')
-        except:
+        except Exception:
             pass
         
         if bangers_result['grade'] in ['B+', 'B'] and engine_result:
@@ -4269,7 +4269,7 @@ async def scan_watchlist(browser_ctx):
         should_v, _, _ = should_use_vision(token)
         if should_v and can_use_vision():
             try: await process_token(token, browser_ctx)
-            except: pass
+            except Exception: pass
             await asyncio.sleep(2)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -4280,7 +4280,7 @@ async def check_telegram_commands():
     global SCANNER_PAUSED, LAST_TELEGRAM_UPDATE_ID
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
     try: await bot.delete_webhook(drop_pending_updates=True)
-    except: pass
+    except Exception: pass
     await asyncio.sleep(3)
     
     # Command polling disabled - bot.py handles /pause /resume now
