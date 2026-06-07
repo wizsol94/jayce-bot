@@ -503,6 +503,9 @@ DAILY_METRICS = {
     'blocked_low_score': 0,
     'blocked_cooldown': 0, 
     'cooldown_overrides': 0,
+    'engine_overrides': 0,
+    'engine_overrides_by_setup': {},
+    'engine_overrides_by_grade': {},
     'blocked_wash_trading': 0, 
     'blocked_staircase': 0, 
     'blocked_spike_chop': 0,
@@ -653,6 +656,8 @@ def reset_metrics_if_new_day():
                 continue
             elif key == 'cycle_times':
                 DAILY_METRICS[key] = []
+            elif isinstance(DAILY_METRICS[key], dict):
+                DAILY_METRICS[key] = {}
             else:
                 DAILY_METRICS[key] = 0
 
@@ -712,7 +717,7 @@ def log_current_metrics():
     """Log current cycle metrics with environment tag"""
     m = DAILY_METRICS
     total = m['forming_alerts'] + m['valid_alerts'] + m['confirmed_alerts']
-    logger.info(f"[{ENVIRONMENT}] 📊 Scanned: {m['coins_scanned']} | Engines: {m['engine_triggers']} | Vision: {m['vision_calls']} | Flashcards: {m['flashcard_fetches']} | Alerts: {total}")
+    logger.info(f"[{ENVIRONMENT}] 📊 Scanned: {m['coins_scanned']} | Engines: {m['engine_triggers']} | Vision: {m['vision_calls']} | Flashcards: {m['flashcard_fetches']} | Alerts: {total} | Overrides: {m['engine_overrides']}")
 
 
 def log_cycle_complete(cycle_time: float, tokens_scanned: int, alerts_sent: int, source_counts: dict):
@@ -3179,6 +3184,20 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
             bangers_result['grade'] = engine_grade
             bangers_result['should_alert'] = new_score >= 80
             bangers_result['engine_override'] = True
+
+            # Tier 1.C.11: Track ENGINE OVERRIDE rate for observability (audit 9.J)
+            DAILY_METRICS['engine_overrides'] += 1
+            _wiz_setup_type = (
+                engine_result.get('setup_type')
+                or bangers_result.get('wiz_setup_type')
+                or 'unknown'
+            )
+            DAILY_METRICS['engine_overrides_by_setup'][_wiz_setup_type] = (
+                DAILY_METRICS['engine_overrides_by_setup'].get(_wiz_setup_type, 0) + 1
+            )
+            DAILY_METRICS['engine_overrides_by_grade'][engine_grade] = (
+                DAILY_METRICS['engine_overrides_by_grade'].get(engine_grade, 0) + 1
+            )
             
             # ════════════════════════════════════════════════════════════════
             # ENGINE OVERRIDE BACKFILL v2 — corrected field mapping
