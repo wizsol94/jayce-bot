@@ -32,7 +32,7 @@ def detect_expansion_exhaustion(candles: List[Dict], structure: Dict) -> Dict:
     Returns:
         {
             'exhaustion_detected': bool,
-            'exhaustion_type': str,  # 'rejection_wick', 'bearish_reversal', 'volume_spike', 'rsi_divergence'
+            'exhaustion_type': str,  # 'rejection_wick', 'bearish_reversal', 'volume_spike'
             'exhaustion_score': int,  # 0-100
             'candles_since_high': int,
             'pullback_started': bool
@@ -109,13 +109,6 @@ def detect_expansion_exhaustion(candles: List[Dict], structure: Dict) -> Dict:
         # ─────────────────────────────────────────────────
         if current_price < swing_high * 0.97:  # 3% below high
             result['pullback_started'] = True
-            exhaustion_score += 15
-            
-        # ─────────────────────────────────────────────────
-        # SIGNAL 5: RSI showing exhaustion (above 70 at high)
-        # ─────────────────────────────────────────────────
-        if rsi < 60 and structure.get('rsi_at_high', rsi) > 70:
-            exhaustion_signals.append('rsi_divergence')
             exhaustion_score += 15
             
         # ─────────────────────────────────────────────────
