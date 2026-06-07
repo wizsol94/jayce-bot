@@ -123,13 +123,16 @@ If no → defer until baseline data exists.
 - **Future decision belongs in Tier 1.D (Cooldown Evolution Fix):** When Tier 1.D executes, explicit decision required: (a) keep hardcoded 4h forever and let field remain dormant config, OR (b) restore per-engine durations by reading params[cooldown_hours] in is_engine_on_cooldown. Either choice is valid; the decision needs the full context of how the cooldown bug is being fixed.
 - **Methodology insight:** Items #3-#7 verified dead code that was safely removable. Item #8 establishes the DORMANT CONFIG pattern — items where audit accuracy is technical but removal would destroy future value. New 🟡 DEFERRED status: "Audit finding verified, but execution intentionally postponed because the code still contains architectural value or future design intent."
 
-### ⬜ 9. Hunter Mode Signal 5 removal
+### ✅ 9. Hunter Mode Signal 5 removal
 - **Audit reference:** 4.C + 5.B
 - **Location:** hunter_mode.py:117 (rsi_at_high check)
 - **Risk:** Low (rsi_at_high never populated, dead)
 - **Decision:** Remove entirely OR replace with breakout_peak_rsi check
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-07
+- **Verification:** ast.parse passed; Signal 5 block (7 lines) + docstring type reference removed atomically; Signals 1, 2, 3, 4, 6 all preserved with original scoring (25/20/20/15/15); threshold exhaustion_score >= 55 unchanged; max addable score remains 95 (was 95 before — Signal 5 was unreachable); rsi_divergence + rsi_at_high zero references after removal; hunter_mode imports cleanly; jayce-scanner stayed active (live grail token analysis); 368 chars removed total
+- **Commit hash:** 6830ce4 (rebased to 0d38303)
+- **AUDIT MECHANISM CORRECTION:** Audit findings 4.C + 5.B were both correct in conclusion but slightly off on mechanism. Audit 5.B implied Signal 5 was dead due to unpopulated rsi_at_high variable. Verification revealed the actual mechanism: code uses structure.get("rsi_at_high", rsi) with FALLBACK to current rsi, making the condition mathematically impossible: "if rsi < 60 and rsi > 70" (no value can be both <60 AND >70). Net result identical (Signal 5 never fires) but mechanism distinction matters for understanding similar fallback patterns elsewhere in codebase.
+- **Methodology insight:** Cleanest removal in Tier 1.B so far — TWO independent justifications converged: (1) currently dead via impossible condition, (2) doctrinally misaligned (treats RSI as prediction/divergence signal, violating WizTheory RSI=permission-not-prediction rule). Removing covered both technical death AND doctrinal correctness. Closes audit findings 4.C + 5.B.
 
 ### ⬜ 10. Replace bare excepts in scanner.py
 - **Audit reference:** 9.C
