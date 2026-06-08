@@ -172,12 +172,17 @@ If no → defer until baseline data exists.
 - **FIRST PRODUCTION DATA POINT:** Cycle #1 post-restart captured 5 stale rejections out of 40 tokens scanned (12.5% stale-rejection rate). Live validation observed Bountywork rejected at 844 candles past ATH (bucket 501-1000). This rate confirms the audit prediction that stale-breakout rejection is a meaningful continuation killer — not an edge case. Bucket distribution data over next 2-4 weeks will inform Tier 2 architectural decisions about the 100-candle threshold calibration.
 - **METHODOLOGY VALIDATION:** Same Tier 1.C pattern as Item #11: AST → restart → wait for cycle log → verify both counters live → commit. Counter design (total + per-dimension dict) reused. No new methodology needed; established Tier 1.C patterns held.
 
-### ⬜ 13. Cooldown-blocked counter
+### ✅ 13. Cooldown-blocked counter
 - **Audit reference:** 1.A + 6.E
 - **Location:** engines.py:1309 (when is_engine_on_cooldown returns True)
 - **Purpose:** Measure setup evolution suppression
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-08
+- **Verification:** ast.parse passed both files (engines.py 30 top-level statements, scanner.py 176 unchanged); 9 atomic changes verified in correct positions; is_engine_on_cooldown function body identical to pre-patch (all 4 invariants confirmed: signature, get_cooldown_key call, hardcoded 4h, return logic); Vision cooldown system (System B) untouched at scanner.py:2675-2682; jayce-scanner restarted cleanly; ~4.5 hours of production data accumulated; cycle log live: "Scanned: 799 | ... | Overrides: 3 | Stale: 105 | EngCool: 330"; engines.py +1130 chars; scanner.py +1180 chars
+- **Commit hash:** f4a80e9
+- **ARCHITECTURE NOTE (Solution C chosen):** Module-local tracker in engines.py + accessor function exposed to scanner.py. NO DAILY_METRICS import in engines.py. Captures cooldown blocks even when run_detection() returns None (all engines blocked for token). This was the critical edge case — attaching counters to engine_result would have lost the most valuable signal. Pattern: engines.py owns its own state (_LAST_RUN_COOLDOWN_BLOCKS), exposes via get_last_run_cooldown_blocks() returning a copy, scanner.py consumes after each run_detection() call at both call sites.
+- **TWO COOLDOWN SYSTEMS DOCUMENTED:** This item revealed scanner.py has TWO different "cooldown" systems running in parallel: (System A) Engine cooldown in engines.py:1158 — what this counter tracks, related to Tier 1.D. (System B) Vision API cooldown in scanner.py:2680 — preventing duplicate Vision API calls, tracked by existing misleadingly-named DAILY_METRICS["blocked_cooldown"] counter. Counter B was preserved as-is (rename out of scope) but documented for future Tier 2 cleanup.
+- **FIRST PRODUCTION DATA (~4.5 hours runtime):** 799 tokens scanned, 330 EngCool blocks captured (~12 blocks per 100 tokens). This is the BASELINE for Tier 1.D. Current key is {token}:STRUCTURE, meaning one cooldown blocks ALL FIVE engines for a token. Tier 1.D will change key to {token}:{engine_id}, allowing per-engine cooldowns. Expected post-fix outcome: EngCool drops significantly because cooldowns become engine-specific instead of structure-wide. That delta IS the measurement of whether setup evolution (382→50→618→786) is being unlocked. This is exactly the architectural signal Tier 1.C exists to capture.
+- **METHODOLOGY EXTENSION:** First Tier 1.C item touching two files atomically. New pattern established: when measurement spans modules, use producer-side module-local state + accessor function + consumer-side aggregation. Preserves module boundaries. Reusable for any future cross-module observability item.
 
 ### ⬜ 14. Setup type distribution metrics
 - **Audit reference:** 9.J
