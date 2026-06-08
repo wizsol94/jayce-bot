@@ -73,7 +73,7 @@ print("")
 
 
 # v4.1: Import WizTheory detection engines
-from engines import run_detection, format_engine_result_text, cleanup_engine_cooldowns
+from engines import run_detection, format_engine_result_text, cleanup_engine_cooldowns, get_last_run_cooldown_blocks
 from candle_provider import fetch_candles, fetch_candles_dual, fetch_candles_birdeye_1m
 from cache_tiers import assess_token_tier, should_fetch_1m, get_tiered_cache, store_tiered_cache, get_tier_stats
 from daily_audit import track_tokens_scanned, track_candidates, track_vision_call, track_alert, save_daily_stats
@@ -508,6 +508,8 @@ DAILY_METRICS = {
     'engine_overrides_by_grade': {},
     'stale_breakout_rejections': 0,
     'stale_breakout_by_candles_bucket': {},
+    'engine_cooldown_blocks_total': 0,
+    'engine_cooldown_blocks_by_engine': {},
     'blocked_wash_trading': 0, 
     'blocked_staircase': 0, 
     'blocked_spike_chop': 0,
@@ -719,7 +721,7 @@ def log_current_metrics():
     """Log current cycle metrics with environment tag"""
     m = DAILY_METRICS
     total = m['forming_alerts'] + m['valid_alerts'] + m['confirmed_alerts']
-    logger.info(f"[{ENVIRONMENT}] 📊 Scanned: {m['coins_scanned']} | Engines: {m['engine_triggers']} | Vision: {m['vision_calls']} | Flashcards: {m['flashcard_fetches']} | Alerts: {total} | Overrides: {m['engine_overrides']} | Stale: {m['stale_breakout_rejections']}")
+    logger.info(f"[{ENVIRONMENT}] 📊 Scanned: {m['coins_scanned']} | Engines: {m['engine_triggers']} | Vision: {m['vision_calls']} | Flashcards: {m['flashcard_fetches']} | Alerts: {total} | Overrides: {m['engine_overrides']} | Stale: {m['stale_breakout_rejections']} | EngCool: {m['engine_cooldown_blocks_total']}")
 
 
 def log_cycle_complete(cycle_time: float, tokens_scanned: int, alerts_sent: int, source_counts: dict):
@@ -2914,6 +2916,14 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     if candles and len(candles) >= 10:
         # Gate flags should already be on token (copied before process_token call)
         engine_result = run_detection(token, candles)
+        # Tier 1.C.13: Aggregate cooldown blocks from this run (audit 6.E)
+        _cd_blocks = get_last_run_cooldown_blocks()
+        if _cd_blocks:
+            for _engine_id, _count in _cd_blocks.items():
+                DAILY_METRICS['engine_cooldown_blocks_total'] += _count
+                DAILY_METRICS['engine_cooldown_blocks_by_engine'][_engine_id] = (
+                    DAILY_METRICS['engine_cooldown_blocks_by_engine'].get(_engine_id, 0) + _count
+                )
         if engine_result:
             DAILY_METRICS['engine_triggers'] += 1
             detected_setup = engine_result.get('engine_name')
@@ -3779,6 +3789,14 @@ async def scan_top_movers(browser_ctx):
                 
                 # Run engine detection
                 engine_result = run_detection(wt, candles)
+                # Tier 1.C.13: Aggregate cooldown blocks from this run (audit 6.E)
+                _cd_blocks = get_last_run_cooldown_blocks()
+                if _cd_blocks:
+                    for _engine_id, _count in _cd_blocks.items():
+                        DAILY_METRICS['engine_cooldown_blocks_total'] += _count
+                        DAILY_METRICS['engine_cooldown_blocks_by_engine'][_engine_id] = (
+                            DAILY_METRICS['engine_cooldown_blocks_by_engine'].get(_engine_id, 0) + _count
+                        )
                 if not engine_result:
                     logger.info(f"[{ENVIRONMENT}]       ⏳ {symbol}: No WizTheory setup detected yet")
                     continue

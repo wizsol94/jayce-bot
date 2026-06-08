@@ -111,6 +111,12 @@ if STRICT_MODE:
 
 ENGINE_COOLDOWNS: Dict[str, datetime] = {}
 
+# Tier 1.C.13: Per-run cooldown block tracker (audit 6.E)
+# Module-level state. Reset at start of each run_detection() call.
+# Scanner reads via get_last_run_cooldown_blocks() after each call.
+# Captures cooldown blocks even when run_detection returns None (all engines blocked).
+_LAST_RUN_COOLDOWN_BLOCKS: Dict[str, int] = {}
+
 
 def get_cooldown_key(token_address: str, engine_id: str) -> str:
     # Use token-only cooldown to allow setup evolution (382 → 618 → 786)
@@ -152,6 +158,18 @@ def cleanup_engine_cooldowns():
         del ENGINE_COOLDOWNS[key]
     if expired:
         logger.info(f"🧹 Cleaned {len(expired)} expired engine cooldowns")
+
+
+def get_last_run_cooldown_blocks() -> Dict[str, int]:
+    """
+    Returns a copy of the cooldown-block tracker from the last run_detection() call.
+    Tier 1.C.13: Per-engine cooldown block counter (audit 6.E).
+    Scanner.py reads this after each run_detection() to aggregate into DAILY_METRICS.
+    Returns a COPY — mutations don't affect the tracker.
+    Captures even when run_detection returns None (all engines blocked case).
+    """
+    return dict(_LAST_RUN_COOLDOWN_BLOCKS)
+
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1068,6 +1086,10 @@ def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
     symbol = token.get('symbol', '???')
     address = token.get('address', '')
     
+    # Tier 1.C.13: Reset per-run cooldown block tracker (audit 6.E)
+    global _LAST_RUN_COOLDOWN_BLOCKS
+    _LAST_RUN_COOLDOWN_BLOCKS = {}
+    
     # Analyze structure
     structure = analyze_structure(candles)
     if not structure:
@@ -1132,6 +1154,8 @@ def run_detection(token: dict, candles: List[dict]) -> Optional[dict]:
         params = ENGINE_PARAMS[engine_id]
         # Skip if on cooldown
         if is_engine_on_cooldown(address, engine_id):
+            # Tier 1.C.13: Track cooldown blocks per-engine (audit 6.E)
+            _LAST_RUN_COOLDOWN_BLOCKS[engine_id] = _LAST_RUN_COOLDOWN_BLOCKS.get(engine_id, 0) + 1
             continue
         
         engine_name = params['name']
