@@ -160,13 +160,17 @@ If no → defer until baseline data exists.
 - **NEW METHODOLOGY NOTE (Tier 1.C):** Observability items require service restart to validate. Disk-level syntax verification is insufficient because counters only prove themselves when live code is loaded. Established pattern: AST validation → systemctl restart → wait for cycle log → verify new format → THEN commit. This adds ~30-60 seconds to each Tier 1.C item compared to Tier 1.B but provides operational confidence before commit.
 - **TIER TRANSITION MARKED:** Item #11 is the first Tier 1.C item. Tier 1.B was pure cleanup (removing dead/duplicate code, defensive coding). Tier 1.C is additive instrumentation. Same execution discipline, different work texture: no removal, no behavior change, only measurement. Required to gather baseline data before Tier 1.D cooldown evolution fix.
 
-### ⬜ 12. Stale-breakout rejection counter
+### ✅ 12. Stale-breakout rejection counter
 - **Audit reference:** 4.A + 9.J
 - **Location:** breakout_validator.py:189 (the STALE rejection branch)
 - **Implementation:** Increment counter in scanner.py via callback or shared state
 - **Purpose:** Measure RICH-style continuation losses
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-07
+- **Verification:** ast.parse passed (176 top-level statements unchanged); 3 atomic changes verified in correct positions (DAILY_METRICS init lines 509-510, cycle log line 722, increment block lines 2854-2873); breakout_validator.py UNTOUCHED (git status clean); jayce-scanner restarted cleanly; CYCLE #1 post-restart completed in 419.5s with 40 tokens, no errors from new code; cycle log live: "📊 Scanned: 40 | Engines: 1 | Vision: 0 | Flashcards: 0 | Alerts: 0 | Overrides: 1 | Stale: 5"; file size growth +1059 chars
+- **Commit hash:** aed589b
+- **ARCHITECTURE NOTE (Option A chosen):** Counter lives in scanner.py only. breakout_validator.py NOT modified. Validator already returns structured dict with reason field, scanner already consumes that reason. Detection via string-match "if Stale breakout in reason" on the existing flow — no cross-module coupling, no new imports, no callback hooks, no architectural debt. This pattern (consumer-side instrumentation when producer already returns structured data) is now established for any future Tier 1.C items where a counter spans modules.
+- **FIRST PRODUCTION DATA POINT:** Cycle #1 post-restart captured 5 stale rejections out of 40 tokens scanned (12.5% stale-rejection rate). Live validation observed Bountywork rejected at 844 candles past ATH (bucket 501-1000). This rate confirms the audit prediction that stale-breakout rejection is a meaningful continuation killer — not an edge case. Bucket distribution data over next 2-4 weeks will inform Tier 2 architectural decisions about the 100-candle threshold calibration.
+- **METHODOLOGY VALIDATION:** Same Tier 1.C pattern as Item #11: AST → restart → wait for cycle log → verify both counters live → commit. Counter design (total + per-dimension dict) reused. No new methodology needed; established Tier 1.C patterns held.
 
 ### ⬜ 13. Cooldown-blocked counter
 - **Audit reference:** 1.A + 6.E
