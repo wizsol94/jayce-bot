@@ -506,6 +506,8 @@ DAILY_METRICS = {
     'engine_overrides': 0,
     'engine_overrides_by_setup': {},
     'engine_overrides_by_grade': {},
+    'stale_breakout_rejections': 0,
+    'stale_breakout_by_candles_bucket': {},
     'blocked_wash_trading': 0, 
     'blocked_staircase': 0, 
     'blocked_spike_chop': 0,
@@ -717,7 +719,7 @@ def log_current_metrics():
     """Log current cycle metrics with environment tag"""
     m = DAILY_METRICS
     total = m['forming_alerts'] + m['valid_alerts'] + m['confirmed_alerts']
-    logger.info(f"[{ENVIRONMENT}] 📊 Scanned: {m['coins_scanned']} | Engines: {m['engine_triggers']} | Vision: {m['vision_calls']} | Flashcards: {m['flashcard_fetches']} | Alerts: {total} | Overrides: {m['engine_overrides']}")
+    logger.info(f"[{ENVIRONMENT}] 📊 Scanned: {m['coins_scanned']} | Engines: {m['engine_triggers']} | Vision: {m['vision_calls']} | Flashcards: {m['flashcard_fetches']} | Alerts: {total} | Overrides: {m['engine_overrides']} | Stale: {m['stale_breakout_rejections']}")
 
 
 def log_cycle_complete(cycle_time: float, tokens_scanned: int, alerts_sent: int, source_counts: dict):
@@ -2847,6 +2849,29 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
     if not valid_5m and not valid_1m:
         reason = breakout_5m.get('reason', 'Unknown') if breakout_5m else (breakout_1m.get('reason', 'Unknown') if breakout_1m else 'No data')
         logger.info(f"[{ENVIRONMENT}]    ⏭️ {symbol}: No valid breakout on either TF - {reason}")
+
+        # Tier 1.C.12: Track stale-breakout rejection rate (audit 4.A)
+        if 'Stale breakout' in reason:
+            DAILY_METRICS['stale_breakout_rejections'] += 1
+            _bucket = 'unknown'
+            try:
+                import re as _re
+                _m = _re.search(r'ATH was (\d+) candles ago', reason)
+                if _m:
+                    _n = int(_m.group(1))
+                    if _n <= 200:
+                        _bucket = '101-200'
+                    elif _n <= 500:
+                        _bucket = '201-500'
+                    elif _n <= 1000:
+                        _bucket = '501-1000'
+                    else:
+                        _bucket = '1000+'
+            except Exception:
+                _bucket = 'unknown'
+            DAILY_METRICS['stale_breakout_by_candles_bucket'][_bucket] = (
+                DAILY_METRICS['stale_breakout_by_candles_bucket'].get(_bucket, 0) + 1
+            )
         return False
     
     # Select primary candles and breakout result (1M DOMINANT)
