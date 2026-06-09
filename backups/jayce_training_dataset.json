@@ -6838,5 +6838,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJgImokaM2FKLxgfG56Zgq99qBGh-sGAAJXDGsb710oRRQQ-JKPlAISAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 89",
     "trained_at": "2026-06-06T18:37:25.898522"
+  },
+  {
+    "chart_id": "618FZ-SAMAMFA-1M-20260609-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "SAMAMFA",
+    "timeframe": "1M",
+    "date": "2026-06-09",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJjKmooMWxknh5Qnw8Re4f_8X87o7iPAAK6C2sbbGpARR49zUyvtmVVAQADAgADdwADOwQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 84",
+    "trained_at": "2026-06-09T15:31:44.476079"
   }
 ]
