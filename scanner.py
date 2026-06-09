@@ -525,6 +525,8 @@ DAILY_METRICS = {
     'engine_618': 0,
     'engine_786': 0,
     'engine_underfib': 0,
+    'setup_alerts_by_type': {},
+    'setup_alerts_by_grade': {},
     # v4.2: Source category counts
     'source_top100': 0,
     'source_5m_vol': 0,
@@ -703,6 +705,24 @@ async def send_daily_summary():
 • Valid: {m['valid_alerts']}
 • Confirmed: {m['confirmed_alerts']}
 • Total: {total_alerts}
+
+<b>ALERTS BY SETUP</b>
+• .382: {m['setup_alerts_by_type'].get('382', 0)}
+• .50: {m['setup_alerts_by_type'].get('50', 0)}
+• .618: {m['setup_alerts_by_type'].get('618', 0)}
+• .786: {m['setup_alerts_by_type'].get('786', 0)}
+• Under-618: {m['setup_alerts_by_type'].get('Under-618', 0)}
+• Under-786: {m['setup_alerts_by_type'].get('Under-786', 0)}
+• Under-Fib: {m['setup_alerts_by_type'].get('Under-Fib', 0)}
+• underfib: {m['setup_alerts_by_type'].get('underfib', 0)}
+• Unknown: {m['setup_alerts_by_type'].get('Unknown', 0)}
+
+<b>ALERTS BY GRADE</b>
+• A+: {m['setup_alerts_by_grade'].get('A+', 0)}
+• A: {m['setup_alerts_by_grade'].get('A', 0)}
+• B+: {m['setup_alerts_by_grade'].get('B+', 0)}
+• B: {m['setup_alerts_by_grade'].get('B', 0)}
+• Unknown: {m['setup_alerts_by_grade'].get('Unknown', 0)}
 
 <b>ERRORS</b>
 • Playwright: {m['errors_playwright']}
@@ -3570,6 +3590,15 @@ async def process_token(token: dict, browser_ctx, psef_result: dict = None, psef
         # Send alert with full WizTheory breakdown
         await send_wiztheory_alert(token, bangers_result, impulse_result, vision_result, _telegram_chart_bytes)
         DAILY_METRICS['alerts_sent'] += 1
+        # Tier 1.C.14: Track setup type distribution at alert-fire time (audit 9.J)
+        _st = bangers_result.get('wiz_setup_type', 'Unknown')
+        _grade = bangers_result.get('grade', 'Unknown')
+        DAILY_METRICS['setup_alerts_by_type'][_st] = (
+            DAILY_METRICS['setup_alerts_by_type'].get(_st, 0) + 1
+        )
+        DAILY_METRICS['setup_alerts_by_grade'][_grade] = (
+            DAILY_METRICS['setup_alerts_by_grade'].get(_grade, 0) + 1
+        )
         return True
     else:
         # Not a banger - check for watchlist
@@ -3828,6 +3857,15 @@ async def scan_top_movers(browser_ctx):
                         await send_forming_alert(wt, engine_result, chart_bytes, bangers_result['score'])
                         whale_alerts += 1
                         DAILY_METRICS['alerts_sent'] += 1
+                        # Tier 1.C.14: Track setup type distribution at alert-fire time (audit 9.J)
+                        _st = engine_result.get('engine_id', 'Unknown')
+                        _grade = engine_result.get('grade', 'Unknown')
+                        DAILY_METRICS['setup_alerts_by_type'][_st] = (
+                            DAILY_METRICS['setup_alerts_by_type'].get(_st, 0) + 1
+                        )
+                        DAILY_METRICS['setup_alerts_by_grade'][_grade] = (
+                            DAILY_METRICS['setup_alerts_by_grade'].get(_grade, 0) + 1
+                        )
                     
                     # Expire after successful alert
                     expire_whale_token(token_address)
