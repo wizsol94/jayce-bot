@@ -184,12 +184,18 @@ If no → defer until baseline data exists.
 - **FIRST PRODUCTION DATA (~4.5 hours runtime):** 799 tokens scanned, 330 EngCool blocks captured (~12 blocks per 100 tokens). This is the BASELINE for Tier 1.D. Current key is {token}:STRUCTURE, meaning one cooldown blocks ALL FIVE engines for a token. Tier 1.D will change key to {token}:{engine_id}, allowing per-engine cooldowns. Expected post-fix outcome: EngCool drops significantly because cooldowns become engine-specific instead of structure-wide. That delta IS the measurement of whether setup evolution (382→50→618→786) is being unlocked. This is exactly the architectural signal Tier 1.C exists to capture.
 - **METHODOLOGY EXTENSION:** First Tier 1.C item touching two files atomically. New pattern established: when measurement spans modules, use producer-side module-local state + accessor function + consumer-side aggregation. Preserves module boundaries. Reusable for any future cross-module observability item.
 
-### ⬜ 14. Setup type distribution metrics
+### ✅ 14. Setup type distribution metrics
 - **Audit reference:** 9.J
 - **Implementation:** DAILY_METRICS['fires_382'], ['fires_50'], ['fires_618'], ['fires_786'], ['fires_underfib']
 - **Purpose:** Verify alert distribution matches expectation
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-09
+- **Verification:** ast.parse passed (176 top-level statements unchanged); 4 atomic changes verified in correct positions (DAILY_METRICS lines 528-529, Path 1 increment 3596-3600, Path 2 increment 3863-3867, daily summary blocks 709-725); existing engine_NNN detection counters preserved; ENGINE DETECTIONS section preserved; ALERTS SENT section preserved; ERRORS section preserved; cycle log width unchanged (deliberately); jayce-scanner restarted cleanly; cycle log post-restart confirmed loaded patched code; file size growth +1937 chars
+- **Commit hash:** 42e8b9b (single commit; functionality + bullet normalization)
+- **ARCHITECTURE NOTE (alert-time vs detection):** Existing engine_NNN counters (engine_382, engine_50, engine_618, engine_786, engine_underfib) track DETECTION at engines.py:1722-1747 and are preserved. Item #14 adds DIFFERENT counters tracking ALERT-FIRE distribution. These answer different questions: "what did engines find?" vs "what reached Telegram?". Both surfaces are valid; they capture different stages of the pipeline.
+- **TWO ALERT-FIRE PATHS INSTRUMENTED:** Path 1 (main WizTheory alert) uses bangers_result["wiz_setup_type"] + bangers_result["grade"]. Path 2 (whale FORMING alert) uses engine_result["engine_id"] + engine_result["grade"]. Different field sources because the two paths consume different result dicts. Each path captures exactly what was IN its alert message.
+- **ENGINE OVERRIDE NOTE:** When ENGINE OVERRIDE fires (Item #11 path), it modifies bangers_result["grade"] and ["score"] but NOT bangers_result["wiz_setup_type"]. So Path 1 records BANGERS classification at alert time. This was deliberate — we measure what was ACTUALLY in the alert message, not what some upstream engine thought. An override-disagreement counter (comparing wiz_setup_type to engine_result.engine_id) is a candidate future Tier 2 observability item.
+- **METHODOLOGY EXTENSION:** First Tier 1.C item where heredoc-paste UTF-8 corruption was detected and corrected during validation (bullet chars became hyphens). Pattern established: use \u2022 Unicode escape rather than literal bullet chars in heredoc Python scripts to avoid future encoding issues on mobile/SSH terminals. The bullet correction was applied in the same execution session and merged into the same commit (42e8b9b) — cleaner than separate commits when the issue is heredoc artifact rather than separate concern.
+- **PRODUCTION DATA:** Setup distribution counters won't accumulate visible values until an alert actually fires. Given current Vision-billing-limited operation (low alert rate), real data accumulation may take 1-7 days. Counters initialize at 0 and the alert-fire paths are wired to increment. Daily summary will show distribution once alerts begin firing.
 
 ### ⬜ 15. Grade distribution metrics
 - **Audit reference:** 9.J
