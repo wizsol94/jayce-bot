@@ -242,12 +242,20 @@ If no → defer until baseline data exists.
 
 ## Tier 1.E — Documentation
 
-### ⬜ 17. Update setup_grader.py docstring to match actual WEIGHTS
+### ✅ 17. Update setup_grader.py docstring to match actual WEIGHTS
 - **Audit reference:** SG.A
 - **Decision needed:** Either update docstring to reflect RSI 8+5 OR update weights to docstring's 15+10
 - **Audit recommendation:** Pick the intended truth, document it explicitly
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-11
+- **Verification:** ast.parse passed (17 top-level statements unchanged); 4 documentation changes verified in correct positions; all 8 behavioral invariants confirmed preserved (WEIGHTS values, ALERT_MIN_GRADE, ALERT_MIN_SCORE); all 6 stale claims confirmed removed; file size growth +441 chars; no restart required (documentation-only)
+- **Commit hash:** a26b3b2
+- **VERIFICATION RESULT — Path A confirmed (pure documentation drift):** Git history shows setup_grader.py was created in commit 0da5dfc (April 2026 v2.0 rewrite) with rsi_memory=8 and rsi_expansion=5 from the start. No prior version with 15/10 exists in git. Backup setup_grader.py.bak.pre-1B3 also shows 8/5. The WEIGHTS values are the authoritative WizTheory truth — the docstring was design notes never synced after implementation.
+- **THE FOUR-LAYER CONTRADICTION:** (1) Top docstring claimed RSI 15/10 totaling 100, (2) WEIGHTS dict had 8/5 totaling 88, (3) WEIGHTS inline comments lied about 15/10, (4) actual math didn't add to 100. All four corrected in one atomic patch.
+- **FIXES APPLIED:** (1) Top docstring updated to 8/5/88 with calibration explanation, (2) WEIGHTS inline comments corrected to "8 points"/"5 points", (3) Section header comment expanded to clarify per-Wiz.sol calibration and max=88.
+- **TIER 2 OBSERVATION CAPTURED — 97% THRESHOLD MATH:** The verification surfaced an architectural insight beyond documentation drift. ALERT_MIN_SCORE = 85 against max=88 means alerts require 85/88 = ~96.6% of available points. Examples: 80/88 (90.9%) rejected, 84/88 (95.5%) rejected, 85/88 (96.6%) accepted. This is intentionally strict per WizTheory "only the best entries" philosophy and likely contributes to Jayce's low alert frequency independent of Vision API constraints. NOT addressed in Tier 1.E (documentation cleanup only); captured for Tier 2 calibration review.
+- **TIER 2 CANDIDATE OBSERVATION:** "Future calibration review — evaluate whether maintaining an 88-point scale with an 85-point threshold remains aligned with intended alert frequency, or whether either the weight totals or threshold should be normalized for interpretability."
+- **METHODOLOGY NOTE — NO RESTART NEEDED:** First Tier 1.E item closed. Documentation changes don't affect runtime (docstring/comments are inert text). Tier 1.E items can land without service interruption — distinct from Tier 1.C (observability, required restart) and Tier 1.D (behavior change, required restart). This pattern can be applied to remaining Items #18 and #19.
+- **METHODOLOGY VALIDATION:** Same verify-before-execute discipline as Items #5 and #7. Audit framed it as docstring drift; verification confirmed it was pure documentation without behavior implications. Git history + backup files + zero prior alternatives = high confidence the 8+5 calibration is intentional truth.
 
 ### ⬜ 18. Document the 4 alert tiers in scanner.py header
 - **Audit reference:** 9.E (VALID tier was missed initially)
