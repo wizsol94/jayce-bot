@@ -4,13 +4,18 @@ SETUP GRADER v2.0 - BANGERS ONLY
 Grades WizTheory setups using all analysis modules.
 Only A and A+ grades trigger alerts.
 
-Weights (100 points total):
+Weights (88 points total — RSI signals weighted lower per Wiz.sol calibration):
 - PSEF Pass: 20 pts
 - Structure Grade: 30 pts (primary signal)
-- RSI Memory: 15 pts
-- RSI Expansion: 10 pts (bonus)
+- RSI Memory: 8 pts
+- RSI Expansion: 5 pts (bonus)
 - Candle Quality: 15 pts
 - Flashcard Match: 10 pts (confirmation only)
+
+Note: ALERT_MIN_SCORE = 85 against a max of 88 means alerts require
+~97% of available points. This is intentionally strict per WizTheory
+"only the best entries" philosophy. Future calibration review may
+revisit the 88-point scale vs 85-point threshold relationship.
 
 Alert Policy:
 - ONLY Grade A or A+ sends alert
@@ -24,14 +29,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GRADING WEIGHTS (Updated per user spec)
+# GRADING WEIGHTS
+# Per Wiz.sol calibration. RSI signals intentionally weighted lower.
+# Maximum theoretical score = 88. ALERT_MIN_SCORE (below) = 85 → ~97% threshold.
 # ══════════════════════════════════════════════════════════════════════════════
 
 WEIGHTS = {
     'psef': 20,           # PSEF pass = 20 points
     'structure': 30,      # Structure grade - PRIMARY (A=30, B=18, C=6)
-    'rsi_memory': 8,     # RSI memory intact = 15 points
-    'rsi_expansion': 5,  # RSI breakout/runner = bonus 10 points
+    'rsi_memory': 8,     # RSI memory intact = 8 points
+    'rsi_expansion': 5,  # RSI breakout/runner = bonus 5 points
     'candle_quality': 15, # Candle tags quality
     'flashcard': 10,      # Flashcard pattern match - CONFIRMATION only
 }
