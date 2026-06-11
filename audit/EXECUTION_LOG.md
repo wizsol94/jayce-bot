@@ -110,7 +110,7 @@ If no → defer until baseline data exists.
   - (1) MIN_MARKET_CAP=0 at scanner.py:404 OVERRIDES .env value of 100000. Config drift: scanner-disabled while dexscreener_fetcher.py, token_validator.py, quiet_movers.py still enforce MIN_MARKET_CAP=100000. Future decision needed.
   - (2) Market-cap filtering architecture currently disabled but preserved. apply_patches.py records this was deliberate ("DISABLED - valid setups at any market cap"). Future decision needed: re-enable filtering OR fully remove the architecture in a dedicated Tier 2/config cleanup decision.
 
-### 🟡 8. Remove ENGINE_PARAMS.cooldown_hours field [DEFERRED]
+### ✅ 8. ENGINE_PARAMS.cooldown_hours field [RESOLVED via Item #16]
 - **Audit reference:** 6.D
 - **Risk:** Low (hardcoded 4h in is_engine_on_cooldown ignores it anyway)
 - **Decision date:** 2026-06-05
@@ -122,6 +122,12 @@ If no → defer until baseline data exists.
 - **Verification queries run (read-only):** 8 diagnostics confirmed (1) field exists in all 5 engine configs, (2) zero external references in active codebase, (3) hardcoded 4h overrides all per-engine values, (4) historical backup proves prior live use.
 - **Future decision belongs in Tier 1.D (Cooldown Evolution Fix):** When Tier 1.D executes, explicit decision required: (a) keep hardcoded 4h forever and let field remain dormant config, OR (b) restore per-engine durations by reading params[cooldown_hours] in is_engine_on_cooldown. Either choice is valid; the decision needs the full context of how the cooldown bug is being fixed.
 - **Methodology insight:** Items #3-#7 verified dead code that was safely removable. Item #8 establishes the DORMANT CONFIG pattern — items where audit accuracy is technical but removal would destroy future value. New 🟡 DEFERRED status: "Audit finding verified, but execution intentionally postponed because the code still contains architectural value or future design intent."
+- **🎯 RESOLUTION via Tier 1.D (Item #16, commit cdf8487, 2026-06-11):** The deferred decision is now made. Chose option (b): RESTORE per-engine durations. ENGINE_PARAMS.cooldown_hours is no longer dormant — it is the AUTHORITATIVE per-engine cooldown duration source. The is_engine_on_cooldown function now reads ENGINE_PARAMS.get(engine_id, {}).get("cooldown_hours", 4) instead of hardcoded cooldown_hours = 4. The doctrinally-aligned per-engine values (382=4h, 50=6h, 618=6h, 786=8h, underfib=6h) are now LIVE behavior.
+- **CLOSURE TYPE — RESOLVED, NOT REMOVED:** Original Item #8 framing (audit 6.D) called for REMOVING the field as dead code. The deferred decision identified it as DORMANT CONFIG with future architectural value. Tier 1.D resolved it by REVIVING rather than REMOVING — the opposite of the original audit suggestion, but the better outcome. The field encoded doctrinally-correct per-engine cooldown intent; that intent is now executing in production.
+- **VALIDATES THE DORMANT CONFIG PATTERN:** This is the proof that the 🟡 DEFERRED status (introduced for Item #8) was the correct methodology. Had we removed the field per the audit suggestion in Tier 1.B, we would have destroyed the architectural intent that Tier 1.D needed three audits and a decision memo to recreate. Dormant config deserves preservation when removal would destroy recoverable design intent.
+- **AUDIT 6.D NOW DOUBLY CLOSED:** First by deferral preserving the field, second by Tier 1.D making the field authoritative. The methodology that prevented premature removal is the same methodology that enabled correct resolution.
+- **NO ADDITIONAL CODE CHANGE FOR THIS ITEM:** The code change happened in commit cdf8487 (Item #16). This entry is documentation-only closure noting that the deferred decision is now resolved.
+- **STATUS LIFECYCLE:** ⬜ open → 🟡 deferred (2026-06-05) → ✅ resolved (2026-06-11 via Tier 1.D)
 
 ### ✅ 9. Hunter Mode Signal 5 removal
 - **Audit reference:** 4.C + 5.B
@@ -213,15 +219,26 @@ If no → defer until baseline data exists.
 
 ## Tier 1.D — Behavior-Changing Fix (Highest Impact in Tier 1)
 
-### ⬜ 16. Cooldown evolution fix (USER-CONFIRMED CRITICAL BUG)
+### ✅ 16. Cooldown evolution fix (USER-CONFIRMED CRITICAL BUG)
 - **Audit reference:** 1.A + 6.E
 - **Location:** engines.py:115-118 (get_cooldown_key)
 - **Change:** `return f"{token_address}:{engine_id}"` (include engine_id, was ignored)
 - **Risk:** Will increase alert volume (intended — enables setup evolution 382 → 50 → 618 → 786)
 - **Doctrine alignment:** Restores WizTheory "one evolving structure" philosophy
 - **Verification:** Watch logs for 382 token firing 618 later within 4h (was impossible before)
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-11
+- **Verification:** ast.parse passed (engines.py 30 top-level statements unchanged); 2 functions modified, 6 untouched; get_cooldown_key now returns f"{token_address}:{engine_id}"; is_engine_on_cooldown uses ENGINE_PARAMS.get(engine_id, {}).get("cooldown_hours", 4); all 10 invariants preserved including scanner.py untouched, set_engine_cooldown call site at engines.py:1609 untouched, ENGINE OVERRIDE logic untouched, Item #13 EngCool instrumentation untouched; jayce-scanner restarted cleanly at 07:56:15 UTC; first post-restart cycle log showed EngCool reset 240 → 0 confirming patched code loaded; no tracebacks; file size growth +534 chars
+- **Commit hash:** cdf8487 (single commit closing Items #16 + #8)
+- **ARCHITECTURE NOTE (Option B.2):** Per-engine cooldown key with per-engine duration. Closes both the key-format bug (audit 1.A) and the dormant config (audit 6.D, Item 1.B.8) in one atomic commit. Doctrinally aligned with WizTheory — each fib zone (382/50/618/786/underfib) is a distinct actionable opportunity, not a stage of one monolithic structure.
+- **PRE-FIX BASELINE (LOCKED):** EngCool 240 over 29 cycles (~8.3 blocks per cycle). Theoretical model: ~80 blocks per engine trigger (5 engines × 16 rescans during 4h window). Engines triggered today: 4 total. Setup evolution: verified SUPPRESSED by code-grounded analysis + EngCool data + audit.
+- **POST-FIX BEHAVIOR (HOUR 0):** EngCool: 0 (in-memory state reset on restart). Service active. Cycle log format unchanged. Patched code confirmed loaded via first cycle.
+- **POST-FIX EXPECTATIONS (24h+):** EngCool should accumulate at ~5x slower rate per trigger because each cooldown blocks 1 engine instead of all 5. The smoking-gun proof of setup evolution: ANY single token appearing in setup_alerts_by_type (Item #14) for multiple engine_ids within 24h. Per-engine cooldown durations: 382=4h, 50=6h, 618=6h, 786=8h, underfib=6h.
+- **VOLUME MITIGATION READY:** If alert volume becomes too high once Vision billing restored, ENGINE_PARAMS.cooldown_hours is now LIVE and tunable without code changes. grade_threshold also tunable per engine. No emergency rollback needed for volume management.
+- **CODE-COMMENT CONTRADICTION RESOLVED:** Pre-fix comment claimed token-level cooldown allowed setup evolution. Runtime behavior was the opposite. Post-fix code and comments now align: per-engine cooldowns truly do allow setup evolution. The lie is now the truth.
+- **AUDIT 1.A CLOSED:** Cooldown blocks setup evolution (HIGH CONFIRMED BUG) — fully resolved. Audit Section 1 has 4 findings total (1.A-1.D); 1.A was the most consequential.
+- **AUDIT 6.D CLOSED:** cooldown_hours config dead code (MEDIUM) — now live and authoritative. Per-engine cooldown_hours from ENGINE_PARAMS dict.
+- **AUDIT 6.E CLOSED:** Umbrella observability gap — completed via Items #11-15 (Tier 1.C) which built the measurement layer, plus Item #16 (Tier 1.D) which is the first measurement target.
+- **METHODOLOGY MILESTONE:** First behavior-changing fix in Tier 1 executed cleanly using same verify-before-execute discipline. 9-diagnostic verification phase prevented premature patching based on EXECUTION_LOG framing alone — surfaced the code-comment contradiction and revealed cooldown-on-detection vs cooldown-on-alert architectural question. Tier 1.C counters (Items #11-15) gave us the EngCool baseline needed to measure the impact. This is the pattern Tier 2 architectural decisions should follow.
 
 ## Tier 1.E — Documentation
 
