@@ -13,6 +13,64 @@
 # CHART SAVE FIX APPLIED
 # CHART VISIBILITY APPLIED
 # ALERT ROUTING APPLIED
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ALERT TIERS (Tier 1.E.18 — audit 8.A + 9.E)
+# ═══════════════════════════════════════════════════════════════════════════
+# This section documents how Jayce CURRENTLY behaves in production.
+# It is DESCRIPTIVE, not prescriptive — Tier 2 may consolidate or restructure
+# these paths based on production data gathered during Tier 1.C observability.
+#
+# Jayce has FOUR independent alert paths, each with distinct thresholds and
+# purposes. These were layered over time and each has its own counter in
+# DAILY_METRICS. Documented here so future architecture work knows the
+# complete picture.
+#
+# 1. WIZTHEORY (most rigorous — BANGERS-graded)
+#    - Function: send_wiztheory_alert()
+#    - Trigger: bangers_result.grade in [A, A+] AND bangers_result.score >= 85
+#    - Sent to: TELEGRAM_CHAT_ID (main alert channel)
+#    - Dedup: ALERT_COOLDOWN_MINUTES (default 120) per token+setup_type
+#    - Counter: DAILY_METRICS['alerts_sent'] + setup_alerts_by_type/grade
+#    - Purpose: Highest-conviction full WizTheory breakdown
+#
+# 2. CONFIRMED (combined-score based)
+#    - Function: send_alert(tier_name='CONFIRMED', ...)
+#    - Trigger: combined_score >= CONFIRMED_THRESHOLD (default 50)
+#    - Sent to: TELEGRAM_CHAT_ID (main alert channel)
+#    - Dedup: sticky watchlist tracking
+#    - Counter: DAILY_METRICS['confirmed_alerts']
+#    - Purpose: High-confidence multi-source confirmation
+#
+# 3. VALID (score-band based)
+#    - Routing: via stage classification at line 1124, score >= SCORE_VALID (55)
+#    - Sent to: TELEGRAM_CHAT_ID (main alert channel)
+#    - Dedup: DEDUP_VALID_HOURS (default 9)
+#    - Counter: DAILY_METRICS['valid_alerts']
+#    - Purpose: Mid-confidence signal worth tracking but not strongest tier
+#
+# 4. FORMING (earliest-stage)
+#    - Function: send_forming_alert() OR send_alert(tier_name='FORMING', ...)
+#    - Trigger: combined_score >= FORMING_THRESHOLD (default 40), whale-required
+#    - Sent to: FORMING_CHAT_ID (private channel, defaults to HEARTBEAT_CHAT_ID)
+#    - Dedup: per-engine cooldown (Tier 1.D fix applies here)
+#    - Counter: DAILY_METRICS['forming_alerts']
+#    - Purpose: Early signal for whale-tracked tokens, low-confidence
+#
+# Key thresholds (env-tunable):
+#   FORMING_THRESHOLD = 40, CONFIRMED_THRESHOLD = 50, SCORE_VALID = 55
+#   ALERT_MIN_SCORE = 85 (WIZTHEORY only, in setup_grader.py)
+#
+# Audit Section 8.A notes these are "4 separate alert paths" — documented
+# here to prevent the architectural drift that led to the audit finding.
+# Audit Section 8.F notes FORMING/CONFIRMED/VALID currently bypass BANGERS
+# doctrine — that's a Tier 2 architectural question, not a Tier 1 fix.
+#
+# NOTE: This header documents the CURRENT alert architecture. Tier 2 may
+# consolidate or restructure these paths based on production data gathered
+# during Tier 1.C observability work.
+# ═══════════════════════════════════════════════════════════════════════════
+
 import os
 from chart_annotator import annotate_chart
 from pathlib import Path
