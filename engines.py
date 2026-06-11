@@ -119,20 +119,27 @@ _LAST_RUN_COOLDOWN_BLOCKS: Dict[str, int] = {}
 
 
 def get_cooldown_key(token_address: str, engine_id: str) -> str:
-    # Use token-only cooldown to allow setup evolution (382 → 618 → 786)
-    # Per WizTheory: These are ONE evolving structure, not separate setups
-    return f"{token_address}:STRUCTURE"
+    # Tier 1.D fix (audit 1.A): Per-engine key enables setup evolution.
+    # Before fix: {token}:STRUCTURE blocked all 5 engines for 4h once any fired.
+    # After fix: each engine has its own cooldown, allowing 382 → 50 → 618
+    # → 786 → underfib progression on the same token as structure evolves.
+    # Alert-level dedup (was_alert_sent, ALERT_COOLDOWN_MINUTES in scanner.py)
+    # continues to prevent same-engine duplicate alerts at the scanner layer.
+    return f"{token_address}:{engine_id}"
 
 
 def is_engine_on_cooldown(token_address: str, engine_id: str) -> bool:
-    """Check if token structure is on cooldown (allows setup evolution)."""
+    """Check if this specific engine is on cooldown for this token."""
     key = get_cooldown_key(token_address, engine_id)
     if key not in ENGINE_COOLDOWNS:
         return False
     
-    # Use a single cooldown for structure (not per-engine)
-    # This allows 382 → 618 → 786 evolution without spam
-    cooldown_hours = 4  # Single cooldown period for all setup types
+    # Tier 1.D fix (closes Item 1.B.8, audit 6.D): Use per-engine cooldown
+    # duration from ENGINE_PARAMS instead of hardcoded 4h. Doctrinally correct
+    # since 786 deserves longer breathing room than 382 (deeper setups, longer
+    # invalidation windows). Defensive fallback to 4 hours if engine_id is
+    # somehow unknown.
+    cooldown_hours = ENGINE_PARAMS.get(engine_id, {}).get('cooldown_hours', 4)
     cooldown_end = ENGINE_COOLDOWNS[key] + timedelta(hours=cooldown_hours)
     
     if datetime.now() < cooldown_end:
