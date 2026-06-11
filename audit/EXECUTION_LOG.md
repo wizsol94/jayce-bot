@@ -197,12 +197,19 @@ If no → defer until baseline data exists.
 - **METHODOLOGY EXTENSION:** First Tier 1.C item where heredoc-paste UTF-8 corruption was detected and corrected during validation (bullet chars became hyphens). Pattern established: use \u2022 Unicode escape rather than literal bullet chars in heredoc Python scripts to avoid future encoding issues on mobile/SSH terminals. The bullet correction was applied in the same execution session and merged into the same commit (42e8b9b) — cleaner than separate commits when the issue is heredoc artifact rather than separate concern.
 - **PRODUCTION DATA:** Setup distribution counters won't accumulate visible values until an alert actually fires. Given current Vision-billing-limited operation (low alert rate), real data accumulation may take 1-7 days. Counters initialize at 0 and the alert-fire paths are wired to increment. Daily summary will show distribution once alerts begin firing.
 
-### ⬜ 15. Grade distribution metrics
+### ✅ 15. Grade distribution metrics
 - **Audit reference:** 9.J
 - **Implementation:** DAILY_METRICS['alerts_A_plus'], ['alerts_A'], ['alerts_B_plus']
 - **Purpose:** Track grade composition over time
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-11
+- **Commit hash:** 42e8b9b (satisfied by Item #14 — no separate code change required)
+- **CLOSURE TYPE — DOCUMENTATION ONLY:** This is the first Tier 1 item closed without code change. Item #14 (Tier 1.C.14) commit 42e8b9b already implemented alert-time grade distribution via DAILY_METRICS["setup_alerts_by_grade"]. Item #15 was originally pre-defined in EXECUTION_LOG with flat-key implementation (DAILY_METRICS["alerts_A_plus"], ["alerts_A"], ["alerts_B_plus"]), but Item #14 implemented a dict-based counter instead. Both designs satisfy the same audit intent (track alert-time grade distribution under audit reference 9.J). The dict-based pattern is strictly better.
+- **WHY DICT-BASED PATTERN WAS CHOSEN OVER FLAT KEYS:** (1) future-proof — handles A+, A, B+, B, C, D, Unknown, or any new grade without code changes; (2) one DAILY_METRICS field instead of 4-5; (3) consistent with the Tier 1.C dict-counter pattern already established in Items #11 (engine_overrides_by_setup + by_grade), #12 (stale_breakout_by_candles_bucket), #13 (engine_cooldown_blocks_by_engine); (4) Unknown fallback prevents KeyError on unexpected grade strings; (5) daily summary rendering is functionally identical to flat-keys.
+- **DATA SURFACE — ALREADY LIVE IN PRODUCTION:** Counter increments at 4 locations (2 per alert path × 2 paths). Path 1 (main WizTheory alert, scanner.py:3599-3600): bangers_result["grade"]. Path 2 (whale FORMING alert, scanner.py:3866-3867): engine_result["grade"]. Daily summary block at scanner.py:720-725 (<b>ALERTS BY GRADE</b> with A+/A/B+/B/Unknown rows).
+- **NO DUPLICATE COUNTERS CREATED:** Per Tier 1.C discipline, adding alerts_A_plus/alerts_A/alerts_B_plus would duplicate every alert event's grade in two counter families. This was deliberately avoided. setup_alerts_by_grade is the single source of truth for alert-time grade distribution.
+- **DEFERRED TO TIER 2 — GRADE PIPELINE DRIFT:** Detection-time grade distribution (grades as they come out of engines.py run_detection, BEFORE BANGERS scoring and ENGINE OVERRIDE) is NOT covered by any Tier 1.C counter. This would let Tier 2 measure how grades drift across pipeline stages (detection → override → alert). Deferred as a Tier 2 observability candidate after baseline data collection determines if the drift signal is actionable. Not part of Item #15 scope per audit framing.
+- **AUDIT FINDING 9.J STATUS:** Closed by Items #11 + #12 + #13 + #14 + #15. Five distinct observability counters now live in production tracking different pipeline aspects (ENGINE OVERRIDE rate, stale breakout rejections, engine cooldown blocks, setup distribution at alert time, grade distribution at alert time). 9.J was the umbrella observability finding; all sub-aspects now closed.
+- **TIER 1.C COMPLETE:** Items #11-#15 all closed. Observability layer fully built. Tier 1.D (cooldown evolution fix) is now UNBLOCKED — baseline EngCool counter (Item #13) ready to measure pre-fix vs post-fix behavior.
 
 ## Tier 1.D — Behavior-Changing Fix (Highest Impact in Tier 1)
 
