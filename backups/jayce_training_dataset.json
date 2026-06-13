@@ -6892,5 +6892,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJlqGoqXHpvrJXxecI1vu1FJzjmpy-5AALUDGsbeXRRRelYxSf_kNWWAQADAgADdwADOwQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 93 WHALE CONVICTION",
     "trained_at": "2026-06-11T06:58:35.371411"
+  },
+  {
+    "chart_id": "618FZ-VOXEL-15M-20260613-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "VOXEL",
+    "timeframe": "15M",
+    "date": "2026-06-13",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 235,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJpRWoth9Tg68B9kXoGQ280Nrl5LJD_AAKxC2sbj01xRVHrYkhv0kxCAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 76",
+    "trained_at": "2026-06-13T16:41:58.671893"
   }
 ]
