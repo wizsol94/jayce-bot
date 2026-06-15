@@ -6928,5 +6928,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJriWovgi6PC7UQoN1IaKnvRDay2bRFAAJPDGsbWRp5RVgS3KsWy4CzAQADAgADdwADPAQ",
     "notes": "clean structure rsi spiked 87 whale conviction",
     "trained_at": "2026-06-15T04:40:42.169196"
+  },
+  {
+    "chart_id": "786FZ-JOTCHUA-15M-20260615-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "JOTCHUA",
+    "timeframe": "15M",
+    "date": "2026-06-15",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 140,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJrnmovkFMBEmIiscfP5pobP__DDenEAAJSDGsbWRp5RQe08mw-jor2AQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 89",
+    "trained_at": "2026-06-15T05:41:16.437174"
   }
 ]
