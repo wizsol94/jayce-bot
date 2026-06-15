@@ -6910,5 +6910,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJpRWoth9Tg68B9kXoGQ280Nrl5LJD_AAKxC2sbj01xRVHrYkhv0kxCAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 76",
     "trained_at": "2026-06-13T16:41:58.671893"
+  },
+  {
+    "chart_id": "50FZ-ZERO-15M-20260615-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "ZERO",
+    "timeframe": "15M",
+    "date": "2026-06-15",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 125,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJriWovgi6PC7UQoN1IaKnvRDay2bRFAAJPDGsbWRp5RVgS3KsWy4CzAQADAgADdwADPAQ",
+    "notes": "clean structure rsi spiked 87 whale conviction",
+    "trained_at": "2026-06-15T04:40:42.169196"
   }
 ]
