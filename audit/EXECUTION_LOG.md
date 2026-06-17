@@ -271,11 +271,20 @@ If no → defer until baseline data exists.
 - **TIER 2 ARCHITECTURAL QUESTIONS DEFERRED (NOT for Tier 1.E):** (1) Should the 4 paths be consolidated? (Audit 8.A); (2) Should FORMING/CONFIRMED/VALID respect BANGERS doctrine? (Audit 8.F); (3) Should combined_score be unified with BANGERS scoring? (Audit 8.J). All three are architectural decisions requiring production data, not documentation cleanup.
 - **METHODOLOGY NOTE — NO RESTART NEEDED:** Second Tier 1.E item closed using docs-only pattern. Tier 1.E items can land without service interruption. Pattern now established for Item #19 (grading scales documentation).
 
-### ⬜ 19. Document the 3 grading scales explicitly
+### ✅ 19. Document the 3 grading scales explicitly
 - **Audit reference:** 8.C
 - **Note:** Defer consolidation to Tier 2.E; documentation only here
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-17
+- **Verification:** ast.parse passed (176 top-level statements unchanged); 81-line GRADING SCALES header inserted between ALERT TIERS block and import os; all 3 scales documented with correct thresholds; all 4 known contradictions captured as Tier 2.E candidates; all 11 content checks passed; all 17 runtime invariants confirmed preserved across Items 1.C/1.D/1.E.17/1.E.18; file size growth +4477 chars; no restart required
+- **Commit hash:** ad0e6f8
+- **CLOSURE TYPE — DESCRIPTIVE DOCUMENTATION:** Header documents the CURRENT 3-scale grading architecture as it exists in production. Framed as DESCRIPTIVE, not prescriptive — Tier 2.E may consolidate, deprecate, or preserve based on production data from Tier 1.C observability work. Explicit warning: do not fix threshold mismatches in isolation.
+- **THREE SCALES VERIFIED + DOCUMENTED:** (1) engines.py grade_threshold=70 PASS gate, no letter assigned; (2) setup_grader.py score_to_grade BANGERS authority (95=A+, 85=A, 75=B+, 65=B, 55=C+, 45=C, <45=D) with ALERT_MIN_SCORE=85/max=88=~96.6%; (3) scanner.py grade gates and mutations (should_run_vision, is_near_miss, should_alert mutation at score>=80, ENGINE OVERRIDE promotion logic).
+- **AUDIT 8.C CLOSED:** Three grading scales emergent (HIGH) — documented as current architecture; consolidation deferred to Tier 2.E per EXECUTION_LOG original framing.
+- **AUDIT SG.I CLOSED:** Grade thresholds differ from engines (HIGH) — verified the difference is actually grade_threshold=70 vs setup_grader letter conversion thresholds (95/85/75/65/55/45). Audit framing was approximate; verification refined the picture.
+- **FOUR TIER 2.E CONTRADICTIONS CAPTURED:** (1) Scanner should_alert score>=80 vs setup_grader ALERT_MIN_SCORE=85 [audit 8.D, CT.C]; (2) ENGINE OVERRIDE can promote BANGERS B+/B to A+/A bypassing strict bar [audit CT.E]; (3) Three distinct grading philosophies coexist (engines naive max/min, BANGERS RSI doctrine, impulse boolean) [audit Truth 2]; (4) setup_grader strict triple-gate effectively decorative [audit Major Issues summary]. All four deferred to Tier 2.E architectural decisions requiring production data.
+- **METHODOLOGY OBSERVATION COMPLETED ACROSS ITEMS #17-#19:** All three Tier 1.E items demonstrated the same pattern — code was more correct than documentation. Tier 1.E proved that architectural debt is not always broken logic; sometimes it is broken explanations. This distinction is critical because broken explanations mislead future engineering decisions even when code itself is sound. Three undocumented architectural realities (RSI weight calibration, 4-tier alert topology, 3-scale grading emergence) have now been made legible without any behavior change.
+- **METHODOLOGY NOTE — TIER 1.E PATTERN COMPLETE:** All three Tier 1.E items closed without service restart. Documentation-only items establish a clean separation from Tier 1.C (observability, required restart) and Tier 1.D (behavior change, required restart). Future tiers can leverage this pattern when audit findings are purely documentation-grade.
+- **🎯 TIER 1 OFFICIALLY COMPLETE — 19/19 = 100%:** All Tier 1 phases done: 1.A operational safety (2/2), 1.B cleanup (8/8), 1.C observability (5/5), 1.D cooldown evolution fix (1/1), 1.E documentation (3/3). 16 commits in total. Zero deferrals (Item #8 originally deferred but resolved via Item #16 in Tier 1.D). The foundation is complete. Tier 2 may now begin from a position of measurement, doctrine, and evidence.
 
 ---
 
