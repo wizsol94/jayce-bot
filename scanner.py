@@ -71,6 +71,87 @@
 # during Tier 1.C observability work.
 # ═══════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════
+# GRADING SCALES (Tier 1.E.19 — audit 8.C + SG.I)
+# ═══════════════════════════════════════════════════════════════════════════
+# This section documents how Jayce CURRENTLY grades setups in production.
+# It is DESCRIPTIVE, not prescriptive — Tier 2.E may consolidate, deprecate,
+# or preserve these scales based on production data gathered during
+# Tier 1.C observability work.
+#
+# Jayce uses THREE places where grading logic lives. They were layered
+# over time (additive architecture) and currently coexist without a
+# single source of truth. The audit (Section 8.C, SG.I) flagged this
+# as a HIGH-severity architectural finding.
+#
+# SCALE 1 — engines.py grade_threshold (PASS gate)
+#   - Location: engines.py per-engine config (ENGINE_PARAMS)
+#   - Value: grade_threshold = 70 for ALL 5 engines (382, 50, 618, 786, underfib)
+#   - Purpose: Numeric pass/fail gate for engine detection
+#   - Letter grade: NOT assigned here. Engine produces numeric score only.
+#   - Letter assignment happens later in scanner.py (line ~3266-3272):
+#       score >= 95 → A+
+#       score >= 85 → A
+#       score >= 75 → B+
+#       score >= 65 → B
+#   - Philosophy: engines use naive max/min swings + legacy RSI + divergence
+#
+# SCALE 2 — setup_grader.py score_to_grade (BANGERS authority)
+#   - Location: setup_grader.py score_to_grade() function
+#   - Numeric → letter conversion:
+#       score >= 95 → A+
+#       score >= 85 → A
+#       score >= 75 → B+
+#       score >= 65 → B
+#       score >= 55 → C+
+#       score >= 45 → C
+#       score <  45 → D
+#   - Authoritative alert bar: ALERT_MIN_GRADE = 'A' AND ALERT_MIN_SCORE = 85
+#   - Max theoretical score: 88 (per Item 1.E.17 documentation — RSI signals
+#     deliberately weighted lower per Wiz.sol calibration). 85/88 ≈ 96.6%.
+#   - Philosophy: BANGERS uses fractal swings (lookback=3) + RSI memory doctrine
+#   - WEIGHTS sum: psef=20, structure=30, rsi_memory=8, rsi_expansion=5,
+#     candle_quality=15, flashcard=10 = 88 total
+#
+# SCALE 3 — scanner.py grade gates and mutations
+#   - should_run_vision (line ~493): uses VISION_MIN_GRADE env var to gate
+#     Vision API calls. grade_order = ['C', 'B', 'B+', 'A', 'A+'].
+#   - is_near_miss (line ~669): B+ score>=70, B score>=60 — watchlist tracking
+#   - bangers_result['should_alert'] mutation (line ~3275):
+#       grade in ['A', 'A+'] AND new_score >= 80
+#     ↑ Note: uses score >= 80, while setup_grader.ALERT_MIN_SCORE = 85
+#   - ENGINE OVERRIDE (line ~3281-3297): if engine_result has A or A+,
+#     promote bangers_result.grade to engine_grade. Can override stricter
+#     BANGERS judgment with looser engine judgment.
+#   - Philosophy: scanner mutates the BANGERS result based on engine signal
+#     and additional gates; final alert decision lives here, not setup_grader
+#
+# KNOWN CONTRADICTIONS (Tier 2.E consolidation candidates):
+#   1. Scanner should_alert mutation uses score >= 80, but setup_grader's
+#      authoritative bar is ALERT_MIN_SCORE = 85. Audit references: 8.D
+#      (should_alert mutated 7 times), CT.C (score threshold 85→80).
+#   2. ENGINE OVERRIDE can promote a BANGERS B+/B result to A+/A based on
+#      engines.py grade, bypassing setup_grader's stricter triple-gate.
+#      Audit reference: CT.E (BANGERS decision sidelined).
+#   3. Three distinct grading philosophies coexist (engines naive max/min,
+#      BANGERS RSI doctrine, impulse_detector boolean) per Truth 2 in audit.
+#   4. setup_grader's strict triple-gate is currently effectively decorative
+#      because scanner mutations can override it. Audit: 'setup_grader's
+#      strict triple-gate effectively decorative' (Major Issues summary).
+#
+# These contradictions are NOT bugs in Tier 1 sense — they are architectural
+# design questions that require production data to answer. Tier 1.C
+# observability provides the measurement layer; Tier 2.E will use that data
+# to decide whether to consolidate (single source of truth), deprecate one
+# or more scales, or preserve the current multi-scale architecture with
+# explicit reconciliation rules.
+#
+# NOTE: This header documents the CURRENT grading architecture. Tier 2.E
+# will decide whether to consolidate, deprecate, or leave as-is. Until
+# then, do not 'fix' threshold mismatches in isolation — doing so could
+# destroy emergent doctrinal intent that the architecture encodes.
+# ═══════════════════════════════════════════════════════════════════════════
+
 import os
 from chart_annotator import annotate_chart
 from pathlib import Path
