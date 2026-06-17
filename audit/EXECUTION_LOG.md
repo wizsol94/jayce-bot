@@ -257,11 +257,19 @@ If no → defer until baseline data exists.
 - **METHODOLOGY NOTE — NO RESTART NEEDED:** First Tier 1.E item closed. Documentation changes don't affect runtime (docstring/comments are inert text). Tier 1.E items can land without service interruption — distinct from Tier 1.C (observability, required restart) and Tier 1.D (behavior change, required restart). This pattern can be applied to remaining Items #18 and #19.
 - **METHODOLOGY VALIDATION:** Same verify-before-execute discipline as Items #5 and #7. Audit framed it as docstring drift; verification confirmed it was pure documentation without behavior implications. Git history + backup files + zero prior alternatives = high confidence the 8+5 calibration is intentional truth.
 
-### ⬜ 18. Document the 4 alert tiers in scanner.py header
+### ✅ 18. Document the 4 alert tiers in scanner.py header
 - **Audit reference:** 9.E (VALID tier was missed initially)
 - **Implementation:** Header comment block listing WIZTHEORY/CONFIRMED/VALID/FORMING with thresholds
-- **Date completed:** _____
-- **Commit hash:** _____
+- **Date completed:** 2026-06-11
+- **Verification:** ast.parse passed (176 top-level statements unchanged); 58-line ALERT TIERS header inserted between patch stamps and import os; all 4 tier descriptions verified in place; all 12 runtime invariants preserved (FORMING_THRESHOLD=40, CONFIRMED_THRESHOLD=50, SCORE_VALID=55, ALERT_MIN_SCORE=85, send_wiztheory_alert, send_alert, send_forming_alert, all DAILY_METRICS counters); all 5 patch stamps preserved as audit trail; all 7 Tier 1.C/1.D instrumentation invariants intact; file size growth +2978 chars; no restart required
+- **Commit hash:** 723189e
+- **CLOSURE TYPE — DESCRIPTIVE DOCUMENTATION:** Header documents the CURRENT 4-tier architecture as it exists in production. Framed as DESCRIPTIVE, not prescriptive — Tier 2 may consolidate or restructure based on production data from Tier 1.C observability work. Preserves the Tier 1 (document reality) vs Tier 2 (decide if reality should change) separation.
+- **FOUR TIERS VERIFIED + DOCUMENTED:** (1) WIZTHEORY via send_wiztheory_alert, BANGERS Grade>=A + Score>=85; (2) CONFIRMED via send_alert(tier_name=CONFIRMED), combined_score>=50; (3) VALID via stage classification, score>=SCORE_VALID(55); (4) FORMING via send_forming_alert, combined_score>=FORMING_THRESHOLD(40), whale-required. Each tier has dedicated DAILY_METRICS counter.
+- **AUDIT 8.A CLOSED:** Three independent alert paths bypass each other — actually 4 (HIGH). Architectural drift documented in header to prevent future confusion. Note: 8.A also flagged that the four paths bypass each other, which is a Tier 2 architectural question (NOT addressed in Tier 1.E documentation cleanup).
+- **AUDIT 9.E CLOSED:** VALID tier was missed initially. Now explicitly documented as tier #3 with its own routing, dedup, and counter.
+- **METHODOLOGY OBSERVATION CAPTURED:** Items #17 and #18 both demonstrated the same pattern — the code was more correct than the documentation. Tier 1.E is proving that architectural debt isn't always broken logic, sometimes it's broken explanations. This distinction matters because broken explanations mislead future engineering decisions even when the code itself is sound. This becomes a Tier 1.E learning artifact applicable to future audit reviews.
+- **TIER 2 ARCHITECTURAL QUESTIONS DEFERRED (NOT for Tier 1.E):** (1) Should the 4 paths be consolidated? (Audit 8.A); (2) Should FORMING/CONFIRMED/VALID respect BANGERS doctrine? (Audit 8.F); (3) Should combined_score be unified with BANGERS scoring? (Audit 8.J). All three are architectural decisions requiring production data, not documentation cleanup.
+- **METHODOLOGY NOTE — NO RESTART NEEDED:** Second Tier 1.E item closed using docs-only pattern. Tier 1.E items can land without service interruption. Pattern now established for Item #19 (grading scales documentation).
 
 ### ⬜ 19. Document the 3 grading scales explicitly
 - **Audit reference:** 8.C
