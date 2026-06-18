@@ -6982,5 +6982,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJvPmoywmQQciaTOQsobpEqquXfjDicAAISDGsbYY6ZRXZTTdxhlrgMAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 90 DIVERGENCE HELD LEVEL",
     "trained_at": "2026-06-17T15:51:24.216587"
+  },
+  {
+    "chart_id": "618FZ-CS-1M-20260618-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "CS",
+    "timeframe": "1M",
+    "date": "2026-06-18",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 60,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJxAmo0Tf1-N1LzGawNwG2CLNFNV_A6AAIvDGsbcrqgReEzB5gRLBivAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81 FUNNY MEME",
+    "trained_at": "2026-06-18T19:59:18.662292"
   }
 ]
