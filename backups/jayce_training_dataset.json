@@ -7018,5 +7018,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJxZmo0pjL01ojfb-sLpnHuLmhLNkQ-AAIsDGsbcrqoReDpLJcK0aBbAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 83 NO KOLS",
     "trained_at": "2026-06-19T02:16:29.588025"
+  },
+  {
+    "chart_id": "382FZ-HARVY-1M-20260619-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "HARVY",
+    "timeframe": "1M",
+    "date": "2026-06-19",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 40,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJxumo07LVQvtM_jOvYvU8QDPWhVIfdAAI_DGsbcrqoRb7MTdsFi5h8AQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTUR RSI SPIKED 90",
+    "trained_at": "2026-06-19T07:16:28.045570"
   }
 ]
