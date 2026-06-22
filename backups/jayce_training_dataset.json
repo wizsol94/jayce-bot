@@ -7036,5 +7036,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJxumo07LVQvtM_jOvYvU8QDPWhVIfdAAI_DGsbcrqoRb7MTdsFi5h8AQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTUR RSI SPIKED 90",
     "trained_at": "2026-06-19T07:16:28.045570"
+  },
+  {
+    "chart_id": "50FZ-SOLANGELES-30M-20260622-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "SOLANGELES",
+    "timeframe": "30M",
+    "date": "2026-06-22",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 65,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ2omo5SswvoCTnJA6qqHAmFrrRQ9-ZAAIVDGsb5bvIRTlwJv-zCEKOAQADAgADdwADPAQ",
+    "notes": "clean structure rsi spiked 83 whale conviction",
+    "trained_at": "2026-06-22T14:47:27.161189"
   }
 ]
