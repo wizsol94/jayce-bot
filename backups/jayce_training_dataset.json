@@ -7108,5 +7108,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ4qmpAiMBCR_STXAslzpNz2LnVjiJLAALSDGsbTI8AAUYTt0rpN28NlwEAAwIAA3cAAzwE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 77",
     "trained_at": "2026-06-28T02:37:13.668361"
+  },
+  {
+    "chart_id": "786FZ-TSUNAMI-15M-20260629-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "TSUNAMI",
+    "timeframe": "15M",
+    "date": "2026-06-29",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 400,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ4-WpB6kgj-z1iizz1gJPgZCdLAS2fAAIWDGsbSZURRo815qV26GbSAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 86",
+    "trained_at": "2026-06-29T03:45:47.220695"
   }
 ]
