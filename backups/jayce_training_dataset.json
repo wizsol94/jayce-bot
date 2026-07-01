@@ -7162,5 +7162,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ5lGpEmct4NiiNBeC9u1xLXv4XUhF-AAL6DGsbKWIhRl7o1N6iMDDVAQADAgADdwADPAQ",
     "notes": "WHALE CONVICTION RSI SPIKED 81 CLEAN STRUCTURE",
     "trained_at": "2026-07-01T04:39:30.005486"
+  },
+  {
+    "chart_id": "618FZ-VAR-MEIMEI-1M-20260701-002",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "MEIMEI",
+    "timeframe": "1M",
+    "date": "2026-07-01",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 55,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ5xmpFY76U71q2f6WAbIuJlhsC7C3jAAKRDGsbKWIpRlmBdgknAAEWLAEAAwIAA3cAAzwE",
+    "notes": "[VARIATION] CLEA STRUCTURE RSI SPIKED 82 WHALE CONVICTION",
+    "trained_at": "2026-07-01T19:00:44.390801"
   }
 ]
