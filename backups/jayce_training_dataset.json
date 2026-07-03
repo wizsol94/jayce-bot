@@ -7180,5 +7180,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ5xmpFY76U71q2f6WAbIuJlhsC7C3jAAKRDGsbKWIpRlmBdgknAAEWLAEAAwIAA3cAAzwE",
     "notes": "[VARIATION] CLEA STRUCTURE RSI SPIKED 82 WHALE CONVICTION",
     "trained_at": "2026-07-01T19:00:44.390801"
+  },
+  {
+    "chart_id": "618FZ-MURAD-5M-20260703-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "MURAD",
+    "timeframe": "5M",
+    "date": "2026-07-03",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 150,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ6JWpHBsWdEwmgU3d7lujuURp0e5puAAJNDGsbJ405RsQzQP5W9xjuAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 96",
+    "trained_at": "2026-07-03T00:48:47.891589"
   }
 ]
