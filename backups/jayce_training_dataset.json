@@ -7198,5 +7198,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ6JWpHBsWdEwmgU3d7lujuURp0e5puAAJNDGsbJ405RsQzQP5W9xjuAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 96",
     "trained_at": "2026-07-03T00:48:47.891589"
+  },
+  {
+    "chart_id": "50FZ-VOICEBOX-5M-20260704-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "VOICEBOX",
+    "timeframe": "5M",
+    "date": "2026-07-04",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ6k2pI_h6bw9gZPuVRTKQf79WAppi6AALtC2sbwyZIRoteUVkCbMcTAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 78",
+    "trained_at": "2026-07-04T12:36:25.908565"
   }
 ]
