@@ -7234,5 +7234,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ66mpKh2AjnxeEEckmkLbJL9v6dU5iAALvDGsblM9QRto41pPgCDaiAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 82",
     "trained_at": "2026-07-05T16:33:58.735115"
+  },
+  {
+    "chart_id": "50FZ-FROG-1M-20260705-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "FROG",
+    "timeframe": "1M",
+    "date": "2026-07-05",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 65,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ67WpKiK8yNu9NizXhGeOfE14X2665AALyDGsblM9QRvtPbQh4lxU0AQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 83",
+    "trained_at": "2026-07-05T16:39:42.986297"
   }
 ]
