@@ -7216,5 +7216,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ6k2pI_h6bw9gZPuVRTKQf79WAppi6AALtC2sbwyZIRoteUVkCbMcTAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 78",
     "trained_at": "2026-07-04T12:36:25.908565"
+  },
+  {
+    "chart_id": "618FZ-JCAT-5M-20260705-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "JCAT",
+    "timeframe": "5M",
+    "date": "2026-07-05",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 110,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ66mpKh2AjnxeEEckmkLbJL9v6dU5iAALvDGsblM9QRto41pPgCDaiAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 82",
+    "trained_at": "2026-07-05T16:33:58.735115"
   }
 ]
