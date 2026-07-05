@@ -7270,5 +7270,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ69GpKipScI5tvIr_kRG6cAAH4LctSeQAC-QxrG5TPUEaJPvwNGc6YxgEAAwIAA3cAAzwE",
     "notes": "CLEAN STRUCTURE RSI SPIKED 78",
     "trained_at": "2026-07-05T16:47:39.411133"
+  },
+  {
+    "chart_id": "UFIB-COMPUTE-30M-20260705-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "COMPUTE",
+    "timeframe": "30M",
+    "date": "2026-07-05",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 375,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ6-2pKnh-2HtLweOITesYppOnuTYWAAAIBDWsblM9QRlTL9Cv5Pjx5AQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 89",
+    "trained_at": "2026-07-05T18:11:05.419202"
   }
 ]
