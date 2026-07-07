@@ -7326,7 +7326,7 @@
     "trained_at": "2026-07-07T05:04:44.958412"
   },
   {
-    "chart_id": "786FZ-BALLOON-5M-20260707-001",
+    "chart_id": "786FZ-BALLOON-5M-20260707-002",
     "setup_name": "786 + Flip Zone",
     "canonical_key": "786_flip_zone",
     "token": "BALLOON",
@@ -7337,10 +7337,10 @@
     "rsi_behavior": "",
     "whale_conviction": false,
     "violent_mode": false,
-    "outcome_percentage": 100,
+    "outcome_percentage": 450,
     "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7cmpMlupNenYackl2FR07YT1wSLWuAAJDDGsbxR1pRuL8wUxKL3HSAQADAgADdwADPAQ",
-    "notes": "CLEAN STRUCTURE RSI SPIKED 96",
-    "trained_at": "2026-07-07T06:04:54.942645"
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7kmpNHSWuZUT8h7sibakAARPWEevjTwACkgxrG8UdcUafR6_9YwWRbQEAAwIAA3cAAzwE",
+    "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 96",
+    "trained_at": "2026-07-07T15:38:25.151079"
   }
 ]
