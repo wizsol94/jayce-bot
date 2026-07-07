@@ -7342,5 +7342,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7kmpNHSWuZUT8h7sibakAARPWEevjTwACkgxrG8UdcUafR6_9YwWRbQEAAwIAA3cAAzwE",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 96",
     "trained_at": "2026-07-07T15:38:25.151079"
+  },
+  {
+    "chart_id": "UFIB-NORMIE-5-20260707-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "NORMIE",
+    "timeframe": "5",
+    "date": "2026-07-07",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 90,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7n2pNQEJf4BQhdIJ_so_xsPNiXuWNAAKdDGsbxR1xRu-ZxnQMFhepAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 98",
+    "trained_at": "2026-07-07T18:08:07.409446"
   }
 ]
