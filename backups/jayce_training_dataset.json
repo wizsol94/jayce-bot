@@ -7324,5 +7324,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7bGpMiC3G6DzY-BvwfDLOZ75v02bFAAI7DGsbxR1pRlan8dw7l3gqAQADAgADdwADPAQ",
     "notes": "WHALE CONVICTION BULLISH STRUCTURE RSI SPIKED 81",
     "trained_at": "2026-07-07T05:04:44.958412"
+  },
+  {
+    "chart_id": "786FZ-BALLOON-5M-20260707-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "BALLOON",
+    "timeframe": "5M",
+    "date": "2026-07-07",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7cmpMlupNenYackl2FR07YT1wSLWuAAJDDGsbxR1pRuL8wUxKL3HSAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 96",
+    "trained_at": "2026-07-07T06:04:54.942645"
   }
 ]
