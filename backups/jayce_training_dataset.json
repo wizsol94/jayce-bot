@@ -7360,5 +7360,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7n2pNQEJf4BQhdIJ_so_xsPNiXuWNAAKdDGsbxR1xRu-ZxnQMFhepAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 98",
     "trained_at": "2026-07-07T18:08:07.409446"
+  },
+  {
+    "chart_id": "618FZ-MASON-1M-20260708-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "MASON",
+    "timeframe": "1M",
+    "date": "2026-07-08",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 160,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ7wWpN0WUQ8246CtxiJmm58b81bUQeAAKqDmsbRKpoRgJ7Augmx9v6AQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 79",
+    "trained_at": "2026-07-08T04:27:11.499954"
   }
 ]
