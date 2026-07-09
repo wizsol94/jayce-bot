@@ -7450,5 +7450,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ8N2pPxJHMNGKbOSPbImZEGgusE2-PAAJQDGsb3PmBRuV5gkkGSaUrAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 92",
     "trained_at": "2026-07-09T15:57:39.665725"
+  },
+  {
+    "chart_id": "618FZ-CASHCAT-1M-20260709-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "CASHCAT",
+    "timeframe": "1M",
+    "date": "2026-07-09",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 175,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ8RmpP6N43FtKC5tUF-TfJ5NmopFBwAAJlDGsb3PmBRhB3LIXSQbZLAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 86 DIVERGENCE",
+    "trained_at": "2026-07-09T18:31:37.837026"
   }
 ]
