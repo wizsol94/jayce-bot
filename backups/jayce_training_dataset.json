@@ -7468,5 +7468,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ8RmpP6N43FtKC5tUF-TfJ5NmopFBwAAJlDGsb3PmBRhB3LIXSQbZLAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 86 DIVERGENCE",
     "trained_at": "2026-07-09T18:31:37.837026"
+  },
+  {
+    "chart_id": "786FZ-CHANCE-1H-20260709-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "CHANCE",
+    "timeframe": "1H",
+    "date": "2026-07-09",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ8TmpP8hfjOJfou5Cfvvhcj-Y9l2ONAAJnDGsb3PmBRqhy7iIz7BX4AQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 88",
+    "trained_at": "2026-07-09T19:10:44.510419"
   }
 ]
