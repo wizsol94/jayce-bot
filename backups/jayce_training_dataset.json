@@ -7432,5 +7432,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ8NGpPwvm4r-MXTR-Tp8ttaj33F6p1AAJODGsb3PmBRnso50N35YGjAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 86",
     "trained_at": "2026-07-09T15:49:40.733016"
+  },
+  {
+    "chart_id": "618FZ-JOBY-30M-20260709-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "JOBY",
+    "timeframe": "30M",
+    "date": "2026-07-09",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ8N2pPxJHMNGKbOSPbImZEGgusE2-PAAJQDGsb3PmBRuV5gkkGSaUrAQADAgADdwADPAQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 92",
+    "trained_at": "2026-07-09T15:57:39.665725"
   }
 ]
