@@ -7504,5 +7504,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ83GpSc3JFDJNc6fb7jP1U_dRldO8zAALFDGsbZ5CRRk6f-loswWrKAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 95",
     "trained_at": "2026-07-11T16:47:14.224387"
+  },
+  {
+    "chart_id": "786FZ-FEBU-5M-20260713-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "FEBU",
+    "timeframe": "5M",
+    "date": "2026-07-13",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 120,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ9cmpVKqCsMwABa0L3KXDhz0DnTzWQIgACowxrG6zNqUbf2FMLBKzzsgEAAwIAA3cAAzwE",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 79 WHALE CONVICTION",
+    "trained_at": "2026-07-13T18:13:09.443676"
   }
 ]
