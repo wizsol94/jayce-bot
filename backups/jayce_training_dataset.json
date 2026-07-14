@@ -7540,5 +7540,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ9dmpVLsXimFAbHropokF_iuY7jxi6AAKqDGsbrM2pRnMx59S0DO9LAQADAgADdwADPAQ",
     "notes": "CLEAN STRUCTURE IG VIRAL CONVICTION RSI SPIKED 84",
     "trained_at": "2026-07-13T18:31:04.575560"
+  },
+  {
+    "chart_id": "618FZ-TRUMPCOIN-1M-20260714-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "TRUMPCOIN",
+    "timeframe": "1M",
+    "date": "2026-07-14",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 110,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ9x2pWj_3jiOc5LnLmmzvaJB0UJR4uAAJnDGsb4mi4RvKklIgPbJ0dAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 90",
+    "trained_at": "2026-07-14T19:37:57.693734"
   }
 ]
