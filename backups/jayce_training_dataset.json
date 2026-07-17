@@ -7576,5 +7576,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ-EWpX1vL3LLDJxsJhyRyqkvYVILAzAAKnDGsbxzK5Rr957BLNDWJsAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 81",
     "trained_at": "2026-07-15T18:53:44.772880"
+  },
+  {
+    "chart_id": "50FZ-JIMOTHY-1M-20260717-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "JIMOTHY",
+    "timeframe": "1M",
+    "date": "2026-07-17",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 260,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ-empZuGJjxvxMK8btF16jobtzDnaQAAJMDWsbzenIRpwTw1nNxR3vAQADAgADdwADPQQ",
+    "notes": "RSI SPIKED 85 CLEAN STRUCTURE FUNNY MEME",
+    "trained_at": "2026-07-17T05:07:18.697858"
   }
 ]
