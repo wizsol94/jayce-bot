@@ -7612,5 +7612,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ-pGpab-hR6jKPvBoOmrwc0uiFKz4zAAL6DGsbzenQRhfAgD5NOPB7AQADAgADdwADPQQ",
     "notes": "[VARIATION] CLEAN STRUCTURE RSI SPIKED 80",
     "trained_at": "2026-07-17T18:10:19.649676"
+  },
+  {
+    "chart_id": "786FZ-SAGAWA-5M-20260718-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "SAGAWA",
+    "timeframe": "5M",
+    "date": "2026-07-18",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 95,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ_AAFqW_mBl0x6hcKU3G4Kgbh8RG3fRQACKwxrG_zS4UZ67IyBjyHDOwEAAwIAA3cAAz0E",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 95",
+    "trained_at": "2026-07-18T22:09:38.430826"
   }
 ]
