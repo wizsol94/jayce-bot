@@ -7630,5 +7630,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ_AAFqW_mBl0x6hcKU3G4Kgbh8RG3fRQACKwxrG_zS4UZ67IyBjyHDOwEAAwIAA3cAAz0E",
     "notes": "CLEAN STRUCTURE RSI SPIKED 95",
     "trained_at": "2026-07-18T22:09:38.430826"
+  },
+  {
+    "chart_id": "618FZ-KET-30M-20260720-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "KET",
+    "timeframe": "30M",
+    "date": "2026-07-20",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 110,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ_f2pePhHtKBTRtRk9RJ8gdcgH8RYfAAKLDGsb2BjxRouHuNId6mukAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81",
+    "trained_at": "2026-07-20T15:26:30.206897"
   }
 ]
