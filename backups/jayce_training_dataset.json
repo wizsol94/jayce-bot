@@ -7666,5 +7666,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ_m2peqfdNl4XH5oSJ0Vm1cbNmAAERTwACrAxrG9gY8UaOV0zxwqdFGAEAAwIAA3cAAz0E",
     "notes": "CLEAN STRUCTURE RSI SPIKED 81",
     "trained_at": "2026-07-20T23:06:56.546811"
+  },
+  {
+    "chart_id": "786FZ-JACARE-5M-20260722-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "JACARE",
+    "timeframe": "5M",
+    "date": "2026-07-22",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 325,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAJ_8GpgK-KHVeu2u9L1ba_XnNDAIg6JAAKvDWsbZDQAAUfcnrDMAgNHnAEAAwIAA3cAAz0E",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81",
+    "trained_at": "2026-07-22T02:33:36.932494"
   }
 ]
