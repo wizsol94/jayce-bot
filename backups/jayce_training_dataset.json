@@ -7720,5 +7720,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKASWphnVvnBNYwdsNOIbdI56k8TXfXAAIRDWsbBgoJR_Aqnizo01aXAQADAgADdwADPQQ",
     "notes": "CEAN STRUCTURE RSI SPIKED 84 VIRAL MEME",
     "trained_at": "2026-07-23T04:50:16.462531"
+  },
+  {
+    "chart_id": "382FZ-LOOONG-1M-20260724-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "LOOONG",
+    "timeframe": "1M",
+    "date": "2026-07-24",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKAvmpjqlzHl-At1TinGiYuhZ3NEN8LAAJVDGsbVXYYR6m-HMzOQYL3AQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 80 DIVERGENCE",
+    "trained_at": "2026-07-24T18:10:11.683856"
   }
 ]
