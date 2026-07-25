@@ -7756,5 +7756,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKA42pkTqWXFA6cgxtZWNwj6c7JzmMIAAK8DGsbVXYgR8cOnuA2fNZVAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 77",
     "trained_at": "2026-07-25T05:55:10.711155"
+  },
+  {
+    "chart_id": "UFIB-CUPSEY-4H-20260725-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "CUPSEY",
+    "timeframe": "4H",
+    "date": "2026-07-25",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 700,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKA52pkUZrTJsiJBYo080_48trFUfZQAAK-DGsbVXYgR7xzStPSLbq7AQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 95",
+    "trained_at": "2026-07-25T06:03:55.560367"
   }
 ]
