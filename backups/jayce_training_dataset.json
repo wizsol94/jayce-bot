@@ -7792,5 +7792,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKA62pkV2ywSounLt68hCdijw1iDJm9AALADGsbVXYgR8ZS2OSIXaQzAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 87",
     "trained_at": "2026-07-25T06:28:45.238915"
+  },
+  {
+    "chart_id": "618FZ-TIANA-1M-20260726-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "TIANA",
+    "timeframe": "1M",
+    "date": "2026-07-26",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKBUmpmIZbMHzvicbtSlYHJUIWg8UN7AAInDWsbkRAwRySfJay-3OXkAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 79",
+    "trained_at": "2026-07-26T15:03:10.905170"
   }
 ]
