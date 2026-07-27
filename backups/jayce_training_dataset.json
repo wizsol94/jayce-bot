@@ -7810,5 +7810,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKBUmpmIZbMHzvicbtSlYHJUIWg8UN7AAInDWsbkRAwRySfJay-3OXkAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 79",
     "trained_at": "2026-07-26T15:03:10.905170"
+  },
+  {
+    "chart_id": "UFIB-SOLCAT-1M-20260727-001",
+    "setup_name": "Under-Fib Flip Zone",
+    "canonical_key": "under_fib_flip_zone",
+    "token": "SOLCAT",
+    "timeframe": "1M",
+    "date": "2026-07-27",
+    "fib_depth": "Under-Fib",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 200,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKBoWpnfMmkb7E-Z_UtRquRnbPPKuwEAAJ4DGsbkRA4R-LFJCIw16eTAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 85 WHALE CONVICTION",
+    "trained_at": "2026-07-27T15:45:58.973655"
   }
 ]
