@@ -7828,5 +7828,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKBoWpnfMmkb7E-Z_UtRquRnbPPKuwEAAJ4DGsbkRA4R-LFJCIw16eTAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 85 WHALE CONVICTION",
     "trained_at": "2026-07-27T15:45:58.973655"
+  },
+  {
+    "chart_id": "786FZ-FERRET-15M-20260729-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "FERRET",
+    "timeframe": "15M",
+    "date": "2026-07-29",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 120,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCCWppTZnRuHhrekQp3bWwn9Ie35XAAAJyDGsb-r9JR0-hX-HIbf8kAQADAgADdwADPQQ",
+    "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 94",
+    "trained_at": "2026-07-29T00:47:59.589160"
   }
 ]
