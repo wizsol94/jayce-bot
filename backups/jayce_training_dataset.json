@@ -7846,5 +7846,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCCWppTZnRuHhrekQp3bWwn9Ie35XAAAJyDGsb-r9JR0-hX-HIbf8kAQADAgADdwADPQQ",
     "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 94",
     "trained_at": "2026-07-29T00:47:59.589160"
+  },
+  {
+    "chart_id": "786FZ-GNOMES-5M-20260729-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "GNOMES",
+    "timeframe": "5M",
+    "date": "2026-07-29",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 300,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCHWppnqtx_e7tREUYu4sIS0ZxBtarAAJyDGsbK2lIR1py_iW8u8DkAQADAgADdwADPQQ",
+    "notes": "clean structure rsi spiked 91",
+    "trained_at": "2026-07-29T06:33:46.079338"
   }
 ]
