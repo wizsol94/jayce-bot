@@ -7902,7 +7902,7 @@
     "trained_at": "2026-07-30T04:39:35.600607"
   },
   {
-    "chart_id": "618FZ-CHIIKAWA-5M-20260730-001",
+    "chart_id": "618FZ-CHIIKAWA-5M-20260730-002",
     "setup_name": "618 + Flip Zone",
     "canonical_key": "618_flip_zone",
     "token": "CHIIKAWA",
@@ -7913,10 +7913,10 @@
     "rsi_behavior": "",
     "whale_conviction": false,
     "violent_mode": false,
-    "outcome_percentage": 60,
+    "outcome_percentage": 300,
     "expansion_time_minutes": 0,
-    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCb2pq8w5xjc-DrAfMY5Ix8geqB4XeAAIoDGsbK2lYRxdJomS4QDQOAQADAgADdwADPQQ",
-    "notes": "CLEAN STRUCTURE RSI SPIKED 89",
-    "trained_at": "2026-07-30T06:46:06.149017"
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCmWprmyoCTG83hyCs00z5qS27_zceAAKqDWsbw75hRzkj8ny5JnuuAQADAgADdwADPQQ",
+    "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 89",
+    "trained_at": "2026-07-30T18:45:34.558792"
   }
 ]
