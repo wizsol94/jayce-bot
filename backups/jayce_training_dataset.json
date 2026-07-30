@@ -7918,5 +7918,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCmWprmyoCTG83hyCs00z5qS27_zceAAKqDWsbw75hRzkj8ny5JnuuAQADAgADdwADPQQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 89",
     "trained_at": "2026-07-30T18:45:34.558792"
+  },
+  {
+    "chart_id": "618FZ-DUMBO-1M-20260730-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "DUMBO",
+    "timeframe": "1M",
+    "date": "2026-07-30",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 160,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCqmpr03wt0xdg1u2H0DRa2id8Jk14AALKDWsbw75hRw_1TZ6q4b7lAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81 GOOD MEME FOMO WALLETS",
+    "trained_at": "2026-07-30T22:43:50.404445"
   }
 ]
