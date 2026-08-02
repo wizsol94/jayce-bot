@@ -7936,5 +7936,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKCqmpr03wt0xdg1u2H0DRa2id8Jk14AALKDWsbw75hRw_1TZ6q4b7lAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 81 GOOD MEME FOMO WALLETS",
     "trained_at": "2026-07-30T22:43:50.404445"
+  },
+  {
+    "chart_id": "50FZ-JORDAN-1M-20260802-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "JORDAN",
+    "timeframe": "1M",
+    "date": "2026-08-02",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKDXGpu2vjtA-aPPBhS392WG4GeBhibAAKvDWsbUWd4R0ywVRo4k8wMAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81",
+    "trained_at": "2026-08-02T05:52:33.456323"
   }
 ]
