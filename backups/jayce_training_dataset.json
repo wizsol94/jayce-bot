@@ -7990,5 +7990,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKDjWpvmWLLt1ksqWPenZVTBsyXydrsAAIXDWsbYcKARyZjTabjHStqAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 71 HIGH VOLUME",
     "trained_at": "2026-08-02T19:24:50.250863"
+  },
+  {
+    "chart_id": "382FZ-CATE-5M-20260802-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "CATE",
+    "timeframe": "5M",
+    "date": "2026-08-02",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 110,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKDk2pvoW4tKPkk2plDlW579wyiBO6-AAIbDWsbYcKAR3xgZFn81Vx_AQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 81",
+    "trained_at": "2026-08-02T19:59:09.709203"
   }
 ]
