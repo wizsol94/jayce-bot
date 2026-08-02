@@ -41,6 +41,15 @@ class PriceAlertRepository:
             params = (str(destination_chat_id),)
         return [self._from_row(row) for row in self.database.query(sql + " ORDER BY id", params)]
 
+    def active_for_user(self, chat_id, user_id):
+        """Active alerts created by one user in one chat. Used for the per-user cap."""
+        rows = self.database.query(
+            "SELECT * FROM price_alerts WHERE status='active' AND destination_chat_id=? "
+            "AND creator_user_id=? ORDER BY id",
+            (str(chat_id), str(user_id)),
+        )
+        return [self._from_row(row) for row in rows]
+
     def history(self, destination_chat_id=None, limit=20) -> list[PriceAlert]:
         sql = "SELECT * FROM price_alerts WHERE status IN ('triggered','deleted','error')"
         params = []

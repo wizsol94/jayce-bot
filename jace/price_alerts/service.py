@@ -62,14 +62,31 @@ class PriceAlertService:
         logger.info("[price alert] worker stopped")
 
     def handle_command(self, text, *, user_id, chat_id, update_id=None):
-        if not self.is_authorized(user_id):
-            return "Permission denied."
+        # ACCESS MODEL
+        # ------------
+        # Anyone in the configured chat may create and view alerts. The chat
+        # restriction itself is enforced by the transport layer, so reaching
+        # this method already means "in the General Chat".
+        #
+        #   /alert /alerts /alerthistory  -> any member
+        #   /deletealert                  -> the alert's creator, or an admin
+        #   /clearalerts                  -> admins only (destructive, group-wide)
+        #
+        # admin_ids comes from JACE_PRICE_ALERT_ADMIN_IDS, falling back to
+        # OWNER_USER_ID. Admins keep override on everything.
         command = parse_command(text)
         if command.name == "alert":
             if len(command.args) != 2:
                 raise CommandError("Usage: /alert CONTRACT_ADDRESS TARGET_PRICE")
             address = validate_address(command.args[0])
             target = parse_target(command.args[1])
+            existing = self.repository.active_for_user(chat_id, user_id)
+            if not self.is_admin(user_id) and len(existing) >= self.MAX_ACTIVE_PER_USER:
+                return (
+                    f"You already have {len(existing)} active alerts, which is the "
+                    f"limit of {self.MAX_ACTIVE_PER_USER} per person.\n"
+                    "Delete one with /deletealert ALERT_ID to make room."
+                )
             quote = self.provider.get_quote(address)
             if not self.repository.claim_update(chat_id, update_id):
                 return "This Telegram update was already processed."
@@ -82,18 +99,23 @@ class PriceAlertService:
             if len(command.args) != 1 or not command.args[0].isdigit():
                 raise CommandError("Usage: /deletealert ALERT_ID")
             alert_id = int(command.args[0])
-            # ADMIN MODEL: every ID in JACE_PRICE_ALERT_ADMIN_IDS is a GLOBAL
-            # admin. Any configured admin may delete any alert in their chat,
-            # regardless of who created it. Per-creator ownership is deliberately
-            # NOT enforced. Alerts belonging to a different chat are reported as
-            # not found, so an ID cannot be used to reach across chats.
             alert = self.repository.get(alert_id) if self._exists(alert_id) else None
             if alert is None or alert.destination_chat_id != str(chat_id):
                 return f"Alert number {alert_id} was not found."
+            if alert.creator_user_id != str(user_id) and not self.is_admin(user_id):
+                return (
+                    f"Alert number {alert_id} belongs to someone else. "
+                    "You can only delete your own alerts."
+                )
             deleted = self.repository.mark_deleted(alert_id)
-            logger.info("[price alert] alert deleted id=%s", alert_id)
+            logger.info("[price alert] alert deleted id=%s by=%s", alert_id, user_id)
             return f"Alert number {alert_id} deleted successfully." if deleted else f"Alert number {alert_id} was not found."
         if command.name == "clear":
+            if not self.is_admin(user_id):
+                return (
+                    "Only an admin can clear all alerts, because it deletes "
+                    "everyone's. Use /deletealert ALERT_ID to remove your own."
+                )
             self.repository.request_clear_confirmation(user_id, chat_id)
             return "Clear all active alerts. This cannot be undone."
         if command.name == "history":
@@ -101,7 +123,9 @@ class PriceAlertService:
         raise CommandError("Unknown alert command.")
 
     def handle_clear_callback(self, action, *, user_id, chat_id):
-        if not self.is_authorized(user_id):
+        # Clearing is admin-only and destructive, so the callback re-checks
+        # rather than trusting that the button came from an authorised message.
+        if not self.is_admin(user_id):
             return "Permission denied."
         if action == "cancel":
             self.repository.consume_clear_confirmation(user_id, chat_id)
@@ -223,6 +247,10 @@ class PriceAlertService:
     # well inside that limit regardless of how many alerts exist. Version 1 uses
     # a simple cap rather than pagination; the remainder stays reachable via
     # /alerts after deleting some, and every alert is still monitored.
+    # Per-person cap on ACTIVE alerts. Triggered and deleted alerts do not
+    # count, so reaching the limit is never permanent. Admins are exempt.
+    MAX_ACTIVE_PER_USER = 10
+
     ACTIVE_LIST_LIMIT = 20
     HISTORY_LIMIT = 20
 
@@ -234,7 +262,7 @@ class PriceAlertService:
         if len(alerts) > len(shown):
             lines.append(f"Showing first {len(shown)} active alerts.")
         for alert in shown:
-            lines.append(f"#{alert.id} {alert.token_symbol} current {self._price(alert.last_checked_price or alert.current_price)} target {self._price(alert.target_price)} direction {alert.direction} status active")
+            lines.append(f"#{alert.id} {alert.token_symbol} current {self._price(alert.last_checked_price or alert.current_price)} target {self._price(alert.target_price)} direction {alert.direction} by {alert.creator_user_id}")
         return "\n".join(lines)
 
     def format_history(self, alerts):

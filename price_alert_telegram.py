@@ -75,6 +75,19 @@ def _poll_seconds() -> int:
         return 5
 
 
+def _dm_enabled() -> bool:
+    return os.getenv("JACE_PRICE_ALERT_DM_ENABLED", "false").lower() in {"1", "true", "yes", "on"}
+
+
+def _dm_user_id():
+    """Override first, then OWNER_USER_ID, else None."""
+    for name in ("JACE_PRICE_ALERT_DM_USER_ID", "OWNER_USER_ID"):
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return None
+
+
 def _markup(buttons):
     if not buttons:
         return None
@@ -98,6 +111,46 @@ async def _send(bot, text, buttons=None):
     return message.message_id
 
 
+async def _send_dm_copy(bot, text, buttons):
+    """Best-effort duplicate to the owner's private chat.
+
+    DELIBERATELY SWALLOWS ALL EXCEPTIONS. The General Chat message has already
+    been delivered by the time this runs. If a DM failure were allowed to
+    propagate, the service would treat the whole delivery as failed, release its
+    delivery claim, and resend the General Chat alert on the next cycle — a
+    duplicate-alert loop. The DM is a convenience; it must never affect the
+    alert's delivery status.
+    """
+    if not _dm_enabled():
+        return
+    recipient = _dm_user_id()
+    if not recipient:
+        logger.warning(
+            "[PRICE_ALERT] DM enabled but no recipient configured "
+            "(set JACE_PRICE_ALERT_DM_USER_ID or OWNER_USER_ID) — skipping DM"
+        )
+        return
+    try:
+        await bot.send_message(
+            chat_id=recipient,
+            text=text,
+            reply_markup=_markup(buttons),
+            disable_web_page_preview=True,
+        )
+    except Exception as exc:
+        logger.error(
+            "[PRICE_ALERT] DM copy failed (General Chat alert already delivered, "
+            "not retrying): %s: %s", type(exc).__name__, exc
+        )
+
+
+async def _publish(bot, text, buttons):
+    """General Chat is primary. The DM copy runs only after it succeeds."""
+    message_id = await _send(bot, text, buttons)
+    await _send_dm_copy(bot, text, buttons)
+    return message_id
+
+
 def _publisher(alert):
     """Called from the worker THREAD. Bridges into the Application's loop.
 
@@ -108,7 +161,7 @@ def _publisher(alert):
         raise RuntimeError("Price Alert Telegram transport is not wired")
     outbound = _adapter.format_triggered(alert)
     future = asyncio.run_coroutine_threadsafe(
-        _send(_bot_ref, outbound.text, outbound.buttons), _loop
+        _publish(_bot_ref, outbound.text, outbound.buttons), _loop
     )
     return future.result(timeout=SEND_TIMEOUT)
 
