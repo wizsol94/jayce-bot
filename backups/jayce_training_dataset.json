@@ -7972,5 +7972,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKDYmpu6XXux9kKqzz57T6Vqa-evkLBAAKxDWsbUWd4RyHlGsx6PFloAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 76 WHALE CONVICTION",
     "trained_at": "2026-08-02T06:54:41.940024"
+  },
+  {
+    "chart_id": "382FZ-JORDAN-1M-20260802-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "JORDAN",
+    "timeframe": "1M",
+    "date": "2026-08-02",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 80,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKDjWpvmWLLt1ksqWPenZVTBsyXydrsAAIXDWsbYcKARyZjTabjHStqAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 71 HIGH VOLUME",
+    "trained_at": "2026-08-02T19:24:50.250863"
   }
 ]
