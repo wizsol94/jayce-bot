@@ -9,6 +9,7 @@ import httpx
 from collections import defaultdict
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from price_alert_telegram import register_price_alerts
 
 # Configure logging
 logging.basicConfig(
@@ -5190,6 +5191,10 @@ def main():
     
     # Register the startup callback
     application.post_init = auto_restore_training
+
+    # Price Alerts — must come AFTER post_init is assigned so the
+    # module can chain onto auto_restore_training instead of being overwritten.
+    register_price_alerts(application)
 
     logger.info("Starting Jayce Bot with Vision + Memory + Training...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
