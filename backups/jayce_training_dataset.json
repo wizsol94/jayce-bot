@@ -8026,5 +8026,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAyEFAASzFZVhAAIasmpv6eWg1021DFAKbbMOWLoet_ZKAALBDWsbZWB5R_v3dPcLbzE0AQADAgADdwADPQQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 94",
     "trained_at": "2026-08-03T01:09:37.650166"
+  },
+  {
+    "chart_id": "382FZ-WIWIWI-15M-20260803-001",
+    "setup_name": "382 + Flip Zone",
+    "canonical_key": "382_flip_zone",
+    "token": "WIWIWI",
+    "timeframe": "15M",
+    "date": "2026-08-03",
+    "fib_depth": "382",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 110,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKDuGpwCAvJxoUXPlIhYAABugWM182eTAACPQ1rG2HCgEdRFgGwnbYbxgEAAwIAA3cAAz0E",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 72",
+    "trained_at": "2026-08-03T03:17:01.800473"
   }
 ]
