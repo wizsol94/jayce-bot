@@ -8080,5 +8080,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKD0mpwYzT09-9eVFliL98bxPYouLNYAALMDGsbYcKIR1L5FsuEqT8iAQADAgADdwADPQQ",
     "notes": "WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 93",
     "trained_at": "2026-08-03T09:46:56.335880"
+  },
+  {
+    "chart_id": "618FZ-NEEGY-15M-20260803-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "NEEGY",
+    "timeframe": "15M",
+    "date": "2026-08-03",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 70,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKD-Wpw-r-3We-3HfTD7w_8Xw-2bjw9AAL4DGsbYcKIR075MjEQzoOLAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 79 WHALE CONVICTION",
+    "trained_at": "2026-08-03T20:34:26.243068"
   }
 ]
