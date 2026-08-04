@@ -240,8 +240,19 @@ class PriceAlertService:
     def _price(value):
         return format(value, "f")
 
+    DIRECTION_GLYPH = {"up": "🔺", "down": "🔻"}
+
     def format_created(self, alert):
-        return f"Alert number {alert.id} created\nToken: {alert.token_name} ({alert.token_symbol})\nContract: {alert.contract_address}\nCurrent price: {self._price(alert.current_price)}\nTarget price: {self._price(alert.target_price)}\nDirection: {alert.direction}\nStatus: active\nCreated: {alert.created_at}"
+        glyph = self.DIRECTION_GLYPH.get(alert.direction, "🔮")
+        return (
+            f"🔮 Alert #{alert.id} conjured\n\n"
+            f"✨ {alert.token_name} ({alert.token_symbol})\n"
+            f"📜 {alert.contract_address}\n\n"
+            f"💰 Current · {self._price(alert.current_price)}\n"
+            f"🎯 Target · {self._price(alert.target_price)}\n"
+            f"{glyph} Watching · {alert.direction}\n"
+            f"🟢 Status · active"
+        )
 
     # Telegram rejects messages over 4096 characters. A hard cap keeps /alerts
     # well inside that limit regardless of how many alerts exist. Version 1 uses

@@ -58,25 +58,20 @@ class TelegramPriceAlertAdapter:
             return OutboundMessage("Create a new alert with /alert CONTRACT_ADDRESS TARGET_PRICE")
         return OutboundMessage("Unknown alert action.")
 
+    DIRECTION_GLYPH = {"up": "🔺", "down": "🔻"}
+
     def format_triggered(self, alert) -> OutboundMessage:
+        glyph = self.DIRECTION_GLYPH.get(alert.direction, "⚡")
         text = (
-            "Price alert triggered\n"
-            f"Alert ID: {alert.id}\n"
-            f"Token: {alert.token_name} ({alert.token_symbol})\n"
-            f"Contract: {alert.contract_address}\n"
-            f"Direction: {alert.direction}\n"
-            f"Created price: {self._plain(alert.current_price)}\n"
-            f"Target price: {self._plain(alert.target_price)}\n"
-            f"Trigger price: {self._plain(alert.last_checked_price)}\n"
-            f"Created: {alert.created_at}\n"
-            f"Time active: {self._elapsed(alert.created_at)}\n"
-            "Status: target hit\n"
-            f"Chart: https://dexscreener.com/solana/{alert.pair_address}"
+            f"⚡ TARGET HIT · #{alert.id} ⚡\n\n"
+            f"✨ {alert.token_name} ({alert.token_symbol})\n\n"
+            f"{glyph} Direction · {alert.direction}\n"
+            f"💥 Trigger price · {self._plain(alert.last_checked_price)}\n"
+            f"🏁 Status · target hit"
         )
         buttons = [
-            ("Open DexScreener", f"price_alert:open:{alert.id}"),
-            ("Copy CA", f"price_alert:copy:{alert.id}"),
-            ("Create new alert", "price_alert:new:0"),
+            ("📊 Open DexScreener", f"price_alert:open:{alert.id}"),
+            ("📋 Copy CA", f"price_alert:copy:{alert.id}"),
         ]
         return OutboundMessage(text, buttons)
 

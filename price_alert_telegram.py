@@ -88,6 +88,27 @@ def _dm_user_id():
     return None
 
 
+def _topic_id():
+    """Forum topic that triggered alerts publish into.
+
+    WizTheoryLabs is a forum group, so the Price Alerts "chat" is a TOPIC inside
+    the same chat_id rather than a separate group. Topics are addressed with
+    message_thread_id. Unset means "behave exactly as before": everything goes
+    to the group's main area.
+
+    Resolved at send time, never stored on the alert, so moving or recreating
+    the topic is a config change rather than a data repair.
+    """
+    value = os.getenv("JACE_PRICE_ALERT_TOPIC_ID", "").strip()
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        logger.error("[PRICE_ALERT] JACE_PRICE_ALERT_TOPIC_ID is not a number — ignoring")
+        return None
+
+
 def _markup(buttons):
     if not buttons:
         return None
@@ -101,14 +122,38 @@ def _in_general_chat(chat_id) -> bool:
     return _chat_id is not None and str(chat_id) == str(_chat_id)
 
 
-async def _send(bot, text, buttons=None):
-    message = await bot.send_message(
-        chat_id=_chat_id,
-        text=text,
-        reply_markup=_markup(buttons),
-        disable_web_page_preview=True,
-    )
+async def _send(bot, text, buttons=None, thread_id=None):
+    """Send into the group, optionally into a specific forum topic."""
+    kwargs = {
+        "chat_id": _chat_id,
+        "text": text,
+        "reply_markup": _markup(buttons),
+        "disable_web_page_preview": True,
+    }
+    if thread_id is not None:
+        kwargs["message_thread_id"] = thread_id
+    message = await bot.send_message(**kwargs)
     return message.message_id
+
+
+async def _send_trigger(bot, text, buttons):
+    """Publish a triggered alert into the Price Alerts topic.
+
+    Falls back to the group's main area if the topic is unreachable — deleted,
+    renamed away, or closed. Losing the topic must never mean losing the alert.
+    Only if BOTH fail do we raise, so the service releases its claim and retries.
+    """
+    topic = _topic_id()
+    if topic is None:
+        return await _send(bot, text, buttons)
+    try:
+        return await _send(bot, text, buttons, thread_id=topic)
+    except Exception as exc:
+        logger.error(
+            "[PRICE_ALERT] Price Alerts topic unreachable (%s: %s) — "
+            "falling back to the main chat area", type(exc).__name__, exc
+        )
+        return await _send(bot, text, buttons)
 
 
 async def _send_dm_copy(bot, text, buttons):
@@ -145,8 +190,8 @@ async def _send_dm_copy(bot, text, buttons):
 
 
 async def _publish(bot, text, buttons):
-    """General Chat is primary. The DM copy runs only after it succeeds."""
-    message_id = await _send(bot, text, buttons)
+    """Price Alerts topic is primary. The DM copy runs only after it succeeds."""
+    message_id = await _send_trigger(bot, text, buttons)
     await _send_dm_copy(bot, text, buttons)
     return message_id
 
@@ -187,7 +232,10 @@ async def _handle(update, context, raw_text):
             chat_id=message.chat_id,
             update_id=update.update_id,
         )
-        await _send(context.bot, outbound.text, outbound.buttons)
+        # Reply in whatever topic the command was typed in. A command that
+        # answers somewhere else looks broken to the person who typed it.
+        await _send(context.bot, outbound.text, outbound.buttons,
+                    thread_id=getattr(message, "message_thread_id", None))
     except Exception as exc:
         logger.error("[PRICE_ALERT] command failed: %s: %s", type(exc).__name__, exc)
         try:
@@ -237,9 +285,11 @@ async def _callback(update, context):
                 chat_id=_chat_id,
                 text=f"<code>{html.escape(address)}</code>",
                 parse_mode="HTML",
+                message_thread_id=getattr(query.message, "message_thread_id", None),
             )
         else:
-            await _send(context.bot, outbound.text, outbound.buttons)
+            await _send(context.bot, outbound.text, outbound.buttons,
+                        thread_id=getattr(query.message, "message_thread_id", None))
     except Exception as exc:
         logger.error("[PRICE_ALERT] callback failed: %s: %s", type(exc).__name__, exc)
 
