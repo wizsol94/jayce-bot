@@ -8134,5 +8134,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKEMmpxnUOH1YRE9yGc1juQxAxsQ2oBAAKQDGsbKcaQR4aL6lwLa5cCAQADAgADdwADPQQ",
     "notes": "[OVERRIDE] CLEAN STRUCTURE RSI SPIKED 87 WHALE CONVICTION",
     "trained_at": "2026-08-04T08:05:58.491874"
+  },
+  {
+    "chart_id": "618FZ-QUAKE-1M-20260804-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "QUAKE",
+    "timeframe": "1M",
+    "date": "2026-08-04",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 160,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKEY2pyZOXwwbLr0bgx1VqJpYAkaAyGAAMNaxspxphHDyidU3jPEOoBAAMCAAN3AAM9BA",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 84",
+    "trained_at": "2026-08-04T22:17:36.715010"
   }
 ]
