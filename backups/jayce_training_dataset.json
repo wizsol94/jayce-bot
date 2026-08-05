@@ -8152,5 +8152,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKEZ2pyZa18mxjEpMcSTFAZkKfc7PvAAAIBDWsbKcaYR_VXswY1r_DtAQADAgADdwADPQQ",
     "notes": "[OVERRIDE] WHALE CONVICTION CLEAN STRUCTURE RSI SPIKED 87",
     "trained_at": "2026-08-04T22:20:57.066006"
+  },
+  {
+    "chart_id": "786FZ-JLY-1M-20260805-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "JLY",
+    "timeframe": "1M",
+    "date": "2026-08-05",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKEd2pym0qIe87DL_H8tz6cxpjvvu1QAAITDWsbKcaYR76G17HBVWUOAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 88",
+    "trained_at": "2026-08-05T02:09:35.806304"
   }
 ]
