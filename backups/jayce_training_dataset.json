@@ -8170,5 +8170,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKEd2pym0qIe87DL_H8tz6cxpjvvu1QAAITDWsbKcaYR76G17HBVWUOAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 88",
     "trained_at": "2026-08-05T02:09:35.806304"
+  },
+  {
+    "chart_id": "618FZ-VAR-CHIIKAWA-15M-20260805-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "CHIIKAWA",
+    "timeframe": "15M",
+    "date": "2026-08-05",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 190,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKEgmpyu83zvU951jZhYQaaF4Vofar6AAIoDWsbKcaYR_irn4MFFJVoAQADAgADdwADPQQ",
+    "notes": "[VARIATION] CLEAN STRUCTURE RSI SPIKED 80",
+    "trained_at": "2026-08-05T04:28:33.455181"
   }
 ]
