@@ -8278,5 +8278,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKFOWp1XZCpN7IOT8me8Xm4s9Xwq0u1AAJFDGsbA2WwR_kgpyCS5HesAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 88",
     "trained_at": "2026-08-07T04:23:33.136378"
+  },
+  {
+    "chart_id": "786FZ-TINYTANK-1M-20260807-001",
+    "setup_name": "786 + Flip Zone",
+    "canonical_key": "786_flip_zone",
+    "token": "TINYTANK",
+    "timeframe": "1M",
+    "date": "2026-08-07",
+    "fib_depth": "786",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 100,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKFPGp1Xr4TCs-4BEmlQRhSQ3x6zUPyAAJGDGsbA2WwRy1PpRzQxTJlAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 85",
+    "trained_at": "2026-08-07T04:28:08.365284"
   }
 ]
