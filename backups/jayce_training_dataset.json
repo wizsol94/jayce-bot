@@ -8296,5 +8296,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKFPGp1Xr4TCs-4BEmlQRhSQ3x6zUPyAAJGDGsbA2WwRy1PpRzQxTJlAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 85",
     "trained_at": "2026-08-07T04:28:08.365284"
+  },
+  {
+    "chart_id": "618FZ-GOON-1M-20260807-001",
+    "setup_name": "618 + Flip Zone",
+    "canonical_key": "618_flip_zone",
+    "token": "GOON",
+    "timeframe": "1M",
+    "date": "2026-08-07",
+    "fib_depth": "618",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 50,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKFbmp2O3RFoQkm5hlTlUUbpgcXxWzxAALdDmsbUyawR8BVOKi3p-3oAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE RSI SPIKED 90 HIGH VOLUME",
+    "trained_at": "2026-08-07T20:09:54.895611"
   }
 ]
