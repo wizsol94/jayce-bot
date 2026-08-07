@@ -8314,5 +8314,23 @@
     "screenshot_fingerprint_id": "AgACAgEAAxkBAAKFbmp2O3RFoQkm5hlTlUUbpgcXxWzxAALdDmsbUyawR8BVOKi3p-3oAQADAgADdwADPQQ",
     "notes": "CLEAN STRUCTURE RSI SPIKED 90 HIGH VOLUME",
     "trained_at": "2026-08-07T20:09:54.895611"
+  },
+  {
+    "chart_id": "50FZ-CHROME-1M-20260807-001",
+    "setup_name": "50 + Flip Zone",
+    "canonical_key": "50_flip_zone",
+    "token": "CHROME",
+    "timeframe": "1M",
+    "date": "2026-08-07",
+    "fib_depth": "50",
+    "structure_state": "Trained",
+    "rsi_behavior": "",
+    "whale_conviction": false,
+    "violent_mode": false,
+    "outcome_percentage": 150,
+    "expansion_time_minutes": 0,
+    "screenshot_fingerprint_id": "AgACAgEAAxkBAAKFfWp2YaIa64fB9JHm_Uj5DbEGd43fAAIZD2sbUya4R5_DtnGd83gOAQADAgADdwADPQQ",
+    "notes": "CLEAN STRUCTURE WHALE CONVICTION RSI SPIKED 83",
+    "trained_at": "2026-08-07T22:53:02.401762"
   }
 ]
